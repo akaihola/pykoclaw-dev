@@ -249,7 +249,7 @@ Add `.env` file loading to both `Settings` and `WhatsAppSettings` using pydantic
 
 ---
 
-- [ ] 3. Add and fix tests for `.env` loading behaviour
+- [x] 3. Add and fix tests for `.env` loading behaviour
 
   **What to do**:
   - **Core tests** (`pykoclaw/tests/`): Add a test file or tests to an existing file covering:
