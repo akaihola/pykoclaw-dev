@@ -1,0 +1,78 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.11, pytest-9.0.2, pluggy-1.6.0 -- /home/agent/pykoclaw/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/agent/pykoclaw/pykoclaw-whatsapp
+configfile: pyproject.toml
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 52 items
+
+tests/test_batch.py::test_timer_fires_after_window PASSED                [  1%]
+tests/test_batch.py::test_multiple_messages_single_flush PASSED          [  3%]
+tests/test_batch.py::test_independent_chat_timers PASSED                 [  5%]
+tests/test_batch.py::test_hard_mention_flush PASSED                      [  7%]
+tests/test_batch.py::test_hard_mention_includes_accumulated PASSED       [  9%]
+tests/test_batch.py::test_concurrent_flush_blocked PASSED                [ 11%]
+tests/test_batch.py::test_pending_reflush PASSED                         [ 13%]
+tests/test_batch.py::test_empty_batch_skipped PASSED                     [ 15%]
+tests/test_batch.py::test_module_imports PASSED                          [ 17%]
+tests/test_connection.py::test_session_resumption PASSED                 [ 19%]
+tests/test_connection.py::test_session_resumption_no_existing PASSED     [ 21%]
+tests/test_connection.py::test_reply_suppression_no_text PASSED          [ 23%]
+tests/test_connection.py::test_reply_suppression_empty_text PASSED       [ 25%]
+tests/test_connection.py::test_reply_sent_with_text PASSED               [ 26%]
+tests/test_connection.py::test_hard_mention_system_prompt PASSED         [ 28%]
+tests/test_connection.py::test_ambient_system_prompt PASSED              [ 30%]
+tests/test_connection.py::test_system_prompt_includes_trigger_name PASSED [ 32%]
+tests/test_handler.py::test_format_xml_message PASSED                    [ 34%]
+tests/test_handler.py::test_format_xml_message_escapes_html PASSED       [ 36%]
+tests/test_handler.py::test_format_xml_messages PASSED                   [ 38%]
+tests/test_handler.py::test_store_message PASSED                         [ 40%]
+tests/test_handler.py::test_update_chat_timestamp PASSED                 [ 42%]
+tests/test_handler.py::test_update_global_cursor PASSED                  [ 44%]
+tests/test_handler.py::test_update_agent_cursor PASSED                   [ 46%]
+tests/test_handler.py::test_get_new_messages_for_chat PASSED             [ 48%]
+tests/test_handler.py::test_extract_text_from_conversation PASSED        [ 50%]
+tests/test_handler.py::test_extract_text_from_extended_text PASSED       [ 51%]
+tests/test_handler.py::test_extract_text_returns_none_for_unsupported PASSED [ 53%]
+tests/test_handler.py::test_non_mention_enters_batch PASSED              [ 55%]
+tests/test_handler.py::test_hard_mention_flushes PASSED                  [ 57%]
+tests/test_handler.py::test_hard_mention_case_insensitive PASSED         [ 59%]
+tests/test_handler.py::test_self_chat_immediate PASSED                   [ 61%]
+tests/test_handler.py::test_is_from_me_skipped PASSED                    [ 63%]
+tests/test_handler.py::test_status_broadcast_skipped PASSED              [ 65%]
+tests/test_queue.py::test_queued_message_creation PASSED                 [ 67%]
+tests/test_queue.py::test_outgoing_queue_initialization PASSED           [ 69%]
+tests/test_queue.py::test_outgoing_queue_connected_property PASSED       [ 71%]
+tests/test_queue.py::test_enqueue_adds_message PASSED                    [ 73%]
+tests/test_queue.py::test_send_when_disconnected_queues_message PASSED   [ 75%]
+tests/test_queue.py::test_send_when_connected_sends_immediately PASSED   [ 76%]
+tests/test_queue.py::test_send_queues_on_failure PASSED                  [ 78%]
+tests/test_queue.py::test_flush_sends_all_queued_messages PASSED         [ 80%]
+tests/test_queue.py::test_flush_does_nothing_when_empty PASSED           [ 82%]
+tests/test_queue.py::test_flush_prevents_concurrent_flushes PASSED       [ 84%]
+tests/test_queue.py::test_len_returns_queue_size PASSED                  [ 86%]
+tests/test_whatsapp_plugin.py::test_whatsapp_plugin_implements_protocol PASSED [ 88%]
+tests/test_whatsapp_plugin.py::test_register_commands_adds_whatsapp_group PASSED [ 90%]
+tests/test_whatsapp_plugin.py::test_whatsapp_group_has_subcommands PASSED [ 92%]
+tests/test_whatsapp_plugin.py::test_get_db_migrations_returns_valid_sql PASSED [ 94%]
+tests/test_whatsapp_plugin.py::test_get_config_class_returns_whatsapp_settings PASSED [ 96%]
+tests/test_whatsapp_plugin.py::test_get_mcp_servers_returns_whatsapp_server PASSED [ 98%]
+tests/test_whatsapp_plugin.py::test_whatsapp_settings_defaults PASSED    [100%]/home/agent/pykoclaw/.venv/lib/python3.13/site-packages/_pytest/unraisableexception.py:33: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+  gc.collect()
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+
+
+=============================== warnings summary ===============================
+src/pykoclaw_whatsapp/config.py:11
+  /home/agent/pykoclaw/pykoclaw-whatsapp/src/pykoclaw_whatsapp/config.py:11: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class WhatsAppSettings(BaseSettings):
+
+tests/test_handler.py::test_hard_mention_case_insensitive
+  /run/current-system/sw/lib/python3.13/tokenize.py:466: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    def tokenize(readline):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 52 passed, 2 warnings in 1.48s ========================
