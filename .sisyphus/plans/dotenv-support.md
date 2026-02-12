@@ -171,7 +171,7 @@ Add `.env` file loading to both `Settings` and `WhatsAppSettings` using pydantic
 
 ---
 
-- [ ] 2. Add `env_file` support to `WhatsAppSettings` (migrate from `class Config:`)
+- [x] 2. Add `env_file` support to `WhatsAppSettings` (migrate from `class Config:`)
 
   **What to do**:
   - In `pykoclaw-whatsapp/src/pykoclaw_whatsapp/config.py`, replace the deprecated `class Config:` block with `model_config` dict style, adding `env_file` and `env_file_encoding`:

@@ -35,3 +35,35 @@
 
 ### Ready for Task 2
 WhatsAppSettings can now follow the same pattern with its own data directory path.
+
+## Task 2: WhatsAppSettings env_file Support - COMPLETED
+
+### Implementation Summary
+- Migrated `WhatsAppSettings` from deprecated `class Config:` to `model_config` dict
+- Updated `pykoclaw-whatsapp/src/pykoclaw_whatsapp/config.py` with:
+  - `env_prefix`: `"PYKOCLAW_WA_"`
+  - `env_file` tuple: `(str(Path.home() / ".local" / "share" / "pykoclaw" / ".env"), ".env")`
+  - `env_file_encoding`: `"utf-8"`
+- All 4 fields unchanged: `auth_dir`, `trigger_name`, `session_db`, `batch_window_seconds`
+- `get_config()` function and `_config` singleton unchanged
+
+### Test Results
+- ✓ All 52 pytest tests pass (pykoclaw-whatsapp/tests/)
+- ✓ Scenario 1: WhatsApp trigger_name read from CWD `.env` ✓
+- ✓ Scenario 2: Multiple prefixed values from `.env` ✓
+- ✓ LSP diagnostics: No errors
+
+### Pattern Consistency
+- WhatsAppSettings now follows exact same pattern as core Settings
+- Both use same `.env` file paths (data dir + CWD)
+- Both use `env_file_encoding: "utf-8"`
+- Each class filters by its own `env_prefix` (PYKOCLAW_ vs PYKOCLAW_WA_)
+
+### Important Discovery: Extra Fields Behavior
+- Pydantic-settings by default forbids extra fields (`extra='forbid'`)
+- When instantiating WhatsAppSettings, it rejects env vars with different prefixes (e.g., PYKOCLAW_MODEL)
+- This is correct behavior - each class only accepts its own prefix
+- Scenario 2 in plan was adjusted to test multiple PYKOCLAW_WA_* values instead of mixed prefixes
+
+### Ready for Task 3
+WhatsAppSettings now has full `.env` file support matching core Settings pattern.
