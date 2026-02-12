@@ -45,12 +45,12 @@ Add `.env` file loading to both `Settings` and `WhatsAppSettings` using pydantic
 - New/updated tests in both packages
 
 ### Definition of Done
-- [ ] `uv run pytest pykoclaw/tests/ -x -q` passes
-- [ ] `uv run pytest pykoclaw-whatsapp/tests/ -x -q` passes
-- [ ] Settings are read from CWD `.env` when present
-- [ ] Settings are read from `~/.local/share/pykoclaw/.env` when present
-- [ ] Env vars override `.env` values
-- [ ] Missing `.env` files cause no errors
+- [x] `uv run pytest pykoclaw/tests/ -x -q` passes
+- [x] `uv run pytest pykoclaw-whatsapp/tests/ -x -q` passes
+- [x] Settings are read from CWD `.env` when present
+- [x] Settings are read from `~/.local/share/pykoclaw/.env` when present
+- [x] Env vars override `.env` values
+- [x] Missing `.env` files cause no errors
 
 ### Must Have
 - `.env` file loading from CWD (`.env` relative path)
@@ -329,11 +329,11 @@ uv run pytest pykoclaw-whatsapp/tests/ -x -q  # Expected: all pass
 ```
 
 ### Final Checklist
-- [ ] Both `Settings` and `WhatsAppSettings` have `env_file` in `model_config`
-- [ ] `WhatsAppSettings` migrated from `class Config:` to `model_config` dict
-- [ ] CWD `.env` is loaded with higher priority than data dir `.env`
-- [ ] Env vars override all `.env` values
-- [ ] Missing `.env` files are silently ignored
-- [ ] No new dependencies added
-- [ ] All existing tests still pass
-- [ ] No `.env.example` or CLI config commands added
+- [x] Both `Settings` and `WhatsAppSettings` have `env_file` in `model_config`
+- [x] `WhatsAppSettings` migrated from `class Config:` to `model_config` dict
+- [x] CWD `.env` is loaded with higher priority than data dir `.env`
+- [x] Env vars override all `.env` values
+- [x] Missing `.env` files are silently ignored
+- [x] No new dependencies added
+- [x] All existing tests still pass
+- [x] No `.env.example` or CLI config commands added
