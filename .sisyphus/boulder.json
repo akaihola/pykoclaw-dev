@@ -1,11 +1,9 @@
 {
-  "active_plan": null,
-  "started_at": "2026-02-14T17:38:41.437Z",
-  "completed_at": "2026-02-14T19:42:00.000Z",
+  "active_plan": "/home/akaihola/prg/pykoclaw/.sisyphus/plans/plugin-architecture-and-whatsapp.md",
+  "started_at": "2026-02-11T17:37:11.593Z",
   "session_ids": [
-    "ses_3a2cf3fedffe66IADSCYVidkQq"
+    "ses_3b6e62ae0ffeb4eZuoZBbvIaYM"
   ],
-  "plan_name": "acp-crash-resilience",
-  "agent": "atlas",
-  "status": "completed"
+  "plan_name": "plugin-architecture-and-whatsapp",
+  "agent": "atlas"
 }
