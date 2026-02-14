@@ -48,13 +48,15 @@ Second (and subsequent) messages to any ACP conversation get no response.
 The Claude CLI exits with code 1, pykoclaw sends an error notification +
 `stopReason`, but Mitto doesn't display the error to the user.
 
-### Status
+### Fix (2026-02-14)
 
-**Open.** Possible fixes:
+Implemented `ClientPool` in `pykoclaw-acp/src/pykoclaw_acp/client_pool.py`.
+One long-lived `ClaudeSDKClient` per conversation, managed by the ACP server.
+Core (`agent_core.py`, `dispatch.py`) unchanged — ACP server bypasses
+`dispatch_to_agent()` and talks to `ClientPool.send()` directly.
 
-- Keep a long-lived `ClaudeSDKClient` per conversation instead of per-message
-- Don't resume — always start fresh (loses conversation context)
-- Investigate if newer claude-agent-sdk versions handle resume differently
+The pool handles: create-on-first-use, per-session lock, crash retry,
+idle eviction (10 min), graceful shutdown.
 
 ## Key takeaways
 

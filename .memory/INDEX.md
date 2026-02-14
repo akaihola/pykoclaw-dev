@@ -12,7 +12,7 @@ Cross-reference of all memory files in the Pykoclaw project.
 | [channel-dispatch.md] | messaging, architecture     | How channel plugins route messages through dispatch_to_agent() |
 | [workspace-layout.md] | workspace, git, uv          | Multi-repo workspace structure and git boundaries              |
 | [mitto-setup.md]      | mitto, acp, tailscale, mobile | Mitto web client setup, config, Tailscale, and known gotchas |
-| [acp-protocol-fix.md] | acp, protocol, bugfix, mitto  | ACP prompt response ordering + session resume failure        |
+| [acp-protocol-fix.md] | acp, protocol, bugfix, mitto  | ACP prompt response ordering + session resume → ClientPool fix |
 | [acp-debugging.md]    | acp, mitto, debugging, claude-sdk | How to debug Mitto ↔ pykoclaw ↔ Claude CLI issues      |
 
 ## By tag
