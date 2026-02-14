@@ -1,11 +1,11 @@
 {
   "active_plan": null,
-  "started_at": "2026-02-12T21:20:55.763Z",
-  "completed_at": "2026-02-12T23:30:00.000Z",
+  "started_at": "2026-02-14T17:38:41.437Z",
+  "completed_at": "2026-02-14T19:42:00.000Z",
   "session_ids": [
-    "ses_3ac7b8595ffeL5zA4w7OEnEYA0"
+    "ses_3a2cf3fedffe66IADSCYVidkQq"
   ],
-  "plan_name": "db-layer-improvements",
+  "plan_name": "acp-crash-resilience",
   "agent": "atlas",
   "status": "completed"
 }
