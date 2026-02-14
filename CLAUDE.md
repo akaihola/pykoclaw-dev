@@ -39,6 +39,8 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 - Pydantic Settings for configuration with `PYKOCLAW_` env prefix.
 - Plugins implement `PykoClawPlugin` protocol or extend `PykoClawPluginBase`.
 - Entry points group: `pykoclaw.plugins`.
+- In Markdown files, use [reference links] — never inline `[text](url)`.
+  Collect all link definitions at the end of the file.
 
 ## Architecture patterns
 
@@ -118,3 +120,4 @@ when adding or modifying memory files.
   this workspace root (except for workspace-level files like this one).
 
 [memory index]: .memory/INDEX.md
+[reference links]: https://spec.commonmark.org/0.31.2/#reference-link
