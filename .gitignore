@@ -1,0 +1,7 @@
+# Ignore pykoclaw package directories - these are separate git repositories
+# that developers should clone and manage independently
+pykoclaw/
+pykoclaw-*/
+
+# uv
+.venv
