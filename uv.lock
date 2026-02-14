@@ -5,7 +5,9 @@ requires-python = ">=3.12"
 [manifest]
 members = [
     "pykoclaw",
+    "pykoclaw-acp",
     "pykoclaw-chat",
+    "pykoclaw-messaging",
     "pykoclaw-whatsapp",
     "pykoclaw-workspace",
 ]
@@ -712,6 +714,35 @@ requires-dist = [
 dev = [{ name = "pytest" }]
 
 [[package]]
+name = "pykoclaw-acp"
+version = "0.1.0"
+source = { editable = "pykoclaw-acp" }
+dependencies = [
+    { name = "click" },
+    { name = "pykoclaw" },
+    { name = "pykoclaw-messaging" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "click" },
+    { name = "pykoclaw", editable = "pykoclaw" },
+    { name = "pykoclaw-messaging", editable = "pykoclaw-messaging" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+]
+
+[[package]]
 name = "pykoclaw-chat"
 version = "0.1.0"
 source = { editable = "pykoclaw-chat" }
@@ -737,6 +768,29 @@ requires-dist = [
 dev = [{ name = "pytest" }]
 
 [[package]]
+name = "pykoclaw-messaging"
+version = "0.1.0"
+source = { editable = "pykoclaw-messaging" }
+dependencies = [
+    { name = "pykoclaw" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pykoclaw", editable = "pykoclaw" }]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+]
+
+[[package]]
 name = "pykoclaw-whatsapp"
 version = "0.1.0"
 source = { editable = "pykoclaw-whatsapp" }
@@ -744,6 +798,7 @@ dependencies = [
     { name = "click" },
     { name = "neonize" },
     { name = "pykoclaw" },
+    { name = "pykoclaw-messaging" },
     { name = "qrcode" },
 ]
 
@@ -758,6 +813,7 @@ requires-dist = [
     { name = "click" },
     { name = "neonize", specifier = ">=0.3.14" },
     { name = "pykoclaw", editable = "pykoclaw" },
+    { name = "pykoclaw-messaging", editable = "pykoclaw-messaging" },
     { name = "qrcode" },
 ]
 
