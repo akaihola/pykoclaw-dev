@@ -62,6 +62,9 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 - Run all: `uv run pytest`
 - Run single package: `uv run pytest pykoclaw/tests/`
 - Tests live in `tests/` within each package directory.
+- **Bug reports:** when a malfunction is reported, always reproduce the issue
+  first by writing a failing test case before implementing the fix (red → green
+  workflow).
 
 ## Key files to know
 
