@@ -108,6 +108,18 @@ when adding or modifying memory files.
 [another.md]: another.md
 ```
 
+## Self-improvement rules
+
+- When the user asks to adopt and remember a new behavior or rule, add it to
+  this file (`./CLAUDE.md`).
+- When a task requires reading a lot of code or docs before you can start, edit
+  the easily accessible documentation within the relevant repository (e.g.
+  `CLAUDE.md`, `README.md`) to give better pointers and base information for
+  next time.
+- When you notice documentation vs. code discrepancies, raise a flag to the user
+  and offer to either correct the documentation or fix the code to match the
+  spec.
+
 ## Important gotchas
 
 - Neonize timestamps are in **milliseconds** — divide by 1000.
