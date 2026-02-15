@@ -65,6 +65,12 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 - **Bug reports:** when a malfunction is reported, always reproduce the issue
   first by writing a failing test case before implementing the fix (red → green
   workflow).
+- **Schema changes:** when adding columns to a `CREATE TABLE IF NOT EXISTS`
+  statement, always also add `ALTER TABLE ADD COLUMN` migration logic in
+  `init_db()` and a test that creates an old-schema database, calls `init_db()`,
+  and verifies the new columns exist. SQLite's `IF NOT EXISTS` silently skips
+  the whole statement if the table already exists — it never adds missing
+  columns.
 
 ## Key files to know
 
@@ -133,6 +139,9 @@ when adding or modifying memory files.
   members.
 - Each subdir is its own git repo. Commits go into the individual repos, not
   this workspace root (except for workspace-level files like this one).
+- SQLite `CREATE TABLE IF NOT EXISTS` never modifies an existing table — it
+  silently does nothing. New columns need explicit `ALTER TABLE ADD COLUMN`
+  migrations.
 
 [memory index]: .memory/INDEX.md
 [reference links]: https://spec.commonmark.org/0.31.2/#reference-link
