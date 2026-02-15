@@ -1,7 +1,9 @@
 {
-  "active_plan": "/home/agent/pykoclaw/.sisyphus/plans/scheduled-task-delivery.md",
-  "started_at": "2026-02-15T22:00:00.000Z",
-  "session_ids": [],
-  "plan_name": "scheduled-task-delivery",
-  "agent": "atlas"
+  "active_plan": "/home/agent/pykoclaw/.sisyphus/plans/cli-path-config.md",
+  "started_at": "2026-02-15T21:59:22.728Z",
+  "completed_at": "2026-02-16T00:05:00.000Z",
+  "session_ids": ["ses_39e71f6d2ffeRPHJUoQp7ZlsLJ"],
+  "plan_name": "cli-path-config",
+  "agent": "atlas",
+  "status": "completed"
 }
