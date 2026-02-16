@@ -15,6 +15,7 @@ Cross-reference of all memory files in the Pykoclaw project.
 | [acp-protocol-fix.md] | acp, protocol, bugfix, mitto  | ACP prompt response ordering + session resume → ClientPool fix |
 | [acp-debugging.md]    | acp, mitto, debugging, claude-sdk | How to debug Mitto ↔ pykoclaw ↔ Claude CLI issues      |
 | [sdk-schema-gotcha.md] | claude-sdk, mcp, tools, schema    | Simple dict schemas make all fields required; use JSON Schema passthrough |
+| [sqlite-migration-gotcha.md] | sqlite, gotcha, migration, schema | CREATE TABLE IF NOT EXISTS never adds missing columns — need ALTER TABLE |
 
 ## By tag
 
@@ -26,13 +27,15 @@ Cross-reference of all memory files in the Pykoclaw project.
 | debugging    | [acp-debugging.md]                        |
 | architecture | [plugin-system.md], [channel-dispatch.md] |
 | git          | [workspace-layout.md]                     |
-| gotcha       | [neonize-quirks.md]                       |
+| gotcha       | [neonize-quirks.md], [sqlite-migration-gotcha.md] |
 | messaging    | [channel-dispatch.md]                     |
 | mitto        | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md] |
 | mobile       | [mitto-setup.md]                          |
 | neonize      | [neonize-quirks.md]                       |
 | plugins      | [plugin-system.md]                        |
-| sqlite       | [threading-model.md]                      |
+| migration    | [sqlite-migration-gotcha.md]              |
+| schema       | [sdk-schema-gotcha.md], [sqlite-migration-gotcha.md] |
+| sqlite       | [threading-model.md], [sqlite-migration-gotcha.md] |
 | tailscale    | [mitto-setup.md]                          |
 | threading    | [threading-model.md]                      |
 | uv           | [workspace-layout.md]                     |
@@ -40,7 +43,7 @@ Cross-reference of all memory files in the Pykoclaw project.
 | protocol     | [acp-protocol-fix.md]                     |
 | workspace    | [workspace-layout.md]                     |
 | mcp          | [sdk-schema-gotcha.md]                    |
-| schema       | [sdk-schema-gotcha.md]                    |
+
 | tools        | [sdk-schema-gotcha.md]                    |
 
 [acp-debugging.md]: acp-debugging.md
@@ -52,3 +55,4 @@ Cross-reference of all memory files in the Pykoclaw project.
 [workspace-layout.md]: workspace-layout.md
 [mitto-setup.md]: mitto-setup.md
 [sdk-schema-gotcha.md]: sdk-schema-gotcha.md
+[sqlite-migration-gotcha.md]: sqlite-migration-gotcha.md

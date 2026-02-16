@@ -52,7 +52,8 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 - **Channel prefix:** conversations are named `{prefix}-{id}` (e.g. `wa-<jid>`,
   `acp-<uuid>`).
 - **DB:** SQLite with `ThreadSafeConnection` wrapper. Tables: `conversations`,
-  `scheduled_tasks`, `task_run_logs`. Plugins add tables via `get_db_migrations()`.
+  `scheduled_tasks`, `task_run_logs`, `delivery_queue`. Plugins add tables via
+  `get_db_migrations()`.
 - **MCP tools:** defined in `pykoclaw/tools.py`, created via
   `create_sdk_mcp_server()` from `claude-agent-sdk`.
 

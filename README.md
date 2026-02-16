@@ -115,10 +115,11 @@ uv run pytest
 
 ## Configuration
 
-| Variable         | Default                   | Description                                       |
-| ---------------- | ------------------------- | ------------------------------------------------- |
-| `PYKOCLAW_DATA`  | `~/.local/share/pykoclaw` | Data directory (database, conversations, history)  |
-| `PYKOCLAW_MODEL` | `claude-opus-4-6`         | Claude model to use                                |
+| Variable             | Default                   | Description                                       |
+| -------------------- | ------------------------- | ------------------------------------------------- |
+| `PYKOCLAW_DATA`      | `~/.local/share/pykoclaw` | Data directory (database, conversations, history)  |
+| `PYKOCLAW_MODEL`     | `claude-opus-4-6`         | Claude model to use                                |
+| `PYKOCLAW_CLI_PATH`  | *(bundled)*               | Path to Claude CLI binary (overrides bundled SDK)  |
 
 WhatsApp-specific settings: see
 [pykoclaw-whatsapp README].

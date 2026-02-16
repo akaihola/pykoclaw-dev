@@ -39,9 +39,9 @@ Make pykoclaw use the system Claude CLI instead of the bundled one.
 - Environment variable: `PYKOCLAW_CLI_PATH`
 
 ### Definition of Done
-- [ ] `PYKOCLAW_CLI_PATH=/home/agent/.local/bin/claude pykoclaw acp` uses system Claude
-- [ ] Mitto sessions work without "peer disconnected" errors
-- [ ] Claude version reported is 2.1.42 (or whatever system version is)
+- [x] `PYKOCLAW_CLI_PATH=/home/agent/.local/bin/claude pykoclaw acp` uses system Claude
+- [x] Mitto sessions work without "peer disconnected" errors
+- [x] Claude version reported is 2.1.42 (or whatever system version is)
 
 ### Must Have
 - Works with unset `cli_path` (defaults to bundled)
@@ -82,7 +82,7 @@ Make pykoclaw use the system Claude CLI instead of the bundled one.
 
 ## TODOs
 
-- [ ] 1. Add cli_path setting to pykoclaw/config.py
+- [x] 1. Add cli_path setting to pykoclaw/config.py
 
   **What to do**:
   - Add `cli_path: Path | None = None` to Settings class
@@ -95,10 +95,10 @@ Make pykoclaw use the system Claude CLI instead of the bundled one.
   - `pykoclaw/src/pykoclaw/config.py:18` - existing settings pattern
   
   **Acceptance Criteria**:
-  - [ ] Setting exists and defaults to None (use bundled)
-  - [ ] `PYKOCLAW_CLI_PATH=/path/to/claude` sets the value
+  - [x] Setting exists and defaults to None (use bundled)
+  - [x] `PYKOCLAW_CLI_PATH=/path/to/claude` sets the value
 
-- [ ] 2. Pass cli_path to ClaudeAgentOptions in client_pool.py
+- [x] 2. Pass cli_path to ClaudeAgentOptions in client_pool.py
 
   **What to do**:
   - Import the cli_path from settings
@@ -108,8 +108,8 @@ Make pykoclaw use the system Claude CLI instead of the bundled one.
   - `pykoclaw-acp/src/pykoclaw_acp/client_pool.py:131-138` - where ClaudeAgentOptions is created
   
   **Acceptance Criteria**:
-  - [ ] When cli_path is set, Claude uses that binary
-  - [ ] When cli_path is None, bundled Claude is used (default behavior unchanged)
+  - [x] When cli_path is set, Claude uses that binary
+  - [x] When cli_path is None, bundled Claude is used (default behavior unchanged)
 
 ---
 
@@ -123,8 +123,8 @@ cd /home/agent/pykoclaw && PYKOCLAW_CLI_PATH=/home/agent/.local/bin/claude uv ru
 ```
 
 ### Final Checklist
-- [ ] cli_path setting added to config
-- [ ] Setting passed to ClaudeAgentOptions
-- [ ] Works with environment variable
-- [ ] Default (None) uses bundled Claude
-- [ ] Mitto sessions work without crashes
+- [x] cli_path setting added to config
+- [x] Setting passed to ClaudeAgentOptions
+- [x] Works with environment variable
+- [x] Default (None) uses bundled Claude
+- [x] Mitto sessions work without crashes
