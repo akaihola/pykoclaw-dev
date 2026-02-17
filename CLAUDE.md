@@ -6,6 +6,12 @@ Pykoclaw is a modular Python AI agent ecosystem. This is the `pykoclaw-dev`
 workspace root that aggregates five packages via uv workspace. See `README.md`
 for the full ecosystem map.
 
+## Practices
+
+- Always write useful insights, practices and rules applicable to all pykoclaw
+  repos/components/plugins immediately into `./CLAUDE.md` (this file).
+  Details specific to a single repo can go to that repo's `./pykoclaw*/.claude/CLAUDE.md`.
+
 ## Build & run
 
 - **Package manager:** uv (NEVER use pip/virtualenv directly)
