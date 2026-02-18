@@ -117,6 +117,16 @@ claude --resume <session-id> --output-format stream-json \
   exception in `run()` loop catches it but no response sent), Mitto hangs.
 - `ClaudeSDKClient` resume doesn't work across process restarts — the session
   JSONL only gets a `dequeue` operation, not full conversation data.
+- **Zombie chain:** `asyncio.run()` cleanup hangs → watchdog SIGKILLs →
+  Mitto doesn't `waitpid()` → zombie → "broken pipe" on next prompt.
+  See [asyncio-shutdown-gotcha.md] for the fix.
+- **Restarting Mitto:** If the old process still holds port 8080, `kill <old-pid>`
+  first, then `systemctl --user restart mitto-web`. The systemd restart alone
+  will crash-loop on "address already in use".
+- **Faulthandler traces:** `~/.local/state/pykoclaw/faulthandler-<pid>.txt` —
+  non-empty files contain watchdog-captured tracebacks showing where the event
+  loop was stuck.
 
 [acp-protocol-fix.md]: acp-protocol-fix.md
+[asyncio-shutdown-gotcha.md]: asyncio-shutdown-gotcha.md
 [mitto-setup.md]: mitto-setup.md

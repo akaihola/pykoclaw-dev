@@ -14,6 +14,7 @@ Cross-reference of all memory files in the Pykoclaw project.
 | [mitto-setup.md]      | mitto, acp, tailscale, mobile | Mitto web client setup, config, Tailscale, and known gotchas |
 | [acp-protocol-fix.md] | acp, protocol, bugfix, mitto  | ACP prompt response ordering + session resume → ClientPool fix |
 | [acp-debugging.md]    | acp, mitto, debugging, claude-sdk | How to debug Mitto ↔ pykoclaw ↔ Claude CLI issues      |
+| [asyncio-shutdown-gotcha.md] | asyncio, gotcha, acp, mitto, zombie | asyncio.run() cleanup hangs forever — use manual loop |
 | [sdk-schema-gotcha.md] | claude-sdk, mcp, tools, schema    | Simple dict schemas make all fields required; use JSON Schema passthrough |
 | [sqlite-migration-gotcha.md] | sqlite, gotcha, migration, schema | CREATE TABLE IF NOT EXISTS never adds missing columns — need ALTER TABLE |
 
@@ -21,15 +22,17 @@ Cross-reference of all memory files in the Pykoclaw project.
 
 | Tag          | Files                                     |
 | ------------ | ----------------------------------------- |
-| acp          | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md] |
+| acp          | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md] |
 | bugfix       | [acp-protocol-fix.md]                     |
 | claude-sdk   | [acp-protocol-fix.md], [acp-debugging.md], [sdk-schema-gotcha.md] |
 | debugging    | [acp-debugging.md]                        |
 | architecture | [plugin-system.md], [channel-dispatch.md] |
 | git          | [workspace-layout.md]                     |
-| gotcha       | [neonize-quirks.md], [sqlite-migration-gotcha.md] |
+| asyncio      | [asyncio-shutdown-gotcha.md]                      |
+| gotcha       | [neonize-quirks.md], [sqlite-migration-gotcha.md], [asyncio-shutdown-gotcha.md] |
 | messaging    | [channel-dispatch.md]                     |
-| mitto        | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md] |
+| mitto        | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md] |
+| zombie       | [asyncio-shutdown-gotcha.md]                      |
 | mobile       | [mitto-setup.md]                          |
 | neonize      | [neonize-quirks.md]                       |
 | plugins      | [plugin-system.md]                        |
@@ -48,6 +51,7 @@ Cross-reference of all memory files in the Pykoclaw project.
 
 [acp-debugging.md]: acp-debugging.md
 [acp-protocol-fix.md]: acp-protocol-fix.md
+[asyncio-shutdown-gotcha.md]: asyncio-shutdown-gotcha.md
 [threading-model.md]: threading-model.md
 [neonize-quirks.md]: neonize-quirks.md
 [plugin-system.md]: plugin-system.md

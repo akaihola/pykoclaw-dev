@@ -92,17 +92,27 @@ for repo in "${REPOS[@]}"; do
             ln -sf "$repo_path/uv.lock" "$worktree_path/uv.lock"
             echo "  Linked uv.lock"
         fi
+    else
+        # Link workspace root pyproject.toml and uv.lock into worktree base
+        if [ -f "$repo_path/pyproject.toml" ]; then
+            ln -sf "$repo_path/pyproject.toml" "$WORKTREE_BASE/pyproject.toml"
+            echo "  Linked workspace pyproject.toml to worktree base"
+        fi
+        if [ -f "$repo_path/uv.lock" ]; then
+            ln -sf "$repo_path/uv.lock" "$WORKTREE_BASE/uv.lock"
+            echo "  Linked workspace uv.lock to worktree base"
+        fi
     fi
     
     echo ""
 done
 
 echo "Running uv sync in $WORKTREE_BASE..."
-if (cd "$WORKTREE_BASE" && uv sync) 2>&1; then
+if (cd "$WORKTREE_BASE" && uv sync --all-packages) 2>&1; then
     echo "uv sync completed successfully."
 else
     echo "WARNING: uv sync failed. Dependencies may need to be installed manually."
-    echo "Run: cd $WORKTREE_BASE && uv sync"
+    echo "Run: cd $WORKTREE_BASE && uv sync --all-packages"
 fi
 
 if [ -n "$AOE_BIN" ]; then

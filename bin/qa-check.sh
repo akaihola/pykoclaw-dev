@@ -23,6 +23,65 @@ fi
 
 WORKTREE_DIR="$PYKOCLAW_DEV/$FEATURE_NAME"
 
+check_command() {
+    local cmd="$1"
+    local reason="$2"
+
+    if command -v "$cmd" >/dev/null 2>&1; then
+        return 0
+    fi
+
+    echo "Error: Required command not found: $cmd"
+    echo "Reason: $reason"
+    return 1
+}
+
+preflight_check() {
+    local failed=0
+
+    echo "=== Preflight Checks ==="
+
+    if ! check_command "uv" "Needed for pykoclaw pytest execution"; then
+        failed=1
+    fi
+
+    if ! check_command "make" "Needed for Mitto test-go and test-js targets"; then
+        failed=1
+    fi
+
+    if ! check_command "go" "Needed by Mitto Go tests"; then
+        failed=1
+    fi
+
+    if ! check_command "gcc" "Needed by cgo during Mitto Go tests"; then
+        failed=1
+    fi
+
+    if [[ ! -d "$MITTO_DIR" ]]; then
+        echo "Error: Mitto directory not found: $MITTO_DIR"
+        failed=1
+    fi
+
+    if ! (
+        cd "$WORKTREE_DIR"
+        uv run --no-sync python -c "import pytest" >/dev/null 2>&1
+    ); then
+        echo "Error: pytest is not available in worktree environment: $WORKTREE_DIR"
+        echo "Fix: cd $WORKTREE_DIR && uv sync --all-packages"
+        failed=1
+    fi
+
+    if [[ "$failed" -ne 0 ]]; then
+        echo ""
+        echo "Preflight failed. Fix the issues above and rerun QA."
+        return 1
+    fi
+
+    echo "Preflight checks passed."
+    echo ""
+    return 0
+}
+
 echo "========================================"
 echo "QA Check for feature: $FEATURE_NAME"
 echo "========================================"
@@ -32,6 +91,10 @@ echo ""
 if [[ ! -d "$WORKTREE_DIR" ]]; then
     echo "Error: Worktree directory not found: $WORKTREE_DIR"
     echo "Please provide a valid feature name or run from a worktree."
+    exit 1
+fi
+
+if ! preflight_check; then
     exit 1
 fi
 
