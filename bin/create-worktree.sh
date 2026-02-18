@@ -52,37 +52,37 @@ for repo in "${REPOS[@]}"; do
         repo_path="$WORKSPACE_ROOT/$repo"
         repo_name="$repo"
     fi
-    
+
     worktree_path="$WORKTREE_BASE/$repo_name"
-    
+
     echo "Processing: $repo_name"
-    
+
     if git -C "$repo_path" rev-parse --verify "$BRANCH_NAME" >/dev/null 2>&1; then
         echo "  ERROR: Branch '$BRANCH_NAME' already exists in $repo_name" >&2
         echo "  Skipping..."
         echo ""
         continue
     fi
-    
+
     if [ -d "$worktree_path" ]; then
         echo "  ERROR: Worktree already exists at $worktree_path" >&2
         echo "  Skipping..."
         echo ""
         continue
     fi
-    
+
     echo "  Creating branch: $BRANCH_NAME"
     git -C "$repo_path" branch "$BRANCH_NAME" || {
         echo "  ERROR: Failed to create branch in $repo_name" >&2
         continue
     }
-    
+
     echo "  Creating worktree: $worktree_path"
     git -C "$repo_path" worktree add "$worktree_path" "$BRANCH_NAME" || {
         echo "  ERROR: Failed to create worktree for $repo_name" >&2
         continue
     }
-    
+
     if [ -n "$repo" ]; then
         if [ -f "$repo_path/pyproject.toml" ]; then
             ln -sf "$repo_path/pyproject.toml" "$worktree_path/pyproject.toml"
@@ -103,7 +103,7 @@ for repo in "${REPOS[@]}"; do
             echo "  Linked workspace uv.lock to worktree base"
         fi
     fi
-    
+
     echo ""
 done
 
@@ -113,6 +113,32 @@ if (cd "$WORKTREE_BASE" && uv sync --all-packages) 2>&1; then
 else
     echo "WARNING: uv sync failed. Dependencies may need to be installed manually."
     echo "Run: cd $WORKTREE_BASE && uv sync --all-packages"
+fi
+
+if [ -n "$AOE_BIN" ]; then
+    AOE_GROUP="pykoclaw/$FEATURE_NAME"
+    echo ""
+    echo "Configuring AoE sessions..."
+
+    "$AOE_BIN" group create "$AOE_GROUP" >/dev/null 2>&1 || true
+
+    for repo in "root" "pykoclaw" "pykoclaw-acp" "pykoclaw-chat" "pykoclaw-whatsapp" "pykoclaw-messaging"; do
+        worktree_path="$WORKTREE_BASE/$repo"
+        session_title="$FEATURE_NAME-$repo"
+
+        if [ ! -d "$worktree_path" ]; then
+            continue
+        fi
+
+        if "$AOE_BIN" add "$worktree_path" --title "$session_title" --group "$AOE_GROUP" --cmd opencode >/dev/null 2>&1; then
+            echo "  Added AoE session: $session_title"
+        else
+            echo "  WARNING: Failed to add AoE session: $session_title"
+        fi
+    done
+else
+    echo ""
+    echo "AoE not found. Skipping AoE session creation."
 fi
 
 if [ -n "$AOE_BIN" ]; then
