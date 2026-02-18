@@ -7,13 +7,20 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 REPOS=(
+    ""
     "pykoclaw"
-    "pykoclaw/pykoclaw"
     "pykoclaw-acp"
     "pykoclaw-chat"
     "pykoclaw-whatsapp"
     "pykoclaw-messaging"
 )
+
+AOE_BIN=""
+if command -v aoe >/dev/null 2>&1; then
+    AOE_BIN="$(command -v aoe)"
+elif [ -x "$HOME/.cargo/bin/aoe" ]; then
+    AOE_BIN="$HOME/.cargo/bin/aoe"
+fi
 
 print_status() { echo -e "${1}${2}${NC}"; }
 
@@ -33,29 +40,54 @@ CLEANED_REPOS=()
 FAILED_REPOS=()
 
 for repo in "${REPOS[@]}"; do
-    REPO_PATH="$HOME/$repo"
-    WORKTREE_TO_REMOVE="$WORKTREE_PATH/$repo"
+    if [[ -z "$repo" ]]; then
+        REPO_PATH="$HOME/pykoclaw"
+        REPO_NAME="root"
+    else
+        REPO_PATH="$HOME/pykoclaw/$repo"
+        REPO_NAME="$repo"
+    fi
+
+    WORKTREE_TO_REMOVE="$WORKTREE_PATH/$REPO_NAME"
 
     if [[ -d "$REPO_PATH" ]] && git -C "$REPO_PATH" worktree list | grep -q "$WORKTREE_TO_REMOVE"; then
-        print_status "$YELLOW" "Removing worktree: $WORKTREE_TO_REMOVE from $repo"
+        print_status "$YELLOW" "Removing worktree: $WORKTREE_TO_REMOVE from $REPO_NAME"
 
         if git -C "$REPO_PATH" worktree remove "$WORKTREE_TO_REMOVE" 2>/dev/null; then
-            print_status "$GREEN" "  ✓ Removed worktree from $repo"
-            CLEANED_REPOS+=("$repo")
+            print_status "$GREEN" "  ✓ Removed worktree from $REPO_NAME"
+            CLEANED_REPOS+=("$REPO_NAME")
         else
             print_status "$YELLOW" "  ! Force removing (possible uncommitted changes)"
             if git -C "$REPO_PATH" worktree remove --force "$WORKTREE_TO_REMOVE" 2>/dev/null; then
-                print_status "$GREEN" "  ✓ Force removed worktree from $repo"
-                CLEANED_REPOS+=("$repo")
+                print_status "$GREEN" "  ✓ Force removed worktree from $REPO_NAME"
+                CLEANED_REPOS+=("$REPO_NAME")
             else
-                print_status "$RED" "  ✗ Failed to remove worktree from $repo"
-                FAILED_REPOS+=("$repo")
+                print_status "$RED" "  ✗ Failed to remove worktree from $REPO_NAME"
+                FAILED_REPOS+=("$REPO_NAME")
             fi
         fi
     else
-        print_status "$YELLOW" "  - No worktree found for $repo"
+        print_status "$YELLOW" "  - No worktree found for $REPO_NAME"
     fi
 done
+
+if [[ -n "$AOE_BIN" ]]; then
+    AOE_GROUP="pykoclaw/$FEATURE"
+
+    print_status "$YELLOW" ""
+    print_status "$YELLOW" "Removing AoE sessions for group: $AOE_GROUP"
+
+    for repo_name in "root" "pykoclaw" "pykoclaw-acp" "pykoclaw-chat" "pykoclaw-whatsapp" "pykoclaw-messaging"; do
+        session_title="$FEATURE-$repo_name"
+        if "$AOE_BIN" remove "$session_title" >/dev/null 2>&1; then
+            print_status "$GREEN" "  ✓ Removed AoE session: $session_title"
+        else
+            print_status "$YELLOW" "  - AoE session not found: $session_title"
+        fi
+    done
+
+    "$AOE_BIN" group delete "$AOE_GROUP" --force >/dev/null 2>&1 || true
+fi
 
 echo ""
 print_status "$YELLOW" "Running git worktree prune..."

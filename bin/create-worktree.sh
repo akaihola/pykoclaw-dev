@@ -5,6 +5,13 @@ SCRIPT_DIR="$(dirname "$0")"
 WORKSPACE_ROOT="$SCRIPT_DIR/.."
 DEV_ROOT="$HOME/pykoclaw-dev"
 
+AOE_BIN=""
+if command -v aoe >/dev/null 2>&1; then
+    AOE_BIN="$(command -v aoe)"
+elif [ -x "$HOME/.cargo/bin/aoe" ]; then
+    AOE_BIN="$HOME/.cargo/bin/aoe"
+fi
+
 REPOS=(
     ""
     "pykoclaw"
@@ -91,11 +98,37 @@ for repo in "${REPOS[@]}"; do
 done
 
 echo "Running uv sync in $WORKTREE_BASE..."
-if uv sync --workdir "$WORKTREE_BASE" 2>&1; then
+if (cd "$WORKTREE_BASE" && uv sync) 2>&1; then
     echo "uv sync completed successfully."
 else
     echo "WARNING: uv sync failed. Dependencies may need to be installed manually."
     echo "Run: cd $WORKTREE_BASE && uv sync"
+fi
+
+if [ -n "$AOE_BIN" ]; then
+    AOE_GROUP="pykoclaw/$FEATURE_NAME"
+    echo ""
+    echo "Configuring AoE sessions..."
+
+    "$AOE_BIN" group create "$AOE_GROUP" >/dev/null 2>&1 || true
+
+    for repo in "root" "pykoclaw" "pykoclaw-acp" "pykoclaw-chat" "pykoclaw-whatsapp" "pykoclaw-messaging"; do
+        worktree_path="$WORKTREE_BASE/$repo"
+        session_title="$FEATURE_NAME-$repo"
+
+        if [ ! -d "$worktree_path" ]; then
+            continue
+        fi
+
+        if "$AOE_BIN" add "$worktree_path" --title "$session_title" --group "$AOE_GROUP" --cmd opencode >/dev/null 2>&1; then
+            echo "  Added AoE session: $session_title"
+        else
+            echo "  WARNING: Failed to add AoE session: $session_title"
+        fi
+    done
+else
+    echo ""
+    echo "AoE not found. Skipping AoE session creation."
 fi
 
 echo ""
@@ -118,3 +151,6 @@ done
 echo ""
 echo "To start working:"
 echo "  cd $WORKTREE_BASE"
+if [ -n "$AOE_BIN" ]; then
+    echo "  aoe"
+fi
