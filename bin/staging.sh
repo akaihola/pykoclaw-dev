@@ -39,8 +39,9 @@ fi
 # --- Isolated data directories ---
 
 export PYKOCLAW_DATA="/tmp/pykoclaw-dev-$FEATURE"
-MITTO_CONFIG="/tmp/mitto-dev-$FEATURE/config.yaml"
-mkdir -p "$PYKOCLAW_DATA" "$(dirname "$MITTO_CONFIG")"
+export MITTO_DIR="/tmp/mitto-dev-$FEATURE"
+MITTO_CONFIG="$MITTO_DIR/config.yaml"
+mkdir -p "$PYKOCLAW_DATA" "$MITTO_DIR/sessions"
 
 # --- Generate Mitto config pointing at worktree's pykoclaw ---
 # Use `uv run` from worktree so it picks up the feature branch code.
@@ -60,7 +61,7 @@ echo "  http://127.0.0.1:$PORT"
 echo "=========================================="
 echo "  Worktree:  $WORKTREE_DIR"
 echo "  Data:      $PYKOCLAW_DATA"
-echo "  Config:    $MITTO_CONFIG"
+echo "  Mitto:     $MITTO_DIR"
 echo ""
 echo "  Ctrl+C to stop."
 echo "=========================================="
