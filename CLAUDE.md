@@ -11,6 +11,9 @@ for the full ecosystem map.
 - Always write useful insights, practices and rules applicable to all pykoclaw
   repos/components/plugins immediately into `./CLAUDE.md` (this file).
   Details specific to a single repo can go to that repo's `./pykoclaw*/.claude/CLAUDE.md`.
+- **Always use feature worktrees** for non-trivial work. Only skip for the
+  simplest obvious quick fixes. Use `bin/create-worktree.sh <feature-name>` to
+  set up, work in the worktree, and commit there — not on main.
 
 ## Build & run
 
