@@ -113,6 +113,28 @@ uv run pytest
 ./pull-all.sh
 ```
 
+## Feature worktrees
+
+For cross-repo feature development, use the worktree scripts in `bin/`.
+These create parallel git worktree checkouts of all repos on a matching
+`feature/<name>` branch.
+
+```bash
+# Create a feature worktree (branches + worktrees + uv sync)
+bin/create-worktree.sh my-feature
+
+# List active worktrees
+bin/list-worktrees.sh
+
+# Run tests against a worktree
+bin/qa-check.sh my-feature
+
+# Tear down when done
+bin/cleanup-worktree.sh my-feature
+```
+
+See [worktree workflow docs] for full details and terminology.
+
 ## Configuration
 
 | Variable             | Default                   | Description                                       |
@@ -153,3 +175,4 @@ See `pykoclaw/src/pykoclaw/plugins.py` for the full protocol interface.
 [uv]: https://docs.astral.sh/uv/
 [Neonize]: https://github.com/krypton-byte/neonize
 [pykoclaw-whatsapp README]: pykoclaw-whatsapp/README.md
+[worktree workflow docs]: docs/worktree-workflow.md
