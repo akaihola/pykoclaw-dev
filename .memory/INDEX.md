@@ -17,6 +17,7 @@ Cross-reference of all memory files in the Pykoclaw project.
 | [asyncio-shutdown-gotcha.md] | asyncio, gotcha, acp, mitto, zombie | asyncio.run() cleanup hangs forever — use manual loop |
 | [sdk-schema-gotcha.md] | claude-sdk, mcp, tools, schema    | Simple dict schemas make all fields required; use JSON Schema passthrough |
 | [sqlite-migration-gotcha.md] | sqlite, gotcha, migration, schema | CREATE TABLE IF NOT EXISTS never adds missing columns — need ALTER TABLE |
+| [worktree-workflow.md] | worktree, git, dev-workflow, multi-repo | Feature worktree scripts for cross-repo development |
 
 ## By tag
 
@@ -27,7 +28,8 @@ Cross-reference of all memory files in the Pykoclaw project.
 | claude-sdk   | [acp-protocol-fix.md], [acp-debugging.md], [sdk-schema-gotcha.md] |
 | debugging    | [acp-debugging.md]                        |
 | architecture | [plugin-system.md], [channel-dispatch.md] |
-| git          | [workspace-layout.md]                     |
+| dev-workflow | [worktree-workflow.md]                    |
+| git          | [workspace-layout.md], [worktree-workflow.md] |
 | asyncio      | [asyncio-shutdown-gotcha.md]                      |
 | gotcha       | [neonize-quirks.md], [sqlite-migration-gotcha.md], [asyncio-shutdown-gotcha.md] |
 | messaging    | [channel-dispatch.md]                     |
@@ -44,7 +46,9 @@ Cross-reference of all memory files in the Pykoclaw project.
 | uv           | [workspace-layout.md]                     |
 | whatsapp     | [threading-model.md], [neonize-quirks.md] |
 | protocol     | [acp-protocol-fix.md]                     |
+| worktree     | [worktree-workflow.md]                    |
 | workspace    | [workspace-layout.md]                     |
+| multi-repo   | [worktree-workflow.md]                    |
 | mcp          | [sdk-schema-gotcha.md]                    |
 
 | tools        | [sdk-schema-gotcha.md]                    |
@@ -60,3 +64,4 @@ Cross-reference of all memory files in the Pykoclaw project.
 [mitto-setup.md]: mitto-setup.md
 [sdk-schema-gotcha.md]: sdk-schema-gotcha.md
 [sqlite-migration-gotcha.md]: sqlite-migration-gotcha.md
+[worktree-workflow.md]: worktree-workflow.md

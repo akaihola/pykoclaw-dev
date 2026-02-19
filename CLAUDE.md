@@ -136,6 +136,26 @@ when adding or modifying memory files.
   and offer to either correct the documentation or fix the code to match the
   spec.
 
+## Feature worktree workflow
+
+For cross-repo feature work, use the **feature worktree** scripts in `bin/`.
+Full docs: [worktree workflow docs].
+
+| Command                                | What it does                           |
+| -------------------------------------- | -------------------------------------- |
+| `bin/create-worktree.sh <feature>`     | Create worktrees + branches + AoE      |
+| `bin/cleanup-worktree.sh <feature>`    | Tear down worktrees + AoE + temp dirs  |
+| `bin/list-worktrees.sh`                | List active feature worktrees          |
+| `bin/run-dev.sh <feature>`             | Print isolated dev environment commands |
+| `bin/qa-check.sh [feature]`            | Run full test suite against worktree   |
+
+Key concepts:
+- A **feature** is a short name like `my-feature`
+- Creates `feature/<name>` branch in every subrepo
+- Worktree root: `~/pykoclaw-dev/<feature>/`
+- AoE sessions are optional (scripts degrade gracefully)
+- **Cleanup does NOT delete feature branches** — do that manually
+
 ## Important gotchas
 
 - Neonize timestamps are in **milliseconds** — divide by 1000.
@@ -152,3 +172,4 @@ when adding or modifying memory files.
 
 [memory index]: .memory/INDEX.md
 [reference links]: https://spec.commonmark.org/0.31.2/#reference-link
+[worktree workflow docs]: docs/worktree-workflow.md
