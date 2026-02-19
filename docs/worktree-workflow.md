@@ -73,14 +73,27 @@ git branch -d feature/<feature>
 Lists active worktree directories under `~/pykoclaw-dev/` and AoE sessions
 (if available).
 
+### `bin/staging.sh <feature>`
+
+Launches Mitto web pointing at the worktree's pykoclaw ACP server for user
+review. Opens a browser UI on an isolated port with isolated data:
+
+- Generates a temp Mitto config at `/tmp/mitto-dev-<feature>/config.yaml`
+- Sets `PYKOCLAW_DATA=/tmp/pykoclaw-dev-<feature>` (isolated from production)
+- Uses `uv run --directory` so the worktree's code is what runs
+- Unique port (hash-based, avoids 8080/8089)
+- Ctrl+C stops everything
+
+### `bin/merge-feature.sh <feature>`
+
+Merges `feature/<feature>` into `main` for all repos that have commits ahead.
+Skips repos with no branch or no changes. Reports merged/skipped/failed repos
+and prints next steps (`install-dev.sh` + cleanup).
+
 ### `bin/run-dev.sh <feature>`
 
-Prints commands for running an isolated dev environment with:
-
-- Unique port (hash-based, avoids 8080/8089)
-- Temp data directory at `/tmp/pykoclaw-dev-<feature>`
-- Temp Mitto config at `/tmp/mitto-dev-<feature>`
-- AoE session info (if available)
+Prints commands for running an isolated dev environment manually (two-terminal
+setup). Prefer `bin/staging.sh` for a single-command launch.
 
 ### `bin/qa-check.sh [feature]`
 
@@ -105,10 +118,20 @@ cd ~/pykoclaw-dev/my-feature/root
 # 3. Run tests
 bin/qa-check.sh my-feature
 
-# 4. When done, clean up
+# 4. Launch staging for user review
+bin/staging.sh my-feature
+# → opens http://127.0.0.1:<port>, Ctrl+C to stop
+
+# 5. Merge feature branches into main
+bin/merge-feature.sh my-feature
+
+# 6. Deploy (editable reinstall picks up merged code)
+./install-dev.sh
+
+# 7. Clean up worktree
 bin/cleanup-worktree.sh my-feature
 
-# 5. Optionally delete feature branches
+# 8. Optionally delete feature branches
 for repo in pykoclaw pykoclaw-acp pykoclaw-chat pykoclaw-whatsapp pykoclaw-messaging; do
     git -C ~/pykoclaw/$repo branch -d feature/my-feature 2>/dev/null
 done

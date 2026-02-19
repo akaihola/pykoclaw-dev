@@ -147,10 +147,12 @@ Full docs: [worktree workflow docs].
 | Command                                | What it does                           |
 | -------------------------------------- | -------------------------------------- |
 | `bin/create-worktree.sh <feature>`     | Create worktrees + branches + AoE      |
+| `bin/qa-check.sh [feature]`            | Run full test suite against worktree   |
+| `bin/staging.sh <feature>`             | Launch Mitto web + ACP for user review |
+| `bin/merge-feature.sh <feature>`       | Merge feature branches → main          |
+| `./install-dev.sh`                     | Deploy (editable reinstall)            |
 | `bin/cleanup-worktree.sh <feature>`    | Tear down worktrees + AoE + temp dirs  |
 | `bin/list-worktrees.sh`                | List active feature worktrees          |
-| `bin/run-dev.sh <feature>`             | Print isolated dev environment commands |
-| `bin/qa-check.sh [feature]`            | Run full test suite against worktree   |
 
 Key concepts:
 - A **feature** is a short name like `my-feature`
