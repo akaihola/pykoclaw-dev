@@ -141,32 +141,6 @@ else
     echo "AoE not found. Skipping AoE session creation."
 fi
 
-if [ -n "$AOE_BIN" ]; then
-    AOE_GROUP="pykoclaw/$FEATURE_NAME"
-    echo ""
-    echo "Configuring AoE sessions..."
-
-    "$AOE_BIN" group create "$AOE_GROUP" >/dev/null 2>&1 || true
-
-    for repo in "root" "pykoclaw" "pykoclaw-acp" "pykoclaw-chat" "pykoclaw-whatsapp" "pykoclaw-messaging"; do
-        worktree_path="$WORKTREE_BASE/$repo"
-        session_title="$FEATURE_NAME-$repo"
-
-        if [ ! -d "$worktree_path" ]; then
-            continue
-        fi
-
-        if "$AOE_BIN" add "$worktree_path" --title "$session_title" --group "$AOE_GROUP" --cmd opencode >/dev/null 2>&1; then
-            echo "  Added AoE session: $session_title"
-        else
-            echo "  WARNING: Failed to add AoE session: $session_title"
-        fi
-    done
-else
-    echo ""
-    echo "AoE not found. Skipping AoE session creation."
-fi
-
 echo ""
 echo "========================================"
 echo "Worktrees created successfully!"
