@@ -1,34 +1,33 @@
-# Anyio Cancel Scope Leak in asyncio Tasks
+# Anyio Cancel Scope Leak — Resolved via Process Isolation
 
-**Tags:** acp, anyio, asyncio, cancel-scope, bug
+**Tags:** acp, anyio, asyncio, cancel-scope, resolved
 **Related:** [acp-debugging.md], [asyncio-shutdown-gotcha.md]
 
-## Problem
+## Problem (historical)
 
 `ClaudeSDKClient.disconnect()` calls `Query.close()` which does
-`self._tg.cancel_scope.cancel()`. When called from an asyncio task
-(e.g. `_sweep_loop`), the anyio `CancelledError` escapes into the
-asyncio event loop and cancels whatever `await` is active in the
-**calling** task — even unrelated ones like `reader.readline()`.
+`self._tg.cancel_scope.cancel()`. When called from an asyncio task,
+the anyio `CancelledError` escapes into the asyncio event loop and
+cancels whatever `await` is active in the **calling** task.
 
-## Symptoms
+## Resolution (2026-02-21)
 
-- Tight loop of `CancelledError` on `readline()` (45k+ in 8 min)
-- ACP process pegged at 100% CPU, can't read stdin
-- Mitto shows "Connection lost" to the user
+**Process-isolated workers** eliminate the root cause entirely. The
+Claude SDK now runs in dedicated subprocess workers. The ACP server
+is pure asyncio — no anyio code in-process, no cancel scope leaks.
 
-## Fix
+Workers can safely call `client.disconnect()` because they own the
+entire async runtime (anyio + asyncio, no sharing).
 
-1. Wrap `client.disconnect()` in `asyncio.shield()` — prevents the
-   cancel scope from propagating.
-2. Add `CancelledError` handler in server main loop as safety net,
-   with `await asyncio.sleep(0.5)` backoff and consecutive-error limit.
+Key files:
+- `pykoclaw-acp/src/pykoclaw_acp/worker.py` — worker subprocess
+- `pykoclaw-acp/src/pykoclaw_acp/worker_pool.py` — replaces ClientPool
+- `pykoclaw/src/pykoclaw/sdk_consume.py` — unified SDK consumption
 
 ## Rule
 
-**Never call `ClaudeSDKClient.disconnect()` without `asyncio.shield()`**
-when running inside a task that shares the event loop with other
-important coroutines.
+**Run the Claude SDK in a separate process from the ACP server.**
+Never share an event loop between anyio (SDK) and asyncio (server).
 
 [acp-debugging.md]: acp-debugging.md
 [asyncio-shutdown-gotcha.md]: asyncio-shutdown-gotcha.md

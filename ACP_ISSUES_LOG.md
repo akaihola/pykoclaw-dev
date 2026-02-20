@@ -287,29 +287,28 @@ architecture recommendation (process-isolated workers).
 
 ## Architecture Notes
 
-### Data flow
+### Data flow (after process isolation — 2026-02-21)
 ```
 User → Mitto web UI → Mitto Go process
-  → pykoclaw-acp subprocess (JSON-RPC over stdio)
-    → ClientPool → ClaudeSDKClient → claude CLI subprocess
+  → pykoclaw-acp subprocess (pure asyncio, JSON-RPC over stdio)
+    → WorkerPool → worker subprocess 1 (anyio + SDK) → claude CLI
+                 → worker subprocess 2 (anyio + SDK) → claude CLI
+                 → ...
 ```
 
-### Two independent SDK message loops
-**This is critical.** Bugs in message handling must be fixed in BOTH:
+### Unified SDK message consumption
+`consume_sdk_response()` in `pykoclaw/src/pykoclaw/sdk_consume.py` is the
+single source of truth. Both `query_agent()` and the worker subprocess call
+it. Bugs in message handling only need to be fixed in ONE place.
 
-1. `pykoclaw/src/pykoclaw/agent_core.py` → `query_agent()`
-   Used by: WhatsApp, scheduler
-2. `pykoclaw-acp/src/pykoclaw_acp/client_pool.py` → `ClientPool._query()`
-   Used by: Mitto/ACP
+### The anyio/asyncio boundary — RESOLVED
+The claude-agent-sdk uses **anyio** internally. Pykoclaw uses **asyncio**.
+Previously these shared one process, causing cancel scope leaks.
 
-### The anyio/asyncio boundary
-The claude-agent-sdk uses **anyio** internally (task groups, cancel scopes,
-memory object streams). Pykoclaw uses **asyncio**. This boundary is the
-source of most subtle bugs:
-
-- anyio cancel scopes leak `CancelledError` into asyncio tasks
-- anyio task groups don't always clean up within asyncio's expectations
-- `asyncio.run()` vs anyio task group cleanup interact badly
+**Resolved:** With process-isolated workers, anyio runs in worker
+subprocesses while the ACP server is pure asyncio. The boundary is now a
+process boundary (pipes), not a shared event loop. Workers can safely call
+`client.disconnect()` because they own the entire async runtime.
 
 ### Key diagnostic locations
 | What | Where |
@@ -326,38 +325,29 @@ source of most subtle bugs:
 ## Patterns & Anti-patterns
 
 ### DO
-- Use `_kill_client()` to tear down SDK clients — never `client.disconnect()`
-- Manage the event loop manually (`asyncio.new_event_loop()`) — not `asyncio.run()`
+- Use process-isolated workers for SDK sessions
+- Use `consume_sdk_response()` from `sdk_consume.py` — single source of truth
 - Add backoff sleeps to all error-handling `continue` loops
-- Keep `ClientPool` clients long-lived — don't recreate per message
+- Keep workers long-lived (WorkerPool) — don't recreate per message
 - Send the prompt response LAST (after all streaming is done)
 - Consume ALL text from ALL SDK message types
-- Fix bugs in BOTH SDK message loops
 
 ### DON'T
-- Use `asyncio.run()` for long-lived servers with SDK clients
-- Call `ClaudeSDKClient.disconnect()` — ever (use `_kill_client()` instead)
+- Run the Claude SDK in the same process as the ACP server
 - Catch exceptions in a loop without backoff (creates spin loops)
 - Assume `--resume` works across process restarts
 - Assume `TextBlock` is the only carrier of response text
-- Fix a message-handling bug in only one of the two SDK loops
 
 ---
 
-## Open Concerns
-
-- **`_kill_client()` is a workaround, not a fix.** It bypasses SDK cleanup
-  entirely. If the SDK ever requires graceful shutdown for correctness
-  (e.g. flushing session state), this will break. The proper fix is
-  process-isolated workers — see `pykoclaw-acp/backlog/001-acp-architecture-fragility.md`.
-- **Two SDK message loops** is a maintenance burden and bug duplication risk.
-  Consider unifying them (though ACP's long-lived client vs WhatsApp's
-  per-message client makes this non-trivial).
-- **The `CancelledError` safety net in the server main loop** is still present
-  as defense-in-depth. With `_kill_client()`, it should never trigger. If it
-  does, that means a new cancel scope leak vector has appeared.
-
 ## Resolved Concerns
 
-- ~~**Is `asyncio.shield()` sufficient long-term?**~~ No. Proven insufficient.
-  Replaced with `_kill_client()` subprocess termination (2026-02-21).
+- ~~**`_kill_client()` is a workaround, not a fix.**~~ Eliminated entirely.
+  Process-isolated workers call `client.disconnect()` safely in their own
+  anyio runtime. (2026-02-21)
+- ~~**Two SDK message loops.**~~ Unified into `consume_sdk_response()` in
+  `pykoclaw/src/pykoclaw/sdk_consume.py`. (2026-02-21)
+- ~~**CancelledError safety net in main loop.**~~ Removed. No anyio code
+  runs in the ACP server process. (2026-02-21)
+- ~~**Is `asyncio.shield()` sufficient long-term?**~~ No longer relevant.
+  Process isolation eliminates the need entirely. (2026-02-21)

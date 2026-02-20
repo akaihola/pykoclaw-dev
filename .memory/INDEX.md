@@ -20,18 +20,19 @@ Cross-reference of all memory files in the Pykoclaw project.
 | [worktree-workflow.md] | worktree, git, dev-workflow, multi-repo | Feature worktree scripts for cross-repo development |
 | [result-message-fallback.md] | claude-sdk, agent-core, bugfix, gotcha | ResultMessage.result text was silently dropped → empty replies |
 | [debugging-workflow.md] | debugging, workflow, gotcha, acp, whatsapp | Ask which channel first; two SDK loops; verify imports |
-| [anyio-cancel-scope-leak.md] | acp, anyio, asyncio, cancel-scope, bug | anyio cancel scope leaks CancelledError into asyncio tasks — use asyncio.shield() |
+| [anyio-cancel-scope-leak.md] | acp, anyio, asyncio, cancel-scope, resolved | anyio cancel scope leak — resolved via process-isolated workers |
+| [process-isolated-workers.md] | acp, architecture, worker, process-isolation | SDK workers run in subprocess isolation from ACP server |
 
 ## By tag
 
 | Tag          | Files                                     |
 | ------------ | ----------------------------------------- |
-| acp          | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md], [anyio-cancel-scope-leak.md] |
+| acp          | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md], [anyio-cancel-scope-leak.md], [process-isolated-workers.md] |
 | agent-core   | [result-message-fallback.md]              |
 | bugfix       | [acp-protocol-fix.md], [result-message-fallback.md] |
 | claude-sdk   | [acp-protocol-fix.md], [acp-debugging.md], [sdk-schema-gotcha.md], [result-message-fallback.md] |
 | debugging    | [acp-debugging.md], [debugging-workflow.md] |
-| architecture | [plugin-system.md], [channel-dispatch.md] |
+| architecture | [plugin-system.md], [channel-dispatch.md], [process-isolated-workers.md] |
 | dev-workflow | [worktree-workflow.md]                    |
 | git          | [workspace-layout.md], [worktree-workflow.md] |
 | anyio        | [anyio-cancel-scope-leak.md]                      |
@@ -73,3 +74,4 @@ Cross-reference of all memory files in the Pykoclaw project.
 [result-message-fallback.md]: result-message-fallback.md
 [worktree-workflow.md]: worktree-workflow.md
 [anyio-cancel-scope-leak.md]: anyio-cancel-scope-leak.md
+[process-isolated-workers.md]: process-isolated-workers.md
