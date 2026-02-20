@@ -22,7 +22,9 @@ for the full ecosystem map.
 - **Install deps:** `uv sync`
 - **Run tests:** `uv run pytest`
 - **Run CLI:** `uv run pykoclaw`
-- **Editable install:** `./install-dev.sh`
+- **Deploy:** `./install-dev.sh` (never inspect it first — just run it)
+- **Deploy + verify:** combine in one call:
+  `./install-dev.sh && sleep 3 && export XDG_RUNTIME_DIR="/run/user/$(id -u)" && systemctl --user status mitto-web | head -20`
 - **Pull all subrepos:** `./pull-all.sh`
 
 ## Workspace structure
