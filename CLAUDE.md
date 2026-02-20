@@ -6,6 +6,14 @@ Pykoclaw is a modular Python AI agent ecosystem. This is the `pykoclaw-dev`
 workspace root that aggregates five packages via uv workspace. See `README.md`
 for the full ecosystem map.
 
+## ⚠️ Mitto / ACP Issues — Read First!
+
+**Before starting ANY work on Mitto or pykoclaw-acp problems**, read
+[`ACP_ISSUES_LOG.md`][acp-log] — the comprehensive log of all connection
+issues, root causes, failed approaches, and fixes. This is a recurring
+problem area with subtle bugs at the anyio/asyncio boundary. The log
+prevents re-treading failed approaches.
+
 ## Practices
 
 - Always write useful insights, practices and rules applicable to all pykoclaw
@@ -192,6 +200,7 @@ Key concepts:
   after creating a worktree, fix symlinks manually (`ln -sf root/pyproject.toml`
   etc.) before running `uv sync --all-packages`.
 
+[acp-log]: ACP_ISSUES_LOG.md
 [memory index]: .memory/INDEX.md
 [reference links]: https://spec.commonmark.org/0.31.2/#reference-link
 [worktree workflow docs]: docs/worktree-workflow.md
