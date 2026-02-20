@@ -58,6 +58,10 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 - **Channel dispatch:** channel plugins call `dispatch_to_agent()` from
   `pykoclaw-messaging`, which handles conversation lookup + agent query + session
   persistence.
+- **Two SDK message loops:** WhatsApp and the scheduler use
+  `query_agent()` → `ClaudeSDKClient`. Mitto/ACP uses its own independent
+  loop in `ClientPool._query()`. Bugs in SDK message handling must be fixed
+  in **both** places.
 - **Channel prefix:** conversations are named `{prefix}-{id}` (e.g. `wa-<jid>`,
   `acp-<uuid>`).
 - **DB:** SQLite with `ThreadSafeConnection` wrapper. Tables: `conversations`,
@@ -177,6 +181,14 @@ Key concepts:
 - SQLite `CREATE TABLE IF NOT EXISTS` never modifies an existing table — it
   silently does nothing. New columns need explicit `ALTER TABLE ADD COLUMN`
   migrations.
+
+## Known issues
+
+- **`bin/create-worktree.sh` broken symlinks** — `SCRIPT_DIR` resolves to
+  relative `bin`, so `WORKSPACE_ROOT=bin/..` produces relative symlinks for
+  `pyproject.toml` / `uv.lock` that break from the worktree directory. Workaround:
+  after creating a worktree, fix symlinks manually (`ln -sf root/pyproject.toml`
+  etc.) before running `uv sync --all-packages`.
 
 [memory index]: .memory/INDEX.md
 [reference links]: https://spec.commonmark.org/0.31.2/#reference-link

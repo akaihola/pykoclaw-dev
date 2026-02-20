@@ -18,15 +18,18 @@ Cross-reference of all memory files in the Pykoclaw project.
 | [sdk-schema-gotcha.md] | claude-sdk, mcp, tools, schema    | Simple dict schemas make all fields required; use JSON Schema passthrough |
 | [sqlite-migration-gotcha.md] | sqlite, gotcha, migration, schema | CREATE TABLE IF NOT EXISTS never adds missing columns — need ALTER TABLE |
 | [worktree-workflow.md] | worktree, git, dev-workflow, multi-repo | Feature worktree scripts for cross-repo development |
+| [result-message-fallback.md] | claude-sdk, agent-core, bugfix, gotcha | ResultMessage.result text was silently dropped → empty replies |
+| [debugging-workflow.md] | debugging, workflow, gotcha, acp, whatsapp | Ask which channel first; two SDK loops; verify imports |
 
 ## By tag
 
 | Tag          | Files                                     |
 | ------------ | ----------------------------------------- |
 | acp          | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md] |
-| bugfix       | [acp-protocol-fix.md]                     |
-| claude-sdk   | [acp-protocol-fix.md], [acp-debugging.md], [sdk-schema-gotcha.md] |
-| debugging    | [acp-debugging.md]                        |
+| agent-core   | [result-message-fallback.md]              |
+| bugfix       | [acp-protocol-fix.md], [result-message-fallback.md] |
+| claude-sdk   | [acp-protocol-fix.md], [acp-debugging.md], [sdk-schema-gotcha.md], [result-message-fallback.md] |
+| debugging    | [acp-debugging.md], [debugging-workflow.md] |
 | architecture | [plugin-system.md], [channel-dispatch.md] |
 | dev-workflow | [worktree-workflow.md]                    |
 | git          | [workspace-layout.md], [worktree-workflow.md] |
@@ -64,4 +67,6 @@ Cross-reference of all memory files in the Pykoclaw project.
 [mitto-setup.md]: mitto-setup.md
 [sdk-schema-gotcha.md]: sdk-schema-gotcha.md
 [sqlite-migration-gotcha.md]: sqlite-migration-gotcha.md
+[debugging-workflow.md]: debugging-workflow.md
+[result-message-fallback.md]: result-message-fallback.md
 [worktree-workflow.md]: worktree-workflow.md
