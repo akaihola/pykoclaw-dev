@@ -1,5 +1,8 @@
 # ACP Attachment Support (JPEG, PDF, Binary Files)
 
+## Status: Backlog
+## Priority: 2
+
 ## TL;DR
 
 > **Quick Summary**: Add multimodal attachment support to pykoclaw ACP

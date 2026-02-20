@@ -1,5 +1,7 @@
 # Fix schedule_task tool schema: optional parameters
 
+## Status: Done
+
 ## TL;DR
 
 > **Quick Summary**: The `schedule_task` MCP tool schema declares all parameters

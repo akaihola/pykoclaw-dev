@@ -170,6 +170,21 @@ Key concepts:
 - AoE sessions are optional (scripts degrade gracefully)
 - **Cleanup does NOT delete feature branches** — do that manually
 
+## Backlog management
+
+Plan files in `.sisyphus/plans/` carry `## Status:` and `## Priority:` metadata.
+`.sisyphus/BACKLOG.md` is the **auto-generated** dashboard — never edit it by hand.
+
+```bash
+# Regenerate BACKLOG.md (do this after changing any plan metadata)
+.sisyphus/query_backlog.py --format full > .sisyphus/BACKLOG.md
+
+# Query backlog
+.sisyphus/query_backlog.py                        # table view
+.sisyphus/query_backlog.py --status Backlog        # filter by status
+.sisyphus/query_backlog.py --format mermaid        # dependency graph
+```
+
 ## Important gotchas
 
 - Neonize timestamps are in **milliseconds** — divide by 1000.

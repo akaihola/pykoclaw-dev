@@ -1,5 +1,7 @@
 # Reply Tag Envelope — Suppress Internal Monologue
 
+## Status: Done
+
 ## TL;DR
 
 > **Quick Summary**: Add `<reply>` tag allowlist to prevent the ambient WhatsApp bot from leaking LLM internal monologue ("I'll silently update...") as chat messages. Only text wrapped in `<reply>` tags gets sent to WhatsApp; everything else is discarded.

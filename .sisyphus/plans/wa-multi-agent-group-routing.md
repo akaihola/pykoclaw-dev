@@ -1,6 +1,7 @@
 # WhatsApp Multi-Agent Group Routing
 
 ## Status: Backlog
+## Priority: 1
 
 ## TL;DR
 
