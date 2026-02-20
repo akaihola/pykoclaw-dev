@@ -1,8 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(dirname "$0")"
-WORKSPACE_ROOT="$SCRIPT_DIR/.."
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Subrepos live in the *main* checkout, not in any worktree.
+# Find the main worktree by locating the one on the 'main' branch.
+MAIN_CHECKOUT="$(git -C "$WORKSPACE_ROOT" worktree list --porcelain \
+    | awk '/^worktree/{path=$2} /^branch refs\/heads\/main/{print path; exit}')"
+if [ -z "$MAIN_CHECKOUT" ]; then
+    echo "Error: Could not determine main checkout path (no worktree on branch 'main')" >&2
+    exit 1
+fi
+
 DEV_ROOT="$HOME/pykoclaw-dev"
 
 AOE_BIN=""
@@ -12,8 +22,7 @@ elif [ -x "$HOME/.cargo/bin/aoe" ]; then
     AOE_BIN="$HOME/.cargo/bin/aoe"
 fi
 
-REPOS=(
-    ""
+SUBREPOS=(
     "pykoclaw"
     "pykoclaw-acp"
     "pykoclaw-chat"
@@ -42,23 +51,35 @@ echo "Branch: $BRANCH_NAME"
 echo "Worktree root: $WORKTREE_BASE"
 echo ""
 
-mkdir -p "$WORKTREE_BASE"
+if [ -e "$WORKTREE_BASE" ]; then
+    echo "Error: Worktree base already exists: $WORKTREE_BASE" >&2
+    exit 1
+fi
 
-for repo in "${REPOS[@]}"; do
-    if [ -z "$repo" ]; then
-        repo_path="$WORKSPACE_ROOT"
-        repo_name="root"
-    else
-        repo_path="$WORKSPACE_ROOT/$repo"
-        repo_name="$repo"
-    fi
+# --- Workspace root repo (pykoclaw-dev) ---
+# Its worktree IS the feature root — pyproject.toml and uv.lock come from git checkout.
+echo "Processing: root (workspace)"
+if git -C "$WORKSPACE_ROOT" rev-parse --verify "$BRANCH_NAME" >/dev/null 2>&1; then
+    echo "  ERROR: Branch '$BRANCH_NAME' already exists in root" >&2
+    exit 1
+fi
 
-    worktree_path="$WORKTREE_BASE/$repo_name"
+echo "  Creating branch: $BRANCH_NAME"
+git -C "$WORKSPACE_ROOT" branch "$BRANCH_NAME"
 
-    echo "Processing: $repo_name"
+echo "  Creating worktree: $WORKTREE_BASE"
+git -C "$WORKSPACE_ROOT" worktree add "$WORKTREE_BASE" "$BRANCH_NAME"
+echo ""
+
+# --- Subrepos ---
+for repo in "${SUBREPOS[@]}"; do
+    repo_path="$MAIN_CHECKOUT/$repo"
+    worktree_path="$WORKTREE_BASE/$repo"
+
+    echo "Processing: $repo"
 
     if git -C "$repo_path" rev-parse --verify "$BRANCH_NAME" >/dev/null 2>&1; then
-        echo "  ERROR: Branch '$BRANCH_NAME' already exists in $repo_name" >&2
+        echo "  ERROR: Branch '$BRANCH_NAME' already exists in $repo" >&2
         echo "  Skipping..."
         echo ""
         continue
@@ -73,40 +94,20 @@ for repo in "${REPOS[@]}"; do
 
     echo "  Creating branch: $BRANCH_NAME"
     git -C "$repo_path" branch "$BRANCH_NAME" || {
-        echo "  ERROR: Failed to create branch in $repo_name" >&2
+        echo "  ERROR: Failed to create branch in $repo" >&2
         continue
     }
 
     echo "  Creating worktree: $worktree_path"
     git -C "$repo_path" worktree add "$worktree_path" "$BRANCH_NAME" || {
-        echo "  ERROR: Failed to create worktree for $repo_name" >&2
+        echo "  ERROR: Failed to create worktree for $repo" >&2
         continue
     }
-
-    if [ -n "$repo" ]; then
-        if [ -f "$repo_path/pyproject.toml" ]; then
-            ln -sf "$repo_path/pyproject.toml" "$worktree_path/pyproject.toml"
-            echo "  Linked pyproject.toml"
-        fi
-        if [ -f "$repo_path/uv.lock" ]; then
-            ln -sf "$repo_path/uv.lock" "$worktree_path/uv.lock"
-            echo "  Linked uv.lock"
-        fi
-    else
-        # Link workspace root pyproject.toml and uv.lock into worktree base
-        if [ -f "$repo_path/pyproject.toml" ]; then
-            ln -sf "$repo_path/pyproject.toml" "$WORKTREE_BASE/pyproject.toml"
-            echo "  Linked workspace pyproject.toml to worktree base"
-        fi
-        if [ -f "$repo_path/uv.lock" ]; then
-            ln -sf "$repo_path/uv.lock" "$WORKTREE_BASE/uv.lock"
-            echo "  Linked workspace uv.lock to worktree base"
-        fi
-    fi
 
     echo ""
 done
 
+# --- uv sync ---
 echo "Running uv sync in $WORKTREE_BASE..."
 if (cd "$WORKTREE_BASE" && uv sync --all-packages) 2>&1; then
     echo "uv sync completed successfully."
@@ -115,6 +116,7 @@ else
     echo "Run: cd $WORKTREE_BASE && uv sync --all-packages"
 fi
 
+# --- AoE sessions ---
 if [ -n "$AOE_BIN" ]; then
     AOE_GROUP="pykoclaw/$FEATURE_NAME"
     echo ""
@@ -122,7 +124,14 @@ if [ -n "$AOE_BIN" ]; then
 
     "$AOE_BIN" group create "$AOE_GROUP" >/dev/null 2>&1 || true
 
-    for repo in "root" "pykoclaw" "pykoclaw-acp" "pykoclaw-chat" "pykoclaw-whatsapp" "pykoclaw-messaging"; do
+    # Root worktree is the feature base itself
+    if "$AOE_BIN" add "$WORKTREE_BASE" --title "$FEATURE_NAME-root" --group "$AOE_GROUP" --cmd opencode >/dev/null 2>&1; then
+        echo "  Added AoE session: $FEATURE_NAME-root"
+    else
+        echo "  WARNING: Failed to add AoE session: $FEATURE_NAME-root"
+    fi
+
+    for repo in "${SUBREPOS[@]}"; do
         worktree_path="$WORKTREE_BASE/$repo"
         session_title="$FEATURE_NAME-$repo"
 
@@ -151,12 +160,9 @@ echo "Branch: $BRANCH_NAME"
 echo "Worktree root: $WORKTREE_BASE"
 echo ""
 echo "Repos:"
-for repo in "${REPOS[@]}"; do
-    if [ -z "$repo" ]; then
-        echo "  - root: $WORKTREE_BASE/root"
-    else
-        echo "  - $repo: $WORKTREE_BASE/$repo"
-    fi
+echo "  - root: $WORKTREE_BASE"
+for repo in "${SUBREPOS[@]}"; do
+    echo "  - $repo: $WORKTREE_BASE/$repo"
 done
 echo ""
 echo "To start working:"
