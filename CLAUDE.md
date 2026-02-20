@@ -194,11 +194,10 @@ Key concepts:
 
 ## Known issues
 
-- **`bin/create-worktree.sh` broken symlinks** — `SCRIPT_DIR` resolves to
-  relative `bin`, so `WORKSPACE_ROOT=bin/..` produces relative symlinks for
-  `pyproject.toml` / `uv.lock` that break from the worktree directory. Workaround:
-  after creating a worktree, fix symlinks manually (`ln -sf root/pyproject.toml`
-  etc.) before running `uv sync --all-packages`.
+- **Older worktrees use `root/` subdirectory layout** — worktrees created before
+  the `fix-worktree-script` merge have the wrapper repo checked out into a `root/`
+  subdirectory with symlinked `pyproject.toml`/`uv.lock` at the feature base.
+  New worktrees created from main no longer have this issue.
 
 [acp-log]: ACP_ISSUES_LOG.md
 [memory index]: .memory/INDEX.md
