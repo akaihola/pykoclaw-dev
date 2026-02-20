@@ -86,6 +86,11 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 - Run all: `uv run pytest`
 - Run single package: `uv run pytest pykoclaw/tests/`
 - Tests live in `tests/` within each package directory.
+- **Always set `PYKOCLAW_DATA` to a temporary directory** before running tests
+  or dev instances. Never let dev/test code touch the production database at
+  `~/.local/share/pykoclaw/pykoclaw.db`. Example:
+  `export PYKOCLAW_DATA=/tmp/pykoclaw-dev-<feature>`. The staging script
+  (`bin/staging.sh`) already does this — but manual runs need it too.
 - **Bug reports:** when a malfunction is reported, always reproduce the issue
   first by writing a failing test case before implementing the fix (red → green
   workflow).
