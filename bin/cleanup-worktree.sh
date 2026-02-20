@@ -6,8 +6,18 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-REPOS=(
-    ""
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Subrepos live in the main checkout — find it via git worktree list.
+MAIN_CHECKOUT="$(git -C "$WORKSPACE_ROOT" worktree list --porcelain \
+    | awk '/^worktree/{path=$2} /^branch refs\/heads\/main/{print path; exit}')"
+if [ -z "$MAIN_CHECKOUT" ]; then
+    echo "Error: Could not determine main checkout path (no worktree on branch 'main')" >&2
+    exit 1
+fi
+
+SUBREPOS=(
     "pykoclaw"
     "pykoclaw-acp"
     "pykoclaw-chat"
@@ -27,57 +37,73 @@ print_status() { echo -e "${1}${2}${NC}"; }
 [[ $# -lt 1 ]] && { print_status "$RED" "Error: Feature name required"; echo "Usage: $0 <feature-name>"; exit 1; }
 
 FEATURE="$1"
-WORKTREE_PATH="$HOME/pykoclaw-dev/$FEATURE"
+WORKTREE_BASE="$HOME/pykoclaw-dev/$FEATURE"
 TEMP_PYKOCLAW="/tmp/pykoclaw-dev-$FEATURE"
 TEMP_MITTO="/tmp/mitto-dev-$FEATURE"
 
 print_status "$YELLOW" "=== Cleaning up worktree for feature: $FEATURE ==="
 echo ""
 
-[[ ! -d "$WORKTREE_PATH" ]] && print_status "$YELLOW" "Worktree directory does not exist: $WORKTREE_PATH"
+[[ ! -d "$WORKTREE_BASE" ]] && print_status "$YELLOW" "Worktree directory does not exist: $WORKTREE_BASE"
 
 CLEANED_REPOS=()
 FAILED_REPOS=()
 
-for repo in "${REPOS[@]}"; do
-    if [[ -z "$repo" ]]; then
-        REPO_PATH="$HOME/pykoclaw"
-        REPO_NAME="root"
-    else
-        REPO_PATH="$HOME/pykoclaw/$repo"
-        REPO_NAME="$repo"
-    fi
+# --- Subrepos ---
+for repo in "${SUBREPOS[@]}"; do
+    repo_path="$MAIN_CHECKOUT/$repo"
+    worktree_to_remove="$WORKTREE_BASE/$repo"
 
-    WORKTREE_TO_REMOVE="$WORKTREE_PATH/$REPO_NAME"
+    if [[ -d "$repo_path" ]] && git -C "$repo_path" worktree list | grep -q "$worktree_to_remove"; then
+        print_status "$YELLOW" "Removing worktree: $worktree_to_remove from $repo"
 
-    if [[ -d "$REPO_PATH" ]] && git -C "$REPO_PATH" worktree list | grep -q "$WORKTREE_TO_REMOVE"; then
-        print_status "$YELLOW" "Removing worktree: $WORKTREE_TO_REMOVE from $REPO_NAME"
-
-        if git -C "$REPO_PATH" worktree remove "$WORKTREE_TO_REMOVE" 2>/dev/null; then
-            print_status "$GREEN" "  ✓ Removed worktree from $REPO_NAME"
-            CLEANED_REPOS+=("$REPO_NAME")
+        if git -C "$repo_path" worktree remove "$worktree_to_remove" 2>/dev/null; then
+            print_status "$GREEN" "  ✓ Removed worktree from $repo"
+            CLEANED_REPOS+=("$repo")
         else
             print_status "$YELLOW" "  ! Force removing (possible uncommitted changes)"
-            if git -C "$REPO_PATH" worktree remove --force "$WORKTREE_TO_REMOVE" 2>/dev/null; then
-                print_status "$GREEN" "  ✓ Force removed worktree from $REPO_NAME"
-                CLEANED_REPOS+=("$REPO_NAME")
+            if git -C "$repo_path" worktree remove --force "$worktree_to_remove" 2>/dev/null; then
+                print_status "$GREEN" "  ✓ Force removed worktree from $repo"
+                CLEANED_REPOS+=("$repo")
             else
-                print_status "$RED" "  ✗ Failed to remove worktree from $REPO_NAME"
-                FAILED_REPOS+=("$REPO_NAME")
+                print_status "$RED" "  ✗ Failed to remove worktree from $repo"
+                FAILED_REPOS+=("$repo")
             fi
         fi
     else
-        print_status "$YELLOW" "  - No worktree found for $REPO_NAME"
+        print_status "$YELLOW" "  - No worktree found for $repo"
     fi
 done
 
+# --- Workspace root (pykoclaw-dev) — worktree IS the feature base ---
+if git -C "$WORKSPACE_ROOT" worktree list | grep -q "$WORKTREE_BASE"; then
+    print_status "$YELLOW" "Removing worktree: $WORKTREE_BASE from root"
+
+    if git -C "$WORKSPACE_ROOT" worktree remove "$WORKTREE_BASE" 2>/dev/null; then
+        print_status "$GREEN" "  ✓ Removed worktree from root"
+        CLEANED_REPOS+=("root")
+    else
+        print_status "$YELLOW" "  ! Force removing (possible uncommitted changes)"
+        if git -C "$WORKSPACE_ROOT" worktree remove --force "$WORKTREE_BASE" 2>/dev/null; then
+            print_status "$GREEN" "  ✓ Force removed worktree from root"
+            CLEANED_REPOS+=("root")
+        else
+            print_status "$RED" "  ✗ Failed to remove worktree from root"
+            FAILED_REPOS+=("root")
+        fi
+    fi
+else
+    print_status "$YELLOW" "  - No worktree found for root"
+fi
+
+# --- AoE sessions ---
 if [[ -n "$AOE_BIN" ]]; then
     AOE_GROUP="pykoclaw/$FEATURE"
 
     print_status "$YELLOW" ""
     print_status "$YELLOW" "Removing AoE sessions for group: $AOE_GROUP"
 
-    for repo_name in "root" "pykoclaw" "pykoclaw-acp" "pykoclaw-chat" "pykoclaw-whatsapp" "pykoclaw-messaging"; do
+    for repo_name in "root" "${SUBREPOS[@]}"; do
         session_title="$FEATURE-$repo_name"
         if "$AOE_BIN" remove "$session_title" >/dev/null 2>&1; then
             print_status "$GREEN" "  ✓ Removed AoE session: $session_title"
@@ -91,14 +117,17 @@ fi
 
 echo ""
 print_status "$YELLOW" "Running git worktree prune..."
-git -C "$HOME/pykoclaw" worktree prune 2>/dev/null || true
+git -C "$WORKSPACE_ROOT" worktree prune 2>/dev/null || true
+for repo in "${SUBREPOS[@]}"; do
+    git -C "$MAIN_CHECKOUT/$repo" worktree prune 2>/dev/null || true
+done
 
 echo ""
-if [[ -d "$WORKTREE_PATH" ]]; then
-    rm -rf "$WORKTREE_PATH"
-    print_status "$GREEN" "✓ Removed $WORKTREE_PATH"
+if [[ -d "$WORKTREE_BASE" ]]; then
+    rm -rf "$WORKTREE_BASE"
+    print_status "$GREEN" "✓ Removed $WORKTREE_BASE"
 else
-    print_status "$YELLOW" "Worktree directory not found: $WORKTREE_PATH"
+    print_status "$YELLOW" "Worktree directory not found: $WORKTREE_BASE"
 fi
 
 echo ""
