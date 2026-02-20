@@ -24,7 +24,7 @@ in surprising ways.
 | 2 | Second message never answered | Session resume across processes impossible | 2026-02-14 | ✅ Fixed |
 | 3 | Process hangs on shutdown → zombie chain | `asyncio.run()` unbounded `_cancel_all_tasks` | 2026-02-18 | ✅ Fixed |
 | 4 | Empty replies (text only in ResultMessage) | `ResultMessage.result` not forwarded | 2026-02-20 | ✅ Fixed |
-| 5 | "Connection lost" after idle period | anyio cancel scope leak → spin loop | 2026-02-20 | ✅ Fixed |
+| 5 | "Connection lost" after idle period | anyio cancel scope leak → spin loop | 2026-02-20 | ✅ Fixed (v3) |
 
 ---
 
@@ -55,7 +55,10 @@ Chronological list of every commit, with issue references where applicable.
 | `f8354dc` | Feb 19 | Integration tests with mock LLM + test client | — |
 | `fa6ead8` | Feb 19 | E2E tests over subprocess stdio | — |
 | `daa148a` | Feb 20 | Forward `ResultMessage.result` as fallback text | #4 |
-| `79bd952` | Feb 20 | Shield disconnect from anyio CancelledError leak | #5 |
+| `79bd952` | Feb 20 | Shield disconnect from anyio CancelledError leak | #5 (v1, insufficient) |
+| `55124d6` | Feb 20 | Isolate disconnect in separate task | #5 (v2, insufficient) |
+| `adf208e` | Feb 21 | Replace disconnect() with subprocess kill | #5 (v3, **actual fix**) |
+| `aeb04f4` | Feb 21 | Architecture fragility backlog item | — |
 
 ### Related commits in other repos
 
@@ -237,23 +240,48 @@ An earlier fix attempt had added a `CancelledError` catch in the main loop,
 but without any backoff sleep — turning the leak into a CPU-pegging spin
 loop instead of a crash.
 
-### Fix
-- `79bd952` — two-part fix:
-  1. **Primary:** wrapped `client.disconnect()` in `asyncio.shield()` in
-     `_disconnect()` — prevents cancel scope from propagating
-  2. **Safety net:** `CancelledError` handler in server main loop with
-     `await asyncio.sleep(0.5)` backoff and consecutive-error limit
+### Fix attempts
+
+**v1 — `79bd952` (2026-02-20, insufficient):**
+Wrapped `client.disconnect()` in `asyncio.shield()` + added backoff sleep
+in the `CancelledError` handler. **Result:** still crashed. `asyncio.shield()`
+only protects against *outer* cancellation — doesn't isolate *inner* anyio
+cancel scope effects.
+
+**v2 — `55124d6` (2026-02-20, insufficient):**
+Ran `disconnect()` in a completely separate `asyncio.create_task()` with
+`asyncio.shield()`. Added `except BaseException` in `_sweep_loop`.
+**Result:** still crashed. Anyio cancel scopes target the *host task* by
+identity (whichever task called `connect()`), not the task currently
+running `disconnect()`.
+
+**v3 — `adf208e` (2026-02-21, actual fix):**
+Never call `client.disconnect()` at all. New `_kill_client()` function
+terminates the subprocess directly (SIGTERM → wait → SIGKILL) and nulls
+out references. Completely avoids anyio cancel scope machinery.
 
 ### What didn't work
-- Catching `CancelledError` and continuing without backoff — creates spin loop.
-- Suppressing `CancelledError` entirely — the exception keeps re-raising
-  because the cancel scope is still active (catching it once doesn't clear it).
+- `asyncio.shield()` — only protects against outer cancellation, not inner
+  anyio cancel scope effects
+- `asyncio.create_task()` — anyio targets the host task by identity, not
+  the current task
+- `await asyncio.sleep(0.5)` inside `except CancelledError` — the sleep
+  itself gets cancelled, escaping the handler and killing the loop
+- Catching `CancelledError` and continuing without backoff — creates spin loop
+
+### Root cause (proven with real SDK in tests)
+`test_kill_client.py::test_sdk_disconnect_DOES_leak_cancelled_error` proves
+that `asyncio.shield(client.disconnect())` raises `CancelledError` in the
+calling task. The anyio cancel scope inside `Query.close()` targets the
+asyncio Task that called `connect()` **by identity**, bypassing all asyncio
+isolation mechanisms.
 
 ### Lesson
-**Never call `ClaudeSDKClient.disconnect()` without `asyncio.shield()`**
-when running in a task that shares the event loop with other coroutines.
-anyio cancel scopes propagate across the asyncio/anyio boundary in
-unexpected ways.
+**Never call `ClaudeSDKClient.disconnect()`.** The anyio/asyncio impedance
+mismatch makes it impossible to call safely from asyncio code. Kill the
+subprocess directly instead. See
+`pykoclaw-acp/backlog/001-acp-architecture-fragility.md` for the long-term
+architecture recommendation (process-isolated workers).
 
 ---
 
@@ -298,7 +326,7 @@ source of most subtle bugs:
 ## Patterns & Anti-patterns
 
 ### DO
-- Use `asyncio.shield()` when calling SDK disconnect/close methods
+- Use `_kill_client()` to tear down SDK clients — never `client.disconnect()`
 - Manage the event loop manually (`asyncio.new_event_loop()`) — not `asyncio.run()`
 - Add backoff sleeps to all error-handling `continue` loops
 - Keep `ClientPool` clients long-lived — don't recreate per message
@@ -308,7 +336,7 @@ source of most subtle bugs:
 
 ### DON'T
 - Use `asyncio.run()` for long-lived servers with SDK clients
-- Call `ClaudeSDKClient.disconnect()` without `asyncio.shield()`
+- Call `ClaudeSDKClient.disconnect()` — ever (use `_kill_client()` instead)
 - Catch exceptions in a loop without backoff (creates spin loops)
 - Assume `--resume` works across process restarts
 - Assume `TextBlock` is the only carrier of response text
@@ -318,13 +346,18 @@ source of most subtle bugs:
 
 ## Open Concerns
 
-- **Is `asyncio.shield()` sufficient long-term?** The anyio/asyncio boundary
-  is fundamentally fragile. A future SDK update could introduce new leak
-  vectors. Consider wrapping all SDK calls in a subprocess or thread to
-  fully isolate the cancel scope.
-- **ClientPool idle eviction (10 min)** triggers the disconnect code path.
-  If the shield fix ever regresses, increasing `IDLE_TIMEOUT_S` or
-  disabling eviction would be a stopgap.
+- **`_kill_client()` is a workaround, not a fix.** It bypasses SDK cleanup
+  entirely. If the SDK ever requires graceful shutdown for correctness
+  (e.g. flushing session state), this will break. The proper fix is
+  process-isolated workers — see `pykoclaw-acp/backlog/001-acp-architecture-fragility.md`.
 - **Two SDK message loops** is a maintenance burden and bug duplication risk.
   Consider unifying them (though ACP's long-lived client vs WhatsApp's
   per-message client makes this non-trivial).
+- **The `CancelledError` safety net in the server main loop** is still present
+  as defense-in-depth. With `_kill_client()`, it should never trigger. If it
+  does, that means a new cancel scope leak vector has appeared.
+
+## Resolved Concerns
+
+- ~~**Is `asyncio.shield()` sufficient long-term?**~~ No. Proven insufficient.
+  Replaced with `_kill_client()` subprocess termination (2026-02-21).
