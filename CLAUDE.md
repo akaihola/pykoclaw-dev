@@ -170,10 +170,11 @@ Full docs: [worktree workflow docs].
 
 Key concepts:
 - A **feature** is a short name like `my-feature`
-- Creates `feature/<name>` branch in every subrepo
-- Worktree root: `~/pykoclaw-dev/<feature>/`
-- **Always `cd` into the worktree and run `uv run` from there** — never run
-  tests from the main workspace against worktree files. The main workspace
+- Creates `feature/<name>` branch in every repo (root + subrepos)
+- Worktree root: `~/pykoclaw-dev/<feature>/` — this IS the pykoclaw-dev worktree
+- Subrepos sit directly inside: `~/pykoclaw-dev/<feature>/pykoclaw/` etc.
+- **Always `cd ~/pykoclaw-dev/<feature>/` and run `uv run` from there** — never
+  run tests from the main workspace against worktree files. The main workspace
   `.venv` imports its own installed packages, not the worktree source.
 - AoE sessions are optional (scripts degrade gracefully)
 - **Cleanup does NOT delete feature branches** — do that manually

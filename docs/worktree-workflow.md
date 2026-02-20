@@ -12,27 +12,28 @@ feature branch so you can develop and test cross-repo changes without touching
 | ------------------ | --------------------------------------------------------------- |
 | **workspace**      | `~/pykoclaw/` — the [pykoclaw-dev][pykoclaw-dev] checkout       |
 | **feature**        | A short alphanumeric name (e.g. `my-feature`)                   |
-| **feature branch** | `feature/<name>` — created in every subrepo                     |
-| **worktree root**  | `~/pykoclaw-dev/<feature>/` — top-level directory for worktrees |
-| **worktree**       | A git worktree checkout for one repo inside the worktree root   |
+| **feature branch** | `feature/<name>` — created in every repo (root + subrepos)      |
+| **worktree root**  | `~/pykoclaw-dev/<feature>/` — worktree of the pykoclaw-dev repo |
+| **worktree**       | A git worktree checkout; subrepos live inside the worktree root |
 | **AoE group**      | `pykoclaw/<feature>` — optional [AoE][aoe] session group        |
 
 ### Directory layout
 
 ```
-~/pykoclaw-dev/<feature>/
-├── root/                  ← worktree of the workspace root repo
+~/pykoclaw-dev/<feature>/  ← worktree of the workspace root repo (pykoclaw-dev)
+├── bin/                   ← scripts (checked out from branch)
+├── pyproject.toml         ← real file (checked out from branch)
+├── uv.lock                ← real file (checked out from branch)
 ├── pykoclaw/              ← worktree of pykoclaw (core)
 ├── pykoclaw-acp/          ← worktree of pykoclaw-acp
 ├── pykoclaw-chat/         ← worktree of pykoclaw-chat
 ├── pykoclaw-whatsapp/     ← worktree of pykoclaw-whatsapp
-├── pykoclaw-messaging/    ← worktree of pykoclaw-messaging
-├── pyproject.toml         ← symlink → workspace root's pyproject.toml
-└── uv.lock                ← symlink → workspace root's uv.lock
+└── pykoclaw-messaging/    ← worktree of pykoclaw-messaging
 ```
 
-Each subrepo worktree also gets symlinked `pyproject.toml` and `uv.lock` so
-`uv sync --all-packages` works at the worktree root level.
+The feature root **is** the workspace root worktree — `pyproject.toml` and
+`uv.lock` are real checked-out files, so `uv sync --all-packages` works
+immediately without any symlink setup.
 
 ## Scripts
 
@@ -40,14 +41,15 @@ All scripts live in `bin/` and take `<feature-name>` as the first argument.
 
 ### `bin/create-worktree.sh <feature>`
 
-Creates a feature worktree. For each repo it:
+Creates a feature worktree. Steps:
 
-1. Creates branch `feature/<feature>` from current HEAD
-2. Creates a git worktree at `~/pykoclaw-dev/<feature>/<repo>`
-3. Symlinks `pyproject.toml` and `uv.lock`
-4. Runs `uv sync --all-packages` in the worktree root
-5. If [AoE][aoe] is available, creates an AoE session group
-   `pykoclaw/<feature>` with one OpenCode session per subrepo
+1. Creates `feature/<feature>` branch in the workspace root repo
+   (pykoclaw-dev) and adds its worktree at `~/pykoclaw-dev/<feature>/`
+2. For each subrepo, creates `feature/<feature>` and adds its worktree
+   at `~/pykoclaw-dev/<feature>/<subrepo>/`
+3. Runs `uv sync --all-packages` in the worktree root
+4. If [AoE][aoe] is available, creates an AoE session group
+   `pykoclaw/<feature>` with one OpenCode session per repo
 
 ### `bin/cleanup-worktree.sh <feature>`
 
@@ -111,8 +113,8 @@ Auto-detects feature name from CWD if not provided.
 # 1. Create feature worktree
 bin/create-worktree.sh my-feature
 
-# 2. Work in the worktree
-cd ~/pykoclaw-dev/my-feature/root
+# 2. Work in the worktree — the feature root IS the workspace root
+cd ~/pykoclaw-dev/my-feature
 # ... edit code across repos ...
 
 # 3. Run tests

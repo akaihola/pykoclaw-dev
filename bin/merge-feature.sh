@@ -3,8 +3,18 @@ set -euo pipefail
 
 # Merge feature branches back to main across all repos that have changes.
 
-REPOS=(
-    ""
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Subrepos live in the main checkout — find it via git worktree list.
+MAIN_CHECKOUT="$(git -C "$WORKSPACE_ROOT" worktree list --porcelain \
+    | awk '/^worktree/{path=$2} /^branch refs\/heads\/main/{print path; exit}')"
+if [ -z "$MAIN_CHECKOUT" ]; then
+    echo "Error: Could not determine main checkout path (no worktree on branch 'main')" >&2
+    exit 1
+fi
+
+SUBREPOS=(
     "pykoclaw"
     "pykoclaw-acp"
     "pykoclaw-chat"
@@ -28,24 +38,20 @@ MERGED=()
 SKIPPED=()
 FAILED=()
 
-for repo in "${REPOS[@]}"; do
-    if [[ -z "$repo" ]]; then
-        repo_path="$HOME/pykoclaw"
-        repo_name="root"
-    else
-        repo_path="$HOME/pykoclaw/$repo"
-        repo_name="$repo"
-    fi
+merge_repo() {
+    local repo_path="$1"
+    local repo_name="$2"
 
     if ! git -C "$repo_path" rev-parse --verify "$BRANCH" >/dev/null 2>&1; then
         SKIPPED+=("$repo_name (no branch)")
-        continue
+        return
     fi
 
+    local ahead
     ahead=$(git -C "$repo_path" rev-list --count "main..$BRANCH" 2>/dev/null || echo 0)
     if [[ "$ahead" -eq 0 ]]; then
         SKIPPED+=("$repo_name (no changes)")
-        continue
+        return
     fi
 
     echo "  $repo_name: $ahead commit(s) ahead"
@@ -57,6 +63,14 @@ for repo in "${REPOS[@]}"; do
         git -C "$repo_path" checkout main 2>/dev/null || true
         FAILED+=("$repo_name")
     fi
+}
+
+# --- Workspace root repo ---
+merge_repo "$WORKSPACE_ROOT" "root"
+
+# --- Subrepos ---
+for repo in "${SUBREPOS[@]}"; do
+    merge_repo "$MAIN_CHECKOUT/$repo" "$repo"
 done
 
 echo ""
