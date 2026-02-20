@@ -1,5 +1,7 @@
 # ACP Server Crash Resilience
 
+## Status: Done
+
 ## TL;DR
 
 > **Quick Summary**: Fix the ACP server so it doesn't die when `dispatch_to_agent()` raises an exception. Currently, any error during agent processing kills the entire server process, showing users "Lost connection to the AI agent." Three surgical changes in `server.py` plus new tests.
