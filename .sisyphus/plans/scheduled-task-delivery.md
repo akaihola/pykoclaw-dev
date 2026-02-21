@@ -2,6 +2,8 @@
 
 ## Status: Done
 
+## Completed: 2026-02-16
+
 ## TL;DR
 
 > **Quick Summary**: Make scheduled tasks deliver their results back to the user via the originating channel (WhatsApp, ACP, Chat) using a DB-based delivery queue that decouples the scheduler from channel plugins. Each channel plugin polls for pending deliveries and sends them through its native transport.

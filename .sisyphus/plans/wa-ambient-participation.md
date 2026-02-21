@@ -2,6 +2,8 @@
 
 ## Status: Done
 
+## Completed: 2026-02-20
+
 ## TL;DR
 
 > **Quick Summary**: Transform pykoclaw-whatsapp from a reactive `@mention`-triggered bot into an ambient participant that silently observes all messages in 90-second batches, lets the LLM decide whether to reply, and can run tool calls (memory, notes) without sending a WhatsApp message.

@@ -2,6 +2,8 @@
 
 ## Status: Done
 
+## Completed: 2026-02-14
+
 ## TL;DR
 
 > **Quick Summary**: Four targeted refactoring improvements to the raw-SQL database layer: extract a row-to-model helper, add a missing Pydantic model, unify type annotations across packages, and introduce a transaction context manager.

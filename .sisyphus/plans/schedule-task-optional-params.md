@@ -2,6 +2,8 @@
 
 ## Status: Done
 
+## Completed: 2026-02-16
+
 ## TL;DR
 
 > **Quick Summary**: The `schedule_task` MCP tool schema declares all parameters

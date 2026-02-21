@@ -2,6 +2,8 @@
 
 ## Status: Done
 
+## Completed: 2026-02-16
+
 ## TL;DR
 
 > **Quick Summary**: Add two systemd user services to the NixOS home-manager config that auto-start pykoclaw scheduler daemons for two data directories (Ressu/pipsa and Tyko/my-knowledge).

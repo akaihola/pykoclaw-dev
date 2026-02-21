@@ -2,6 +2,8 @@
 
 ## Status: Done
 
+## Completed: 2026-02-14
+
 ## TL;DR
 
 > **Quick Summary**: Implement all 18 fixes from Oracle's code review across the three pykoclaw subpackages (core, chat, whatsapp), ordered safest-first. Each commit is gated by the full test suite.

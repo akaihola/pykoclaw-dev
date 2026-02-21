@@ -2,6 +2,8 @@
 
 ## Status: Done
 
+## Completed: 2026-02-13
+
 ## TL;DR
 
 > **Quick Summary**: Add a Protocol-based plugin architecture to pykoclaw core, extract the `chat` subcommand into a standalone `pykoclaw-chat` plugin package, and create a new `pykoclaw-whatsapp` plugin that connects to WhatsApp via Neonize (Baileys equivalent for Python) with trigger-based message routing to the Claude agent.

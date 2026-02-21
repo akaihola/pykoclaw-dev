@@ -2,6 +2,8 @@
 
 ## Status: Done
 
+## Completed: 2026-02-12
+
 ## TL;DR
 
 > **Quick Summary**: Enable pykoclaw to read settings from `.env` files in the current working directory and the data directory, using pydantic-settings' built-in dotenv support.

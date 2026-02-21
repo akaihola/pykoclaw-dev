@@ -2,6 +2,8 @@
 
 ## Status: Done
 
+## Completed: 2026-02-16
+
 ## TL;DR
 
 > **Quick Summary**: Add a configurable `cli_path` setting to pykoclaw so it uses the system Claude (2.1.42) instead of the bundled Claude (2.1.39) which is crashing.
