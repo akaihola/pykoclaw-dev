@@ -22,6 +22,7 @@ Cross-reference of all memory files in the Pykoclaw project.
 | [debugging-workflow.md] | debugging, workflow, gotcha, acp, whatsapp | Ask which channel first; two SDK loops; verify imports |
 | [anyio-cancel-scope-leak.md] | acp, anyio, asyncio, cancel-scope, resolved | anyio cancel scope leak — resolved via process-isolated workers |
 | [process-isolated-workers.md] | acp, architecture, worker, process-isolation | SDK workers run in subprocess isolation from ACP server |
+| [tool-use-text-concatenation.md] | sdk-consume, streaming, bugfix, mitto, gotcha | Text around hidden tool calls concatenated without separator |
 
 ## By tag
 
@@ -29,7 +30,7 @@ Cross-reference of all memory files in the Pykoclaw project.
 | ------------ | ----------------------------------------- |
 | acp          | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md], [anyio-cancel-scope-leak.md], [process-isolated-workers.md] |
 | agent-core   | [result-message-fallback.md]              |
-| bugfix       | [acp-protocol-fix.md], [result-message-fallback.md] |
+| bugfix       | [acp-protocol-fix.md], [result-message-fallback.md], [tool-use-text-concatenation.md] |
 | claude-sdk   | [acp-protocol-fix.md], [acp-debugging.md], [sdk-schema-gotcha.md], [result-message-fallback.md] |
 | debugging    | [acp-debugging.md], [debugging-workflow.md] |
 | architecture | [plugin-system.md], [channel-dispatch.md], [process-isolated-workers.md] |
@@ -37,9 +38,9 @@ Cross-reference of all memory files in the Pykoclaw project.
 | git          | [workspace-layout.md], [worktree-workflow.md] |
 | anyio        | [anyio-cancel-scope-leak.md]                      |
 | asyncio      | [asyncio-shutdown-gotcha.md], [anyio-cancel-scope-leak.md] |
-| gotcha       | [neonize-quirks.md], [sqlite-migration-gotcha.md], [asyncio-shutdown-gotcha.md] |
+| gotcha       | [neonize-quirks.md], [sqlite-migration-gotcha.md], [asyncio-shutdown-gotcha.md], [tool-use-text-concatenation.md] |
 | messaging    | [channel-dispatch.md]                     |
-| mitto        | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md] |
+| mitto        | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md], [tool-use-text-concatenation.md] |
 | zombie       | [asyncio-shutdown-gotcha.md]                      |
 | mobile       | [mitto-setup.md]                          |
 | neonize      | [neonize-quirks.md]                       |
@@ -75,3 +76,4 @@ Cross-reference of all memory files in the Pykoclaw project.
 [worktree-workflow.md]: worktree-workflow.md
 [anyio-cancel-scope-leak.md]: anyio-cancel-scope-leak.md
 [process-isolated-workers.md]: process-isolated-workers.md
+[tool-use-text-concatenation.md]: tool-use-text-concatenation.md
