@@ -20,13 +20,65 @@ User → Mitto web UI → Mitto Go process (PID on pts/6)
 | Mitto workspaces      | `~/.local/share/mitto/workspaces.json`                         |
 | Mitto settings        | `~/.local/share/mitto/settings.json`                           |
 | Mitto systemd logs    | `journalctl --user -u mitto-web --no-pager -n 100`            |
+| ACP server logs       | `~/.local/state/pykoclaw/acp-<pid>.log` (INFO+ only)          |
+| Worker subprocess out | **Not captured by default** — see "Worker logging" below       |
 | Pykoclaw DB (main)    | `~/.local/share/pykoclaw/pykoclaw.db`                          |
 | Pykoclaw DB (per-cwd) | `<cwd>/pykoclaw.db` (e.g. `~/my-knowledge/pykoclaw.db`)       |
 | Claude CLI debug logs | `~/.claude/debug/<session-id>.txt` (latest → `debug/latest`)  |
 | Claude CLI sessions   | `~/.claude/projects/<encoded-cwd>/<session-id>.jsonl`          |
 | Pykoclaw ACP stderr   | Goes to Mitto's stderr → `/dev/pts/6` (terminal)              |
 
+## Worker subprocess logging gotcha
+
+ACP worker subprocesses (spawned by `WorkerPool`) log to stderr. The pool
+forwards their stderr at **DEBUG level** via `_forward_stderr()`. But ACP
+server log files (`~/.local/state/pykoclaw/acp-<pid>.log`) only capture
+INFO+, so worker log output is invisible there. To see worker debug output:
+
+```python
+# Temporary: write to a file directly in worker.py's on_text/on_result
+_debug_log = open("/tmp/pykoclaw_worker_chunks.log", "a")
+_debug_log.write(f"chunk: {repr(text)}\n")
+_debug_log.flush()
+```
+
+## Mitto REST and WebSocket API
+
+Useful for scripted testing and debugging:
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET {prefix}/api/sessions` | All sessions (active + archived) |
+| `GET {prefix}/api/sessions/running` | Only sessions with a live ACP process |
+| `WS {prefix}/api/sessions/{id}/ws` | Per-session WebSocket (events + prompt) |
+| `WS {prefix}/api/events` | Global events (session lifecycle) |
+
+**Gotcha:** `/api/sessions/running` returns 0 results if no ACP process is
+currently spawned. Use `/api/sessions` and filter by `status == "active"`.
+
 ## Debugging steps (in order)
+
+### 0. Read persisted events first (most reliable)
+
+When frontend behavior is unclear or WebSocket capture fails, reading
+`events.jsonl` directly is the most reliable way to verify what the backend
+produced. This bypasses all frontend/WebSocket timing issues:
+
+```bash
+cat ~/.local/share/mitto/sessions/<id>/events.jsonl | python3 -c "
+import json, sys
+for line in sys.stdin:
+    e = json.loads(line)
+    t = e.get('type')
+    seq = e.get('seq', 0)
+    if t == 'agent_message':
+        html = e.get('data', {}).get('html', '')
+        print(f'seq={seq:3d} {t} len={len(html):4d} {html[:80]!r}')
+    elif t == 'user_prompt':
+        msg = e.get('data', {}).get('message', '')[:60]
+        print(f'seq={seq:3d} {t} {msg!r}')
+"
+```
 
 ### 1. Check Mitto session events
 

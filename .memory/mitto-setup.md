@@ -86,4 +86,23 @@ Mitto binds to `127.0.0.1:8080` (local only). External access uses
    HTTP (e.g. Tailscale IP), the browser silently drops the cookie and all
    POST/PUT requests fail. Fix: use `tailscale serve` for HTTPS.
 
+5. **Both config files must agree on command path**: `settings.json`
+   (`acp_servers[].command`) and `workspaces.json` (`acp_command`) must
+   both point to the same pykoclaw binary. The workspace's `acp_command`
+   is resolved from its `acp_server` name via `settings.json` only at
+   session creation time (in `config_handlers.go`). Existing sessions keep
+   whatever `acp_command` was persisted in `workspaces.json`.
+
+6. **`install-dev.sh` binary path**: After `install-dev.sh`, the binary is
+   at `~/.local/bin/pykoclaw` (uv tool install), NOT at
+   `/home/agent/pykoclaw/.venv/bin/pykoclaw`. Mitto config must reference
+   `~/.local/bin/pykoclaw` (or the absolute path
+   `/home/agent/.local/bin/pykoclaw`). The `.venv` binary has stale code.
+
+7. **Mitto reads config at startup only**: Changes to `settings.json` or
+   `workspaces.json` require `systemctl --user restart mitto-web`. Already
+   running sessions keep their old `acp_command` — you must create a new
+   session (or manually edit `workspaces.json` and restart) to pick up
+   a new binary path.
+
 [channel-dispatch.md]: channel-dispatch.md

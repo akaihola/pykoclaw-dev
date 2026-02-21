@@ -219,6 +219,12 @@ Plan files in `.sisyphus/plans/` carry `## Status:` and `## Priority:` metadata.
   the `fix-worktree-script` merge have the wrapper repo checked out into a `root/`
   subdirectory with symlinked `pyproject.toml`/`uv.lock` at the feature base.
   New worktrees created from main no longer have this issue.
+- **Mitto must reference the `uv tool` binary, not `.venv`** — After
+  `install-dev.sh`, the pykoclaw binary is at `~/.local/bin/pykoclaw` (uv tool
+  install). The `.venv/bin/pykoclaw` binary has stale code. Mitto's
+  `settings.json` and `workspaces.json` must both point to
+  `/home/agent/.local/bin/pykoclaw acp`. Mitto only reads config at startup —
+  restart the service AND create a new session to pick up path changes.
 
 [acp-log]: ACP_ISSUES_LOG.md
 [memory index]: .memory/INDEX.md
