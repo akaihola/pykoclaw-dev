@@ -3,5 +3,8 @@
 pykoclaw/
 pykoclaw-*/
 
+# Python
+__pycache__/
+
 # uv
 .venv
