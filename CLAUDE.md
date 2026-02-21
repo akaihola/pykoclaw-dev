@@ -189,14 +189,34 @@ Key concepts:
 Plan files in `.sisyphus/plans/` carry `## Status:` and `## Priority:` metadata.
 `.sisyphus/BACKLOG.md` is the **auto-generated** dashboard — never edit it by hand.
 
-```bash
-# Regenerate BACKLOG.md (do this after changing any plan metadata)
-.sisyphus/query_backlog.py --format full > .sisyphus/BACKLOG.md
+**After any change to plan files**, run the validation + regeneration script:
 
-# Query backlog
+```bash
+# Validate plan files and regenerate BACKLOG.md (MANDATORY after any plan change)
+bin/update-backlog.sh
+
+# Validate only (no regeneration)
+bin/update-backlog.sh --check
+```
+
+A **pre-commit hook** also runs validation and auto-regenerates `BACKLOG.md`
+when plan files are committed. This is a safety net — don't rely on it;
+always run `bin/update-backlog.sh` explicitly after editing plans.
+
+### Plan file requirements
+
+- Every plan **must** have `## Status:` (Done, Backlog, In Progress, Blocked)
+- Non-Done plans **should** have `## Priority:` (1, 2, 3...)
+- Done plans **must** have `## Completed: YYYY-MM-DD`
+
+### Querying the backlog
+
+```bash
 .sisyphus/query_backlog.py                        # table view
 .sisyphus/query_backlog.py --status Backlog        # filter by status
 .sisyphus/query_backlog.py --format mermaid        # dependency graph
+.sisyphus/query_backlog.py --all                   # all statuses
+.sisyphus/query_backlog.py --sort completed        # by completion date
 ```
 
 ## Important gotchas
