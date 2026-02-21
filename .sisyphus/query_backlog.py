@@ -4,8 +4,8 @@
 # ///
 """Query and visualize the pykoclaw backlog from .sisyphus/plans/ metadata.
 
-Reads ## Status:, ## Priority:, and > **Estimated Effort** / > **Depends On**
-from plan files and outputs:
+Reads ## Status:, ## Priority:, ## Completed:, ## Worktree:, and
+> **Estimated Effort** / > **Depends On** from plan files and outputs:
 
   --format table   Ranked Markdown table (default)
   --format mermaid Mermaid dependency graph
@@ -20,6 +20,7 @@ Sort:
   --sort priority           Sort by priority number ascending (default)
   --sort effort             Sort by estimated effort
   --sort name               Sort alphabetically
+  --sort completed          Sort by completion date (most recent first)
 
 Output:
   --output FILE             Write to file instead of stdout
@@ -29,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -52,6 +54,8 @@ STATUS_SYMBOLS = {
     "blocked": "\u26d4",
 }
 
+WORKTREE_INDICATOR = "\U0001f333"  # 🌳 Tree emoji for active worktree
+
 
 @dataclass
 class Plan:
@@ -62,6 +66,9 @@ class Plan:
     effort: str = ""
     depends_on: list[str] = field(default_factory=list)
     summary: str = ""
+    completed_date: str = ""  # ISO date from ## Completed: YYYY-MM-DD
+    worktree: str = ""  # Explicit worktree name from ## Worktree: field
+    active_worktree: str = ""  # Runtime-detected worktree path
 
     @property
     def slug(self) -> str:
@@ -95,6 +102,16 @@ def parse_plan(path: Path) -> Plan:
     m = re.search(r"^##\s*Priority:\s*(\d+)", text, re.MULTILINE)
     if m:
         plan.priority = int(m.group(1))
+
+    # Completed date: ## Completed: YYYY-MM-DD
+    m = re.search(r"^##\s*Completed:\s*(\d{4}-\d{2}-\d{2})", text, re.MULTILINE)
+    if m:
+        plan.completed_date = m.group(1)
+
+    # Worktree: ## Worktree: <name>
+    m = re.search(r"^##\s*Worktree:\s*(.+)$", text, re.MULTILINE)
+    if m:
+        plan.worktree = m.group(1).strip()
 
     # Estimated Effort from TL;DR block
     m = re.search(r"\*\*Estimated Effort\*\*:\s*(.+?)(?:\n|$)", text)
@@ -148,11 +165,57 @@ def parse_plan(path: Path) -> Plan:
     return plan
 
 
+def detect_worktrees() -> dict[str, str]:
+    """Detect active git worktrees. Returns {feature_name: worktree_path}.
+
+    Parses ``git worktree list --porcelain``. Only includes worktrees on
+    ``feature/*`` branches (not the main worktree).
+    """
+    repo_dir = PLANS_DIR.parent.parent  # .sisyphus -> repo root
+    try:
+        result = subprocess.run(
+            ["git", "worktree", "list", "--porcelain"],
+            capture_output=True,
+            text=True,
+            cwd=repo_dir,
+            timeout=5,
+        )
+        if result.returncode != 0:
+            return {}
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return {}
+
+    worktrees: dict[str, str] = {}
+    current_path = ""
+    for line in result.stdout.splitlines():
+        if line.startswith("worktree "):
+            current_path = line.removeprefix("worktree ")
+        elif line.startswith("branch refs/heads/feature/"):
+            feature_name = line.removeprefix("branch refs/heads/feature/")
+            worktrees[feature_name] = current_path
+    return worktrees
+
+
 def load_plans() -> list[Plan]:
     """Load all plan files from the plans directory."""
     plans = []
     for path in sorted(PLANS_DIR.glob("*.md")):
         plans.append(parse_plan(path))
+
+    # Detect active worktrees and cross-reference with plans
+    worktrees = detect_worktrees()
+    if worktrees:
+        for plan in plans:
+            # Match by explicit ## Worktree: field first
+            if plan.worktree and plan.worktree in worktrees:
+                plan.active_worktree = worktrees[plan.worktree]
+            else:
+                # Fallback: substring match between worktree name and plan slug
+                for wt_name, wt_path in worktrees.items():
+                    if wt_name in plan.slug or plan.slug in wt_name:
+                        plan.active_worktree = wt_path
+                        break
+
     return plans
 
 
@@ -164,21 +227,44 @@ def sort_plans(plans: list[Plan], sort_key: str) -> list[Plan]:
         return sorted(plans, key=lambda p: (p.effort_sort_key, p.priority, p.title))
     elif sort_key == "name":
         return sorted(plans, key=lambda p: p.title.lower())
+    elif sort_key == "completed":
+        # Most recent first; undated plans sort to the end
+        return sorted(
+            plans,
+            key=lambda p: p.completed_date or "0000-00-00",
+            reverse=True,
+        )
     return plans
 
 
-def format_table(plans: list[Plan]) -> str:
+def format_table(
+    plans: list[Plan], *, show_completed_date: bool = False
+) -> str:
     """Format plans as a Markdown table."""
-    lines = [
-        "| # | Status | Plan | Effort | Depends On |",
-        "|---|--------|------|--------|------------|",
-    ]
+    if show_completed_date:
+        lines = [
+            "| # | Plan | Effort | Completed |",
+            "|---|------|--------|-----------|",
+        ]
+    else:
+        lines = [
+            "| # | Status | Plan | Effort | Depends On |",
+            "|---|--------|------|--------|------------|",
+        ]
     for i, p in enumerate(plans, 1):
-        deps = ", ".join(p.depends_on) if p.depends_on else "\u2014"
         effort = p.effort or "\u2014"
-        lines.append(
-            f"| {i} | {p.status_icon} {p.status} | **{p.title}** | {effort} | {deps} |"
-        )
+        wt = f" {WORKTREE_INDICATOR}" if p.active_worktree else ""
+        if show_completed_date:
+            completed = p.completed_date or "\u2014"
+            lines.append(
+                f"| {i} | **{p.title}** | {effort} | {completed} |"
+            )
+        else:
+            deps = ", ".join(p.depends_on) if p.depends_on else "\u2014"
+            status_text = f"{p.status_icon} {p.status}{wt}"
+            lines.append(
+                f"| {i} | {status_text} | **{p.title}** | {effort} | {deps} |"
+            )
     return "\n".join(lines)
 
 
@@ -243,6 +329,25 @@ def format_mermaid(plans: list[Plan]) -> str:
     return "\n".join(lines)
 
 
+def format_worktrees(plans: list[Plan]) -> str:
+    """Format active worktrees as a Markdown table."""
+    wt_plans = [p for p in plans if p.active_worktree]
+    if not wt_plans:
+        return ""
+    lines = [
+        "## Active Worktrees",
+        "",
+        "| Plan | Branch | Path |",
+        "|------|--------|------|",
+    ]
+    for p in wt_plans:
+        branch_name = p.worktree or "?"
+        branch = f"`feature/{branch_name}`"
+        path = f"`{p.active_worktree}`"
+        lines.append(f"| **{p.title}** | {branch} | {path} |")
+    return "\n".join(lines)
+
+
 def format_full(plans: list[Plan], backlog_only: list[Plan]) -> str:
     """Format full BACKLOG.md content with table + Mermaid."""
     sections = [
@@ -259,6 +364,11 @@ def format_full(plans: list[Plan], backlog_only: list[Plan]) -> str:
     else:
         sections.append("_No items in backlog. All plans are done!_ \U0001f389")
 
+    # Active Worktrees section (only if any exist)
+    wt_section = format_worktrees(plans)
+    if wt_section:
+        sections.extend(["", wt_section])
+
     sections.extend([
         "",
         "## Dependency Graph",
@@ -273,11 +383,17 @@ def format_full(plans: list[Plan], backlog_only: list[Plan]) -> str:
 
     done = [p for p in plans if p.status.lower() == "done"]
     if done:
-        sections.append(format_table(done))
+        # Sort by completion date, most recent first
+        done_sorted = sorted(
+            done,
+            key=lambda p: p.completed_date or "0000-00-00",
+            reverse=True,
+        )
+        sections.append(format_table(done_sorted, show_completed_date=True))
     else:
         sections.append("_No completed plans yet._")
 
-    sections.extend(["", f"---", f"_Last generated: see git log_", ""])
+    sections.extend(["", "---", "_Last generated: see git log_", ""])
     return "\n".join(sections)
 
 
@@ -302,7 +418,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--sort",
-        choices=["priority", "effort", "name"],
+        choices=["priority", "effort", "name", "completed"],
         default="priority",
         help="Sort order (default: priority)",
     )
