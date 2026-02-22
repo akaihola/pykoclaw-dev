@@ -71,8 +71,10 @@ whatsmeow Go library).
 
 - QR code authentication: `pykoclaw whatsapp auth`
 - Long-running listener: `pykoclaw whatsapp run`
-- Trigger-based activation (`@Andy` mention or self-chat)
-- Sliding window conversation context via `wa_messages` table
+- Ambient participation with batch accumulation (default 90 s window)
+- Multi-agent group routing — multiple agent personalities per WhatsApp account
+- Hard mention routing (`@AgentName` flushes batch immediately, forces reply)
+- Per-agent DB isolation (each agent gets its own conversations + session state)
 - `send_message` and `get_chat_history` MCP tools
 - Thread-safe SQLite with `ThreadSafeConnection` (3-thread model)
 
@@ -100,7 +102,7 @@ channel plugins (e.g. Telegram).
 - `dispatch_to_agent()` — conversation lookup, `query_agent()` call, streaming
   text callback, session persistence
 - `DispatchResult` — aggregated response text + session ID
-- Channel prefix convention: `wa-`, `acp-`, `tg-`, etc.
+- Channel prefix convention: `wa-{agent}-`, `matrix-`, `acp-`, `tg-`, etc.
 
 ### `pykoclaw-acp` — Agent Client Protocol plugin
 

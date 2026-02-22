@@ -27,6 +27,7 @@ Cross-reference of all memory files in the Pykoclaw project.
 | [plugin-config-env-file.md]      | config, gotcha, pydantic-settings, env               | Plugin .env hardcodes default path; must resolve from PYKOCLAW_DATA                        |
 | [session-resume-retry.md]        | claude-sdk, dispatch, gotcha, channel-plugins        | dispatch_to_agent() session resume fails on corrupt state — retry without session          |
 | [matrix-agent-reply-storage.md]  | matrix, bugfix, gotcha, session-resume, context-loss | Agent replies not stored locally → context lost on session resume failure                  |
+| [multi-agent-routing.md]         | whatsapp, routing, multi-agent, architecture         | WhatsApp multi-agent group routing: config, per-agent DB, delivery polling                 |
 
 ## By tag
 
@@ -37,7 +38,7 @@ Cross-reference of all memory files in the Pykoclaw project.
 | bugfix       | [acp-protocol-fix.md], [result-message-fallback.md], [tool-use-text-concatenation.md]                                                                                   |
 | claude-sdk   | [acp-protocol-fix.md], [acp-debugging.md], [sdk-schema-gotcha.md], [result-message-fallback.md]                                                                         |
 | debugging    | [acp-debugging.md], [debugging-workflow.md]                                                                                                                             |
-| architecture | [plugin-system.md], [channel-dispatch.md], [process-isolated-workers.md]                                                                                                |
+| architecture | [plugin-system.md], [channel-dispatch.md], [process-isolated-workers.md], [multi-agent-routing.md]                                                                      |
 | dev-workflow | [worktree-workflow.md]                                                                                                                                                  |
 | git          | [workspace-layout.md], [worktree-workflow.md]                                                                                                                           |
 | anyio        | [anyio-cancel-scope-leak.md]                                                                                                                                            |
@@ -55,7 +56,9 @@ Cross-reference of all memory files in the Pykoclaw project.
 | tailscale    | [mitto-setup.md]                                                                                                                                                        |
 | threading    | [threading-model.md]                                                                                                                                                    |
 | uv           | [workspace-layout.md]                                                                                                                                                   |
-| whatsapp     | [threading-model.md], [neonize-quirks.md]                                                                                                                               |
+| whatsapp     | [threading-model.md], [neonize-quirks.md], [multi-agent-routing.md]                                                                                                     |
+| multi-agent  | [multi-agent-routing.md]                                                                                                                                                |
+| routing      | [multi-agent-routing.md]                                                                                                                                                |
 | protocol     | [acp-protocol-fix.md]                                                                                                                                                   |
 | worktree     | [worktree-workflow.md]                                                                                                                                                  |
 | workspace    | [workspace-layout.md]                                                                                                                                                   |
@@ -97,4 +100,5 @@ Cross-reference of all memory files in the Pykoclaw project.
 | session-resume | [matrix-agent-reply-storage.md] |
 
 [matrix-agent-reply-storage.md]: matrix-agent-reply-storage.md
+[multi-agent-routing.md]: multi-agent-routing.md
 [session-resume-retry.md]: session-resume-retry.md

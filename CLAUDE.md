@@ -75,8 +75,9 @@ Each subdirectory is a separate git repo AND a uv workspace member:
   `query_agent()` → `ClaudeSDKClient`. Mitto/ACP uses its own independent
   loop in `ClientPool._query()`. Bugs in SDK message handling must be fixed
   in **both** places.
-- **Channel prefix:** conversations are named `{prefix}-{id}` (e.g. `wa-<jid>`,
-  `matrix-<room_id>`, `acp-<uuid>`).
+- **Channel prefix:** conversations are named `{prefix}-{id}` (e.g.
+  `wa-ressu-<jid>`, `matrix-<room_id>`, `acp-<uuid>`). WhatsApp includes the
+  agent name: `wa-{agent}-{jid}`.
 - **DB:** SQLite with `ThreadSafeConnection` wrapper. Tables: `conversations`,
   `scheduled_tasks`, `task_run_logs`, `delivery_queue`. Plugins add tables via
   `get_db_migrations()`.
@@ -119,6 +120,7 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 | `pykoclaw-messaging/src/pykoclaw_messaging/dispatch.py` | `dispatch_to_agent()`                    |
 | `pykoclaw-acp/src/pykoclaw_acp/server.py`               | ACP JSON-RPC server                      |
 | `pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py` | WhatsApp connection                      |
+| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/routing.py`   | Multi-agent group routing config         |
 | `pykoclaw-matrix/src/pykoclaw_matrix/connection.py`     | Matrix connection                        |
 
 ## Memory system
@@ -248,6 +250,10 @@ deployment layer is responsible for setting it.
 - `client.me` is not a JID — use `client.me.JID`.
 - WhatsApp plugin uses 3 threads sharing one SQLite connection — all DB access
   goes through `ThreadSafeConnection`.
+- **WhatsApp multi-agent routing** — each agent with a `data_dir` gets its own
+  DB; the bridge DB (`wa_messages`, `wa_chats`) is shared. Delivery polling
+  iterates all agent DBs. Conversation names include the agent:
+  `wa-{agent}-{jid}`.
 - The workspace root `pyproject.toml` has no deps — it only declares workspace
   members.
 - Each subdir is its own git repo. Commits go into the individual repos, not

@@ -1,7 +1,7 @@
 # WhatsApp Multi-Agent Group Routing
 
-## Status: Backlog
-## Priority: 1
+## Status: Done
+## Completed: 2026-02-22
 
 ## TL;DR
 
@@ -130,15 +130,17 @@ to either:
 - Handle all agent personalities itself (simpler but less modular)
 - Use the delivery queue as a shared mailbox
 
-## Open Questions
+## Resolved Questions
 
-1. **Single-process vs multi-process**: Should one pykoclaw-whatsapp instance
-   handle all agent personalities, or should each instance connect independently?
-2. **Config format**: Where does the group→agent mapping live?
-3. **Cross-instance agent invocation**: If Tyko runs as a separate scheduler
-   instance, how does it receive WhatsApp messages for processing?
-4. **Delivery queue integration**: How does `target_conversation` on scheduled
-   tasks map to a specific WhatsApp group + agent prefix?
+1. **Single-process, multiple agent configs** was chosen. One `pykoclaw whatsapp
+   run` process handles all agent personalities, dispatching to different agents
+   based on the routing config.
+2. **JSON config file** pointed to by `PYKOCLAW_WA_AGENT_ROUTES` env var.
+3. **Single-process dispatch** — agents don't receive messages separately; the
+   WhatsApp bridge dispatches to each agent's `dispatch_to_agent()` with the
+   agent's own DB and data_dir.
+4. **Conversation naming** `wa-{agent}-{jid}` + `parse_conversation()` maps
+   deliveries back to agents. Delivery polling iterates all agent DBs.
 
 ## Related
 

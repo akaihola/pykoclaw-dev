@@ -15,9 +15,11 @@ channel receives message
     → return DispatchResult(full_text, session_id)
 ```
 
-The `channel_prefix` convention (`wa-`, `acp-`, `tg-`) keeps conversations
-namespaced per channel. The `on_text` callback enables real-time streaming to
-each channel's transport (stdout JSON-RPC for ACP, WhatsApp API for WA).
+The `channel_prefix` convention keeps conversations namespaced per channel.
+WhatsApp uses `wa-{agent_name}-` (e.g. `wa-ressu-`) to support multi-agent
+routing; other channels use simple prefixes (`matrix-`, `acp-`, `tg-`). The
+`on_text` callback enables real-time streaming to each channel's transport
+(stdout JSON-RPC for ACP, WhatsApp API for WA).
 
 [plugin-system.md]: plugin-system.md
 [threading-model.md]: threading-model.md
