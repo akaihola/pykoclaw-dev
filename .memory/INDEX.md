@@ -23,41 +23,53 @@ Cross-reference of all memory files in the Pykoclaw project.
 | [anyio-cancel-scope-leak.md]     | acp, anyio, asyncio, cancel-scope, resolved   | anyio cancel scope leak — resolved via process-isolated workers                            |
 | [process-isolated-workers.md]    | acp, architecture, worker, process-isolation  | SDK workers run in subprocess isolation from ACP server                                    |
 | [tool-use-text-concatenation.md] | sdk-consume, streaming, bugfix, mitto, gotcha | Text around hidden tool calls concatenated without separator                               |
+| [matrix-nio-gotchas.md]          | matrix, matrix-nio, gotcha, e2ee              | matrix-nio is_group, timestamps, logging, E2EE, cross-signing, typing indicators           |
+| [plugin-config-env-file.md]      | config, gotcha, pydantic-settings, env        | Plugin .env hardcodes default path; must resolve from PYKOCLAW_DATA                        |
+| [session-resume-retry.md]        | claude-sdk, dispatch, gotcha, channel-plugins | dispatch_to_agent() session resume fails on corrupt state — retry without session          |
 
 ## By tag
 
-| Tag          | Files                                                                                                                                                  |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| acp          | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md], [anyio-cancel-scope-leak.md], [process-isolated-workers.md] |
-| agent-core   | [result-message-fallback.md]                                                                                                                           |
-| bugfix       | [acp-protocol-fix.md], [result-message-fallback.md], [tool-use-text-concatenation.md]                                                                  |
-| claude-sdk   | [acp-protocol-fix.md], [acp-debugging.md], [sdk-schema-gotcha.md], [result-message-fallback.md]                                                        |
-| debugging    | [acp-debugging.md], [debugging-workflow.md]                                                                                                            |
-| architecture | [plugin-system.md], [channel-dispatch.md], [process-isolated-workers.md]                                                                               |
-| dev-workflow | [worktree-workflow.md]                                                                                                                                 |
-| git          | [workspace-layout.md], [worktree-workflow.md]                                                                                                          |
-| anyio        | [anyio-cancel-scope-leak.md]                                                                                                                           |
-| asyncio      | [asyncio-shutdown-gotcha.md], [anyio-cancel-scope-leak.md]                                                                                             |
-| gotcha       | [neonize-quirks.md], [sqlite-migration-gotcha.md], [asyncio-shutdown-gotcha.md], [tool-use-text-concatenation.md]                                      |
-| messaging    | [channel-dispatch.md]                                                                                                                                  |
-| mitto        | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md], [tool-use-text-concatenation.md]                            |
-| zombie       | [asyncio-shutdown-gotcha.md]                                                                                                                           |
-| mobile       | [mitto-setup.md]                                                                                                                                       |
-| neonize      | [neonize-quirks.md]                                                                                                                                    |
-| plugins      | [plugin-system.md]                                                                                                                                     |
-| migration    | [sqlite-migration-gotcha.md]                                                                                                                           |
-| schema       | [sdk-schema-gotcha.md], [sqlite-migration-gotcha.md]                                                                                                   |
-| sqlite       | [threading-model.md], [sqlite-migration-gotcha.md]                                                                                                     |
-| tailscale    | [mitto-setup.md]                                                                                                                                       |
-| threading    | [threading-model.md]                                                                                                                                   |
-| uv           | [workspace-layout.md]                                                                                                                                  |
-| whatsapp     | [threading-model.md], [neonize-quirks.md]                                                                                                              |
-| protocol     | [acp-protocol-fix.md]                                                                                                                                  |
-| worktree     | [worktree-workflow.md]                                                                                                                                 |
-| workspace    | [workspace-layout.md]                                                                                                                                  |
-| multi-repo   | [worktree-workflow.md]                                                                                                                                 |
-| mcp          | [sdk-schema-gotcha.md]                                                                                                                                 |
+| Tag          | Files                                                                                                                                                                   |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| acp          | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md], [anyio-cancel-scope-leak.md], [process-isolated-workers.md]                  |
+| agent-core   | [result-message-fallback.md]                                                                                                                                            |
+| bugfix       | [acp-protocol-fix.md], [result-message-fallback.md], [tool-use-text-concatenation.md]                                                                                   |
+| claude-sdk   | [acp-protocol-fix.md], [acp-debugging.md], [sdk-schema-gotcha.md], [result-message-fallback.md]                                                                         |
+| debugging    | [acp-debugging.md], [debugging-workflow.md]                                                                                                                             |
+| architecture | [plugin-system.md], [channel-dispatch.md], [process-isolated-workers.md]                                                                                                |
+| dev-workflow | [worktree-workflow.md]                                                                                                                                                  |
+| git          | [workspace-layout.md], [worktree-workflow.md]                                                                                                                           |
+| anyio        | [anyio-cancel-scope-leak.md]                                                                                                                                            |
+| asyncio      | [asyncio-shutdown-gotcha.md], [anyio-cancel-scope-leak.md]                                                                                                              |
+| gotcha       | [neonize-quirks.md], [sqlite-migration-gotcha.md], [asyncio-shutdown-gotcha.md], [tool-use-text-concatenation.md], [matrix-nio-gotchas.md], [plugin-config-env-file.md] |
+| messaging    | [channel-dispatch.md]                                                                                                                                                   |
+| mitto        | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md], [tool-use-text-concatenation.md]                                             |
+| zombie       | [asyncio-shutdown-gotcha.md]                                                                                                                                            |
+| mobile       | [mitto-setup.md]                                                                                                                                                        |
+| neonize      | [neonize-quirks.md]                                                                                                                                                     |
+| plugins      | [plugin-system.md]                                                                                                                                                      |
+| migration    | [sqlite-migration-gotcha.md]                                                                                                                                            |
+| schema       | [sdk-schema-gotcha.md], [sqlite-migration-gotcha.md]                                                                                                                    |
+| sqlite       | [threading-model.md], [sqlite-migration-gotcha.md]                                                                                                                      |
+| tailscale    | [mitto-setup.md]                                                                                                                                                        |
+| threading    | [threading-model.md]                                                                                                                                                    |
+| uv           | [workspace-layout.md]                                                                                                                                                   |
+| whatsapp     | [threading-model.md], [neonize-quirks.md]                                                                                                                               |
+| protocol     | [acp-protocol-fix.md]                                                                                                                                                   |
+| worktree     | [worktree-workflow.md]                                                                                                                                                  |
+| workspace    | [workspace-layout.md]                                                                                                                                                   |
+| multi-repo   | [worktree-workflow.md]                                                                                                                                                  |
+| mcp          | [sdk-schema-gotcha.md]                                                                                                                                                  |
 
+| channel-plugins | [session-resume-retry.md] |
+| config | [plugin-config-env-file.md] |
+| cross-signing | [matrix-nio-gotchas.md] |
+| dispatch | [session-resume-retry.md] |
+| e2ee | [matrix-nio-gotchas.md] |
+| env | [plugin-config-env-file.md] |
+| matrix | [matrix-nio-gotchas.md] |
+| matrix-nio | [matrix-nio-gotchas.md] |
+| pydantic-settings | [plugin-config-env-file.md] |
 | tools | [sdk-schema-gotcha.md] |
 
 [acp-debugging.md]: acp-debugging.md
@@ -77,3 +89,6 @@ Cross-reference of all memory files in the Pykoclaw project.
 [anyio-cancel-scope-leak.md]: anyio-cancel-scope-leak.md
 [process-isolated-workers.md]: process-isolated-workers.md
 [tool-use-text-concatenation.md]: tool-use-text-concatenation.md
+[matrix-nio-gotchas.md]: matrix-nio-gotchas.md
+[plugin-config-env-file.md]: plugin-config-env-file.md
+[session-resume-retry.md]: session-resume-retry.md

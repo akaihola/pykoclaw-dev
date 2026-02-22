@@ -165,17 +165,18 @@ when adding or modifying memory files.
 For cross-repo feature work, use the **feature worktree** scripts in `bin/`.
 Full docs: [worktree workflow docs].
 
-| Command                                | What it does                           |
-| -------------------------------------- | -------------------------------------- |
-| `bin/create-worktree.sh <feature>`     | Create worktrees + branches + AoE      |
-| `bin/qa-check.sh [feature]`            | Run full test suite against worktree   |
-| `bin/staging.sh <feature>`             | Launch Mitto web + ACP for user review |
-| `bin/merge-feature.sh <feature>`       | Merge feature branches → main          |
-| `./install-dev.sh`                     | Deploy (editable reinstall)            |
-| `bin/cleanup-worktree.sh <feature>`    | Tear down worktrees + AoE + temp dirs  |
-| `bin/list-worktrees.sh`                | List active feature worktrees          |
+| Command                             | What it does                           |
+| ----------------------------------- | -------------------------------------- |
+| `bin/create-worktree.sh <feature>`  | Create worktrees + branches + AoE      |
+| `bin/qa-check.sh [feature]`         | Run full test suite against worktree   |
+| `bin/staging.sh <feature>`          | Launch Mitto web + ACP for user review |
+| `bin/merge-feature.sh <feature>`    | Merge feature branches → main          |
+| `./install-dev.sh`                  | Deploy (editable reinstall)            |
+| `bin/cleanup-worktree.sh <feature>` | Tear down worktrees + AoE + temp dirs  |
+| `bin/list-worktrees.sh`             | List active feature worktrees          |
 
 Key concepts:
+
 - A **feature** is a short name like `my-feature`
 - Creates `feature/<name>` branch in every repo (root + subrepos)
 - Worktree root: `~/pykoclaw-dev/<feature>/` — this IS the pykoclaw-dev worktree
@@ -247,6 +248,15 @@ always run `bin/update-backlog.sh` explicitly after editing plans.
 - **CLI `run` commands must call `logging.basicConfig()`** — without it, all
   `log.info()` / `log.warning()` calls are silently swallowed. Always configure
   logging at the top of long-running CLI entry points.
+- **`dispatch_to_agent()` session resume can fail** — the `claude_agent_sdk`
+  subprocess crashes with `ProcessError` (exit code 1) when resuming a
+  corrupt/missing session. Channel plugins must catch this, clear the
+  session_id via `upsert_conversation()`, and retry. See
+  [session-resume-retry.md] memory note.
+- **Always send typing indicators** — users assume the bot is broken if there's
+  no feedback while the agent processes a message. Send platform-specific
+  "typing" signals before dispatch and clear them after (e.g.
+  `client.room_typing()` for Matrix).
 
 ## Known issues
 
@@ -265,4 +275,6 @@ always run `bin/update-backlog.sh` explicitly after editing plans.
 [memory index]: .memory/INDEX.md
 [plugin-config-env-file.md]: .memory/plugin-config-env-file.md
 [reference links]: https://spec.commonmark.org/0.31.2/#reference-link
+[plugin-config-env-file.md]: .memory/plugin-config-env-file.md
+[session-resume-retry.md]: .memory/session-resume-retry.md
 [worktree workflow docs]: docs/worktree-workflow.md
