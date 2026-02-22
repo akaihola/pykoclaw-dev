@@ -33,6 +33,8 @@ prevents re-treading failed approaches.
 - **Deploy:** `./install-dev.sh` (never inspect it first — just run it)
 - **Deploy + verify:** combine in one call:
   `./install-dev.sh && sleep 3 && export XDG_RUNTIME_DIR="/run/user/$(id -u)" && systemctl --user status mitto-web | head -20`
+- **`install-dev.sh` restarts all active services** (mitto-web,
+  pykoclaw-whatsapp, pykoclaw-matrix) so they pick up code changes.
 - **Pull all subrepos:** `./pull-all.sh`
 
 ## Workspace structure
@@ -86,6 +88,9 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 - Framework: `pytest` (+ `pytest-asyncio` for async tests)
 - Run all: `uv run pytest`
 - Run single package: `uv run pytest pykoclaw/tests/`
+- **For packages with extra deps** (e.g. `pykoclaw-matrix`): `cd` into the
+  subpackage and run `uv run --with pytest pytest tests/` — running from
+  the workspace root won't find the package.
 - Tests live in `tests/` within each package directory.
 - **Always set `PYKOCLAW_DATA` to a temporary directory** before running tests
   or dev instances. Never let dev/test code touch the production database at
@@ -222,6 +227,21 @@ always run `bin/update-backlog.sh` explicitly after editing plans.
 .sisyphus/query_backlog.py --sort completed        # by completion date
 ```
 
+## NixOS boundary rule
+
+**Never put Nix/NixOS-specific code in any pykoclaw Python package.** All
+packages (`pykoclaw`, `pykoclaw-matrix`, `pykoclaw-whatsapp`, etc.) must be
+platform-agnostic. NixOS-specific configuration (browser paths, library paths,
+nix-build invocations) belongs ONLY in:
+
+- Systemd service files (`~/.config/systemd/user/*.service`)
+- Deployment scripts (`install-dev.sh`, `bin/`)
+- The root `pykoclaw-dev` workspace (not a published package)
+
+If a Python package needs a resource that's platform-specific (e.g. Playwright
+browsers), it should read a standard env var (`$PLAYWRIGHT_BROWSERS_PATH`) — the
+deployment layer is responsible for setting it.
+
 ## Important gotchas
 
 - Neonize timestamps are in **milliseconds** — divide by 1000.
@@ -253,6 +273,11 @@ always run `bin/update-backlog.sh` explicitly after editing plans.
   corrupt/missing session. Channel plugins must catch this, clear the
   session_id via `upsert_conversation()`, and retry. See
   [session-resume-retry.md] memory note.
+- **`system_prompt` is ignored on session resume** — `ClaudeAgentOptions`
+  bakes the system prompt into the session at creation. On resume, the
+  parameter is silently discarded. Any per-turn dynamic instructions (e.g.
+  "you MUST reply to this hard mention") **must go in the user prompt**, not
+  the system prompt. See [session-resume-system-prompt.md] memory note.
 - **Always send typing indicators** — users assume the bot is broken if there's
   no feedback while the agent processes a message. Send platform-specific
   "typing" signals before dispatch and clear them after (e.g.
@@ -277,4 +302,5 @@ always run `bin/update-backlog.sh` explicitly after editing plans.
 [reference links]: https://spec.commonmark.org/0.31.2/#reference-link
 [plugin-config-env-file.md]: .memory/plugin-config-env-file.md
 [session-resume-retry.md]: .memory/session-resume-retry.md
+[session-resume-system-prompt.md]: .memory/session-resume-system-prompt.md
 [worktree workflow docs]: docs/worktree-workflow.md
