@@ -274,11 +274,12 @@ deployment layer is responsible for setting it.
 - **CLI `run` commands must call `logging.basicConfig()`** — without it, all
   `log.info()` / `log.warning()` calls are silently swallowed. Always configure
   logging at the top of long-running CLI entry points.
-- **`dispatch_to_agent()` session resume can fail** — the `claude_agent_sdk`
-  subprocess crashes with `ProcessError` (exit code 1) when resuming a
-  corrupt/missing session. Channel plugins must catch this, clear the
-  session_id via `upsert_conversation()`, and retry. See
-  [session-resume-retry.md] memory note.
+- **Session resume auto-retry** — both `dispatch_to_agent()` and the
+  scheduler's `run_task()` automatically catch `ProcessError` on resume,
+  clear the session via `upsert_conversation(…, None, …)`, and retry
+  fresh. They also detect stale `system_prompt_hash` and skip resume
+  when the prompt has changed. Channel plugins do NOT need their own
+  retry logic for this. See [session-resume-retry.md] memory note.
 - **`system_prompt` is ignored on session resume** — `ClaudeAgentOptions`
   bakes the system prompt into the session at creation. On resume, the
   parameter is silently discarded. Any per-turn dynamic instructions (e.g.
