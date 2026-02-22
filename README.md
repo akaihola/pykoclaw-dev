@@ -15,6 +15,7 @@ pykoclaw-dev (this repo)
 ├── pykoclaw/              Core framework — CLI, plugin system, agent, DB, scheduler
 ├── pykoclaw-chat/         Plugin — interactive terminal REPL
 ├── pykoclaw-whatsapp/     Plugin — WhatsApp channel via Neonize/whatsmeow
+├── pykoclaw-matrix/       Plugin — Matrix/Element channel via matrix-nio
 ├── pykoclaw-messaging/    Shared library — channel-agnostic dispatch_to_agent()
 ├── pykoclaw-acp/          Plugin — Agent Client Protocol (JSON-RPC over stdio)
 └── docs/                  Research notes and integration plans
@@ -27,6 +28,8 @@ pykoclaw-chat ──────────┐
                         ▼
 pykoclaw-whatsapp ──► pykoclaw-messaging ──► pykoclaw (core)
                         ▲
+pykoclaw-matrix ────────┤
+                        │
 pykoclaw-acp ───────────┘
 ```
 
@@ -73,10 +76,22 @@ whatsmeow Go library).
 - `send_message` and `get_chat_history` MCP tools
 - Thread-safe SQLite with `ThreadSafeConnection` (3-thread model)
 
+### `pykoclaw-matrix` — Matrix/Element plugin
+
+Connects a Claude agent to [Matrix] rooms using [matrix-nio] with full E2EE
+support.
+
+- Login + cross-signing: `pykoclaw matrix login`, `pykoclaw matrix verify`
+- Long-running listener: `pykoclaw matrix run`
+- Ambient listening with trigger-based replies (`@Andy` mention or DM)
+- Batch accumulation with configurable window (default 90 s)
+- Typing indicator while the agent processes
+- `send_matrix_message` and `get_matrix_history` MCP tools
+
 ### `pykoclaw-messaging` — Shared dispatch library
 
-Channel-agnostic dispatch kernel used by WhatsApp, ACP, and future channel
-plugins (e.g. Telegram).
+Channel-agnostic dispatch kernel used by WhatsApp, Matrix, ACP, and future
+channel plugins (e.g. Telegram).
 
 - `dispatch_to_agent()` — conversation lookup, `query_agent()` call, streaming
   text callback, session persistence
@@ -143,8 +158,8 @@ See [worktree workflow docs] for full details and terminology.
 | `PYKOCLAW_MODEL`     | `claude-opus-4-6`         | Claude model to use                                |
 | `PYKOCLAW_CLI_PATH`  | *(bundled)*               | Path to Claude CLI binary (overrides bundled SDK)  |
 
-WhatsApp-specific settings: see
-[pykoclaw-whatsapp README].
+WhatsApp-specific settings: see [pykoclaw-whatsapp README].
+Matrix-specific settings: see [pykoclaw-matrix README].
 
 ## Data directory layout
 
@@ -174,5 +189,8 @@ See `pykoclaw/src/pykoclaw/plugins.py` for the full protocol interface.
 [uv workspace]: https://docs.astral.sh/uv/concepts/workspaces/
 [uv]: https://docs.astral.sh/uv/
 [Neonize]: https://github.com/krypton-byte/neonize
+[Matrix]: https://matrix.org
+[matrix-nio]: https://github.com/poljar/matrix-nio
 [pykoclaw-whatsapp README]: pykoclaw-whatsapp/README.md
+[pykoclaw-matrix README]: pykoclaw-matrix/README.md
 [worktree workflow docs]: docs/worktree-workflow.md

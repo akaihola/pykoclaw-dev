@@ -6,3 +6,8 @@ requires-python = ">=3.12"
 
 [tool.uv.workspace]
 members = ["pykoclaw", "pykoclaw-chat", "pykoclaw-whatsapp", "pykoclaw-messaging", "pykoclaw-acp", "pykoclaw-matrix"]
+
+[dependency-groups]
+dev = [
+    "canonicaljson>=2.0.0",
+]

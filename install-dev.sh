@@ -11,7 +11,8 @@ uv tool install -e ./pykoclaw \
     --with-editable ./pykoclaw-messaging \
     --with-editable ./pykoclaw-chat \
     --with-editable ./pykoclaw-whatsapp \
-    --with-editable ./pykoclaw-acp
+    --with-editable ./pykoclaw-acp \
+    --with-editable ./pykoclaw-matrix
 
 echo ""
 

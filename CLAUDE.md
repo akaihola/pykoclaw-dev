@@ -3,7 +3,7 @@
 ## Project overview
 
 Pykoclaw is a modular Python AI agent ecosystem. This is the `pykoclaw-dev`
-workspace root that aggregates five packages via uv workspace. See `README.md`
+workspace root that aggregates six packages via uv workspace. See `README.md`
 for the full ecosystem map.
 
 ## ⚠️ Mitto / ACP Issues — Read First!
@@ -46,6 +46,7 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 | `pykoclaw-whatsapp/`  | `pykoclaw_whatsapp`  | WhatsApp channel plugin                  |
 | `pykoclaw-messaging/` | `pykoclaw_messaging` | Shared dispatch library                  |
 | `pykoclaw-acp/`       | `pykoclaw_acp`       | Agent Client Protocol plugin             |
+| `pykoclaw-matrix/`    | `pykoclaw_matrix`    | Matrix/Element channel plugin            |
 
 ## Code conventions
 
@@ -73,7 +74,7 @@ Each subdirectory is a separate git repo AND a uv workspace member:
   loop in `ClientPool._query()`. Bugs in SDK message handling must be fixed
   in **both** places.
 - **Channel prefix:** conversations are named `{prefix}-{id}` (e.g. `wa-<jid>`,
-  `acp-<uuid>`).
+  `matrix-<room_id>`, `acp-<uuid>`).
 - **DB:** SQLite with `ThreadSafeConnection` wrapper. Tables: `conversations`,
   `scheduled_tasks`, `task_run_logs`, `delivery_queue`. Plugins add tables via
   `get_db_migrations()`.
@@ -113,6 +114,7 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 | `pykoclaw-messaging/src/pykoclaw_messaging/dispatch.py` | `dispatch_to_agent()`                    |
 | `pykoclaw-acp/src/pykoclaw_acp/server.py`               | ACP JSON-RPC server                      |
 | `pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py` | WhatsApp connection                      |
+| `pykoclaw-matrix/src/pykoclaw_matrix/connection.py`     | Matrix connection                        |
 
 ## Memory system
 
@@ -232,6 +234,19 @@ always run `bin/update-backlog.sh` explicitly after editing plans.
 - SQLite `CREATE TABLE IF NOT EXISTS` never modifies an existing table — it
   silently does nothing. New columns need explicit `ALTER TABLE ADD COLUMN`
   migrations.
+- **matrix-nio `room.is_group`** means "unnamed room", NOT "group chat". DMs
+  are unnamed → `is_group=True` for DMs. Use `member_count <= 2` instead.
+- **matrix-nio `server_timestamp`** is in milliseconds — divide by 1000
+  before `datetime.fromtimestamp()`.
+- **matrix-nio has NO cross-signing support.** Use the raw Matrix CS API
+  (`/keys/device_signing/upload` + `/keys/signatures/upload`) via
+  `pykoclaw matrix verify`.
+- **Plugin config `.env` files** — when `PYKOCLAW_DATA` is set to a custom
+  directory, plugins won't find the `.env` there unless they resolve the path
+  from `os.environ["PYKOCLAW_DATA"]`. See [plugin-config-env-file.md] memory.
+- **CLI `run` commands must call `logging.basicConfig()`** — without it, all
+  `log.info()` / `log.warning()` calls are silently swallowed. Always configure
+  logging at the top of long-running CLI entry points.
 
 ## Known issues
 
@@ -248,5 +263,6 @@ always run `bin/update-backlog.sh` explicitly after editing plans.
 
 [acp-log]: ACP_ISSUES_LOG.md
 [memory index]: .memory/INDEX.md
+[plugin-config-env-file.md]: .memory/plugin-config-env-file.md
 [reference links]: https://spec.commonmark.org/0.31.2/#reference-link
 [worktree workflow docs]: docs/worktree-workflow.md
