@@ -172,15 +172,17 @@ when adding or modifying memory files.
 For cross-repo feature work, use the **feature worktree** scripts in `bin/`.
 Full docs: [worktree workflow docs].
 
-| Command                             | What it does                           |
-| ----------------------------------- | -------------------------------------- |
-| `bin/create-worktree.sh <feature>`  | Create worktrees + branches + AoE      |
-| `bin/qa-check.sh [feature]`         | Run full test suite against worktree   |
-| `bin/staging.sh <feature>`          | Launch Mitto web + ACP for user review |
-| `bin/merge-feature.sh <feature>`    | Merge feature branches → main          |
-| `./install-dev.sh`                  | Deploy (editable reinstall)            |
-| `bin/cleanup-worktree.sh <feature>` | Tear down worktrees + AoE + temp dirs  |
-| `bin/list-worktrees.sh`             | List active feature worktrees          |
+| Command                                                | What it does                                                                                        |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| `bin/create-worktree.sh <feature>`                     | Create worktrees + branches + AoE                                                                   |
+| `bin/qa-check.sh [feature]`                            | Run full test suite against worktree                                                                |
+| `bin/staging.sh <feature>`                             | Launch Mitto web + ACP for user review                                                              |
+| `bin/merge-feature.sh <feature>`                       | Merge feature branches → main                                                                       |
+| `./install-dev.sh`                                     | Deploy (editable reinstall)                                                                         |
+| `bin/cleanup-worktree.sh <feature>`                    | Tear down worktrees + AoE + temp dirs                                                               |
+| `bin/list-worktrees.sh`                                | List active feature worktrees                                                                       |
+| `bin/diff-feature.sh <feature>`                        | Browse all cross-repo diffs (fzf+delta)                                                             |
+| `bin/diff-repos.sh [--root=DIR] [--before=TIME] [REF]` | General multi-repo diff browser: uncommitted changes, any ref, or vs last commit before a timestamp |
 
 Key concepts:
 

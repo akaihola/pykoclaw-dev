@@ -2,7 +2,7 @@
 
 The [pykoclaw-dev][pykoclaw-dev] workspace is checked out at `~/pykoclaw/`.
 Each subdirectory (`pykoclaw/`, `pykoclaw-acp/`, etc.) is its own git repo. A
-**feature worktree** creates parallel checkouts of *all* repos on a matching
+**feature worktree** creates parallel checkouts of _all_ repos on a matching
 feature branch so you can develop and test cross-repo changes without touching
 `main`.
 
@@ -75,6 +75,51 @@ git branch -d feature/<feature>
 Lists active worktree directories under `~/pykoclaw-dev/` and AoE sessions
 (if available).
 
+### `bin/diff-feature.sh <feature>`
+
+Thin wrapper around `diff-repos.sh` for the common feature-worktree case.
+Equivalent to:
+
+```bash
+bin/diff-repos.sh --root=~/pykoclaw-dev/<feature> main
+```
+
+### `bin/diff-repos.sh [OPTIONS] [REF]`
+
+General-purpose interactive multi-repo diff browser powered by **fzf + delta**.
+Lists every changed file across all repos in a scrollable pane; the right pane
+renders a live syntax-highlighted diff via `delta`.
+
+| Option / Argument | Meaning                                                  |
+| ----------------- | -------------------------------------------------------- |
+| `--root=DIR`      | Workspace root to scan (default: `~/pykoclaw`)           |
+| `--before=TIME`   | Diff vs last commit before TIME in each repo (see below) |
+| `REF`             | Any git ref: branch, tag, SHA, `HEAD~N` …                |
+| _(no args)_       | Uncommitted changes (`git diff HEAD`) in `~/pykoclaw`    |
+
+`--before=TIME` accepts any format git understands: `"2025-01-15 14:00"`,
+`"yesterday"`, `"2 hours ago"`. Each repo independently resolves its own SHA
+for that point in time, so cross-repo snapshots are always consistent.
+
+Keys inside the browser:
+
+| Key    | Action                                      |
+| ------ | ------------------------------------------- |
+| ↑ / ↓  | Navigate the file list                      |
+| Enter  | Open the selected file's full diff in delta |
+| Ctrl-A | Open the whole-repo diff for that entry     |
+| Ctrl-C | Quit                                        |
+
+Examples:
+
+```bash
+bin/diff-repos.sh                              # uncommitted changes in ~/pykoclaw
+bin/diff-repos.sh HEAD~5                       # vs 5 commits ago in each repo
+bin/diff-repos.sh main                         # vs main branch in ~/pykoclaw
+bin/diff-repos.sh --before="2025-01-15 14:00" # vs last commit before that time
+bin/diff-repos.sh --root=~/pykoclaw-dev/feat main  # same as diff-feature.sh feat
+```
+
 ### `bin/staging.sh <feature>`
 
 Launches Mitto web pointing at the worktree's pykoclaw ACP server for user
@@ -124,16 +169,19 @@ bin/qa-check.sh my-feature
 bin/staging.sh my-feature
 # → opens http://127.0.0.1:<port>, Ctrl+C to stop
 
-# 5. Merge feature branches into main
+# 5. Review all cross-repo changes before merging
+bin/diff-feature.sh my-feature
+
+# 6. Merge feature branches into main
 bin/merge-feature.sh my-feature
 
-# 6. Deploy (editable reinstall picks up merged code)
+# 7. Deploy (editable reinstall picks up merged code)
 ./install-dev.sh
 
-# 7. Clean up worktree
+# 8. Clean up worktree
 bin/cleanup-worktree.sh my-feature
 
-# 8. Optionally delete feature branches
+# 9. Optionally delete feature branches
 for repo in pykoclaw pykoclaw-acp pykoclaw-chat pykoclaw-whatsapp pykoclaw-messaging; do
     git -C ~/pykoclaw/$repo branch -d feature/my-feature 2>/dev/null
 done
