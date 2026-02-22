@@ -1,7 +1,8 @@
 # WhatsApp Multi-Agent Group Routing
 
-## Status: Backlog
-## Priority: 1
+## Status: In Progress
+
+## Priority: 2
 
 ## TL;DR
 
@@ -34,111 +35,72 @@ WhatsApp number.
 - Scheduled task delivery (e.g., Tyko's Willison blog summaries) routes to the
   correct group
 
-## WhatsApp Group Architecture
+## Design Decisions (Resolved)
 
-| Group           | Members         | Behavior                                          |
-| --------------- | --------------- | ------------------------------------------------- |
-| **Pipsa**       | User + Ressu    | Ressu responds directly (existing)                |
-| **Tyko**        | User + Tyko     | Tyko delivers summaries + responds directly       |
-| **Mixed**       | User + Ressu + Tyko | Both follow, respond when addressed, prefix msgs |
-| **Family**      | Family + TBD    | Future — family group with one or more agents     |
+### Single process (Option 3)
 
-## Design Decisions
+One pykoclaw-whatsapp instance handles all agent personalities. This avoids
+IPC, shared DB polling, and distributed state. The neonize bridge is the single
+point of connection; dispatch fans out to multiple agents within the same process.
 
-### Single WhatsApp bridge (Ressu/pipsa owns the connection)
+### JSON routing config
 
-Only the pipsa instance runs the WhatsApp bridge (neonize). Other instances
-(Tyko, etc.) do not connect to WhatsApp directly. Message routing must happen
-within or between pykoclaw instances via the shared infrastructure.
+A JSON file referenced by `PYKOCLAW_WA_AGENT_ROUTES` env var:
 
-### Group → agent routing table
-
-A configuration mapping each WhatsApp group JID to one or more agent identities.
-Could live in:
-- pykoclaw config (env vars / settings)
-- SQLite database
-- A config file shared between instances
-
-**Open question**: How do non-bridge instances (Tyko) receive messages and send
-replies? Options:
-1. **Shared DB polling**: All instances read from the same WhatsApp message DB;
-   the bridge instance sends on behalf of others
-2. **Internal IPC**: Bridge instance dispatches to other instances via HTTP/unix
-   socket
-3. **Single process, multiple agent configs**: One pykoclaw-whatsapp instance
-   handles all groups, dispatching to different agent personalities based on
-   group mapping
-
-### Message identity prefixing
-
-In multi-agent groups, every outgoing message is prefixed:
-```
-[Ressu]: Here's what I think about that...
-[Tyko]: The latest from Simon Willison's blog...
+```json
+{
+  "default_agent": "Ressu",
+  "agents": {
+    "Ressu": {},
+    "Tyko": { "model": "claude-opus-4-6" }
+  },
+  "routes": {
+    "120363...@g.us": ["Ressu"],
+    "120364...@g.us": ["Tyko"],
+    "120365...@g.us": ["Ressu", "Tyko"]
+  }
+}
 ```
 
-This is applied at the WhatsApp send layer, not by the LLM (to prevent the
-agent from "forgetting" the prefix).
+Without this file, the system behaves exactly as before (single agent from
+`PYKOCLAW_WA_TRIGGER_NAME`).
 
-### Agent-to-agent loop prevention
+### Sequential dispatch
 
-Rules for multi-agent groups:
-1. Each agent observes all messages (via ambient participation / batch model)
-2. Agents recognize messages from other agents by the `[AgentName]: ` prefix
-3. An agent MUST NOT reply to another agent's message — even if addressed
-4. Only after a **human participant** sends a message can agents respond again
-5. The system prompt includes: "Messages prefixed with `[Name]:` are from
-   another AI agent in this group. Do NOT respond to them. Wait for a human
-   message before considering whether to speak."
+When multiple agents are mapped to a group, they process the batch one at a
+time. Simpler than parallel, avoids resource contention.
 
-### Scheduled task delivery to groups
+### Conversation namespace
 
-When a scheduled task (e.g., Willison blog summary) targets a WhatsApp group,
-the delivery queue routes it to the correct group JID. The bridge instance
-sends the message with the appropriate agent prefix.
+Format: `wa-{agent_name_lower}-{jid}`. Each agent gets its own conversation,
+session, and working directory. No migration needed — losing old session
+history is acceptable.
 
-## Implementation Sketch
+## Implementation Progress
 
-### 1. Group-to-agent routing config
+### ✅ Phase 1: Core routing (DONE)
 
-```python
-# Possible config structure
-class GroupAgentMapping(BaseModel):
-    group_jid: str
-    agent_name: str          # Display name for prefixing
-    agent_instance: str      # Which pykoclaw instance handles this agent
-    is_primary: bool = True  # Primary agent responds by default
-```
+- `routing.py` — `RoutingConfig`, `AgentConfig`, `load_routing_config()`
+- `config.py` — `PYKOCLAW_WA_AGENT_ROUTES` setting
+- `handler.py` — `trigger_names` (plural), `find_hard_mentions()` for multi-name
+  detection
+- `connection.py` — per-agent dispatch, `[AgentName]:` prefixing in multi-agent
+  groups, multi-agent-aware system prompts, delivery queue routing with agent
+  name parsing
+- `__init__.py` — load & display routing config on startup
+- 102 tests passing (21 new tests for routing + multi-agent behavior)
 
-### 2. Message dispatch changes
+### 🔲 Phase 2: Deployment & integration testing
 
-- `on_message`: After receiving a message, check group JID against routing table
-- If group maps to multiple agents → dispatch to each mapped agent instance
-- Each agent's system prompt includes multi-agent awareness instructions
+- Create the actual `agent-routes.json` for the production instance
+- Update the systemd service with `PYKOCLAW_WA_AGENT_ROUTES` env var
+- End-to-end test with real WhatsApp groups
+- Verify delivery queue routing works with the new conversation format
 
-### 3. Outgoing message prefixing
+### 🔲 Phase 3: Documentation
 
-- Before `OutgoingQueue.send()`, prepend `[AgentName]: ` to message text
-- Only apply in groups with multiple mapped agents (single-agent groups
-  don't need prefixing)
-
-### 4. Cross-instance communication
-
-**TBD** — this is the hardest architectural question. The bridge instance needs
-to either:
-- Forward messages to other pykoclaw instances for processing
-- Handle all agent personalities itself (simpler but less modular)
-- Use the delivery queue as a shared mailbox
-
-## Open Questions
-
-1. **Single-process vs multi-process**: Should one pykoclaw-whatsapp instance
-   handle all agent personalities, or should each instance connect independently?
-2. **Config format**: Where does the group→agent mapping live?
-3. **Cross-instance agent invocation**: If Tyko runs as a separate scheduler
-   instance, how does it receive WhatsApp messages for processing?
-4. **Delivery queue integration**: How does `target_conversation` on scheduled
-   tasks map to a specific WhatsApp group + agent prefix?
+- Update pykoclaw-whatsapp README with multi-agent setup instructions
+- Add example `agent-routes.json`
 
 ## Related
 
