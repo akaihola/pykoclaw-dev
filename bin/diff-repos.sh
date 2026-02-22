@@ -5,6 +5,10 @@
 # Compares all pykoclaw repos against a git reference, showing a live
 # syntax-highlighted diff preview for each changed file.
 #
+# When called with no arguments, also includes untracked files (shown in
+# green with a [+] prefix). Untracked files are previewed as pure additions
+# via `git diff --no-index /dev/null`.
+#
 # OPTIONS:
 #   --root=DIR        Workspace root to scan (default: ~/pykoclaw)
 #   --before=TIME     Diff against the last commit before TIME in each repo.
@@ -14,10 +18,11 @@
 # ARGUMENTS:
 #   REF               Git ref to diff against (branch, tag, SHA, HEAD~N …).
 #                     If omitted and --before is not given, shows all
-#                     uncommitted changes (working tree vs HEAD).
+#                     uncommitted changes (working tree vs HEAD) plus any
+#                     untracked files.
 #
 # EXAMPLES:
-#   bin/diff-repos.sh                              # uncommitted changes
+#   bin/diff-repos.sh                              # uncommitted + untracked
 #   bin/diff-repos.sh HEAD~5                       # vs 5 commits ago
 #   bin/diff-repos.sh main                         # vs main branch
 #   bin/diff-repos.sh --before="2025-01-15 14:00" # vs last commit before that time
@@ -104,7 +109,7 @@ if [ -n "$BEFORE" ]; then
 elif [ -n "$REF" ]; then
     DIFF_LABEL="$REF"
 else
-    DIFF_LABEL="HEAD  (uncommitted changes)"
+    DIFF_LABEL="HEAD  (uncommitted + untracked)"
 fi
 
 # ---------------------------------------------------------------------------
@@ -114,10 +119,16 @@ fi
 #   {1}  DISPLAY  — "%-22s  %s" (repo label + file path) shown in fzf list
 #   {2}  DIR      — absolute path to the repo (used in git -C)
 #   {3}  FILE     — relative file path within the repo
-#   {4}  REF      — resolved git ref for this repo (SHA / branch / HEAD)
+#   {4}  REF      — resolved git ref for this repo (SHA / branch / HEAD),
+#                   or the sentinel "UNTRACKED" for untracked files
 #
 # The --before case resolves to a different SHA per repo, so it must be
 # stored per-entry rather than passed globally to the fzf preview command.
+#
+# Untracked files are only emitted in default mode (no REF, no --before).
+# They are displayed in green with a [+] prefix and tagged UNTRACKED in {4}
+# so the preview/enter commands can use `git diff --no-index /dev/null`
+# instead of `git diff <ref>`.
 # ---------------------------------------------------------------------------
 collect_entries() {
     local label dir ref
@@ -134,6 +145,13 @@ collect_entries() {
             | while IFS= read -r file; do
                 printf '%-22s  %s\t%s\t%s\t%s\n' "$label" "$file" "$dir" "$file" "$ref"
             done
+            if [ -z "$REF" ] && [ -z "$BEFORE" ]; then
+                git -C "$dir" ls-files --others --exclude-standard 2>/dev/null \
+                | while IFS= read -r file; do
+                    printf '%-22s  \033[32m[+] %s\033[0m\t%s\t%s\t%s\n' \
+                        "$label" "$file" "$dir" "$file" "UNTRACKED"
+                done
+            fi
         fi
     fi
 
@@ -153,6 +171,13 @@ collect_entries() {
         | while IFS= read -r file; do
             printf '%-22s  %s\t%s\t%s\t%s\n' "$repo" "$file" "$dir" "$file" "$ref"
         done
+        if [ -z "$REF" ] && [ -z "$BEFORE" ]; then
+            git -C "$dir" ls-files --others --exclude-standard 2>/dev/null \
+            | while IFS= read -r file; do
+                printf '%-22s  \033[32m[+] %s\033[0m\t%s\t%s\t%s\n' \
+                    "$repo" "$file" "$dir" "$file" "UNTRACKED"
+            done
+        fi
     done
 }
 
@@ -167,6 +192,47 @@ changed_files=$(echo "$entries" | wc -l | tr -d ' ')
 root_display="${ROOT/#$HOME/\~}"  # ~/pykoclaw instead of /home/agent/pykoclaw
 
 # ---------------------------------------------------------------------------
+# Build fzf command strings.
+#
+# Tracked files:   git diff {4} -- {3}          ({4} = branch/SHA/HEAD)
+# Untracked files: git diff --no-index /dev/null -- {3}  ({4} = UNTRACKED)
+#
+# fzf substitutes {2}/{3}/{4} before the shell evaluates the if-expression,
+# so the sentinel check [ "{4}" = "UNTRACKED" ] works correctly.
+#
+# Ctrl-A (whole-repo view) in default mode also folds in untracked files by
+# piping ls-files --others into the same delta | less session.
+# ---------------------------------------------------------------------------
+PREVIEW_CMD='
+    if [ "{4}" = "UNTRACKED" ]; then
+        git -C {2} diff --no-index /dev/null -- {3} 2>/dev/null | delta
+    else
+        git -C {2} diff {4} -- {3} | delta
+    fi'
+
+ENTER_CMD='
+    if [ "{4}" = "UNTRACKED" ]; then
+        git -C {2} diff --no-index /dev/null -- {3} 2>/dev/null | delta | less -R
+    else
+        git -C {2} diff {4} -- {3} | delta | less -R
+    fi'
+
+if [ -z "$REF" ] && [ -z "$BEFORE" ]; then
+    # Default mode: Ctrl-A shows tracked diffs + all untracked files together.
+    # SC2016: $f intentionally unexpanded here; it's a loop var in the executed cmd.
+    # shellcheck disable=SC2016
+    CTRL_A_CMD='
+        { git -C {2} diff HEAD
+          git -C {2} ls-files --others --exclude-standard \
+              | while IFS= read -r f; do
+                    git -C {2} diff --no-index /dev/null -- "$f" 2>/dev/null
+                done
+        } | delta | less -R'
+else
+    CTRL_A_CMD='git -C {2} diff {4} | delta | less -R'
+fi
+
+# ---------------------------------------------------------------------------
 # Launch fzf
 # ---------------------------------------------------------------------------
 echo "$entries" | fzf \
@@ -175,9 +241,9 @@ echo "$entries" | fzf \
     --with-nth=1 \
     --header="${root_display}  |  vs ${DIFF_LABEL}  (${changed_files} files)  |  Enter: file diff  Ctrl-A: repo diff" \
     --header-first \
-    --preview='git -C {2} diff {4} -- {3} | delta' \
+    --preview="$PREVIEW_CMD" \
     --preview-window='right:65%:wrap' \
-    --bind='enter:execute(git -C {2} diff {4} -- {3} | delta | less -R)' \
-    --bind='ctrl-a:execute(git -C {2} diff {4} | delta | less -R)' \
+    --bind="enter:execute($ENTER_CMD)" \
+    --bind="ctrl-a:execute($CTRL_A_CMD)" \
     --bind='ctrl-c:abort' \
     --bind='q:abort'
