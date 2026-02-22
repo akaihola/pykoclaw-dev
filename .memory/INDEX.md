@@ -28,6 +28,7 @@ Cross-reference of all memory files in the Pykoclaw project.
 | [session-resume-retry.md]        | claude-sdk, dispatch, gotcha, channel-plugins        | dispatch_to_agent() session resume fails on corrupt state — retry without session          |
 | [matrix-agent-reply-storage.md]  | matrix, bugfix, gotcha, session-resume, context-loss | Agent replies not stored locally → context lost on session resume failure                  |
 | [multi-agent-routing.md]         | whatsapp, routing, multi-agent, architecture         | WhatsApp multi-agent group routing: config, per-agent DB, delivery polling                 |
+| [bananas-delivery-bug.md]        | scheduler, delivery, whatsapp, routing, bug-fix      | Bare target_conversation causes deliveries stuck as pending with channel_prefix='chat'     |
 
 ## By tag
 
@@ -100,5 +101,6 @@ Cross-reference of all memory files in the Pykoclaw project.
 | session-resume | [matrix-agent-reply-storage.md] |
 
 [matrix-agent-reply-storage.md]: matrix-agent-reply-storage.md
+[bananas-delivery-bug.md]: bananas-delivery-bug.md
 [multi-agent-routing.md]: multi-agent-routing.md
 [session-resume-retry.md]: session-resume-retry.md
