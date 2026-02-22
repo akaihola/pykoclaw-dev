@@ -25,9 +25,11 @@ conversation to be well-formed.
 Added `resolve_delivery_target()` in `scheduler.py`:
 
 1. If the target has a known prefix (`wa-`, `matrix-`, etc.) → use as-is.
+   Known prefixes come from `KNOWN_CHANNEL_PREFIXES` in `db.py`.
 2. If bare → inherit prefix from `task.conversation`.
-3. If the bare target is the tail of the origin name → reuse the full
-   origin name (preserves agent routing segments like `wa-tyko-...`).
+3. If the bare target matches the origin suffix exactly or on a `-`
+   boundary → reuse the full origin name (preserves agent routing
+   segments like `wa-tyko-...`).
 4. Otherwise → prepend the origin prefix.
 
 ## Diagnosis checklist

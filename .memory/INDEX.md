@@ -25,7 +25,7 @@ Cross-reference of all memory files in the Pykoclaw project.
 | [tool-use-text-concatenation.md] | sdk-consume, streaming, bugfix, mitto, gotcha        | Text around hidden tool calls concatenated without separator                               |
 | [matrix-nio-gotchas.md]          | matrix, matrix-nio, gotcha, e2ee                     | matrix-nio is_group, timestamps, logging, E2EE, cross-signing, typing indicators           |
 | [plugin-config-env-file.md]      | config, gotcha, pydantic-settings, env               | Plugin .env hardcodes default path; must resolve from PYKOCLAW_DATA                        |
-| [session-resume-retry.md]        | claude-sdk, dispatch, gotcha, channel-plugins        | dispatch_to_agent() session resume fails on corrupt state — retry without session          |
+| [session-resume-retry.md]        | claude-sdk, dispatch, scheduler, gotcha               | Auto-retry on ProcessError in dispatch + scheduler; stale prompt hash detection            |
 | [matrix-agent-reply-storage.md]  | matrix, bugfix, gotcha, session-resume, context-loss | Agent replies not stored locally → context lost on session resume failure                  |
 | [multi-agent-routing.md]         | whatsapp, routing, multi-agent, architecture         | WhatsApp multi-agent group routing: config, per-agent DB, delivery polling                 |
 | [bananas-delivery-bug.md]        | scheduler, delivery, whatsapp, routing, bug-fix      | Bare target_conversation causes deliveries stuck as pending with channel_prefix='chat'     |
@@ -69,11 +69,12 @@ Cross-reference of all memory files in the Pykoclaw project.
 | multi-repo      | [worktree-workflow.md]                                                                                                                                                  |
 | mcp             | [sdk-schema-gotcha.md]                                                                                                                                                  |
 
-| channel-plugins | [session-resume-retry.md], [matrix-agent-reply-storage.md] |
+| channel-plugins | [matrix-agent-reply-storage.md] |
 | context-loss | [matrix-agent-reply-storage.md] |
 | config | [plugin-config-env-file.md] |
 | cross-signing | [matrix-nio-gotchas.md] |
 | dispatch | [session-resume-retry.md] |
+| scheduler | [session-resume-retry.md], [bananas-delivery-bug.md] |
 | e2ee | [matrix-nio-gotchas.md] |
 | env | [plugin-config-env-file.md] |
 | matrix | [matrix-nio-gotchas.md] |
