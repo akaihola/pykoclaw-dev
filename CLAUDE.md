@@ -22,6 +22,15 @@ prevents re-treading failed approaches.
 - **Always use feature worktrees** for non-trivial work. Only skip for the
   simplest obvious quick fixes. Use `bin/create-worktree.sh <feature-name>` to
   set up, work in the worktree, and commit there — not on main.
+- **Always check docs once code and tests are complete** — before considering
+  any task done, check every README and memory file touched by or relevant to
+  the change. Update them without waiting to be asked. Specifically:
+  - Any new user-visible behaviour → add a section to the relevant `README.md`.
+  - Any non-obvious pattern, gotcha, or design decision → add or update a
+    `.memory/*.md` file and update `.memory/INDEX.md`.
+  - Never commit a docs update separately from the feature commit on `main`;
+    commit it as part of the same logical unit (or a follow-up commit in the
+    same worktree before merging).
 
 ## Build & run
 
