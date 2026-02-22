@@ -278,6 +278,12 @@ deployment layer is responsible for setting it.
 
 ## Important gotchas
 
+- **`ClaudeAgentOptions.setting_sources` controls skill discovery** — `"user"`
+  loads `~/.claude/skills/`, `"project"` loads `./.claude/skills/`. Skills are
+  concatenated in order and resolved by first-match, so order = precedence.
+  Always use `["project", "user"]` so project skills win on name collision.
+  Bundled skills (e.g. `keybindings-help`) are compiled into the binary and
+  cannot be disabled individually. See [claude-sdk-setting-sources.md] memory.
 - Neonize timestamps are in **milliseconds** — divide by 1000.
 - `client.me` is not a JID — use `client.me.JID`.
 - WhatsApp plugin uses 3 threads sharing one SQLite connection — all DB access
@@ -342,4 +348,5 @@ deployment layer is responsible for setting it.
 [plugin-config-env-file.md]: .memory/plugin-config-env-file.md
 [session-resume-retry.md]: .memory/session-resume-retry.md
 [session-resume-system-prompt.md]: .memory/session-resume-system-prompt.md
+[claude-sdk-setting-sources.md]: .memory/claude-sdk-setting-sources.md
 [worktree workflow docs]: docs/worktree-workflow.md
