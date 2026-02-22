@@ -29,10 +29,12 @@
 #   bin/diff-repos.sh --root=~/pykoclaw-dev/feat main  # feature worktree vs main
 #
 # KEYS (inside the browser):
-#   ↑ / ↓       Navigate file list
-#   Enter        Open the selected file's full diff in delta pager
-#   Ctrl-A       Open the whole-repo diff for the entry under the cursor
-#   Ctrl-C / q  Quit
+#   ↑ / ↓           Navigate file list
+#   Shift-↑ / ↓     Scroll preview one line
+#   Ctrl-U / Ctrl-D  Scroll preview half a page
+#   Enter            Open the selected file's full diff in delta pager
+#   Ctrl-A           Open the whole-repo diff for the entry under the cursor
+#   Ctrl-C / q      Quit
 set -euo pipefail
 
 SUBREPOS=(
@@ -239,11 +241,15 @@ echo "$entries" | fzf \
     --ansi \
     --delimiter=$'\t' \
     --with-nth=1 \
-    --header="${root_display}  |  vs ${DIFF_LABEL}  (${changed_files} files)  |  Enter: file diff  Ctrl-A: repo diff" \
+    --header="${root_display}  |  vs ${DIFF_LABEL}  (${changed_files} files)  |  Shift-↑↓/Ctrl-UD: scroll  Enter: open  Ctrl-A: repo" \
     --header-first \
     --preview="$PREVIEW_CMD" \
     --preview-window='right:65%:wrap' \
     --bind="enter:execute($ENTER_CMD)" \
     --bind="ctrl-a:execute($CTRL_A_CMD)" \
+    --bind='shift-up:preview-up' \
+    --bind='shift-down:preview-down' \
+    --bind='ctrl-u:preview-half-page-up' \
+    --bind='ctrl-d:preview-half-page-down' \
     --bind='ctrl-c:abort' \
     --bind='q:abort'
