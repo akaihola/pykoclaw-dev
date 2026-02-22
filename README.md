@@ -84,6 +84,10 @@ support.
 - Login + cross-signing: `pykoclaw matrix login`, `pykoclaw matrix verify`
 - Long-running listener: `pykoclaw matrix run`
 - Ambient listening with trigger-based replies (`@Andy` mention or DM)
+- Rich formatting — Markdown → Matrix HTML (bold, code, tables, strikethrough,
+  auto-linked URLs, task lists with emoji checkboxes)
+- Mermaid diagram rendering — `` ```mermaid `` `` blocks → inline PNG images
+- Image file uploads — absolute paths to images in agent text sent as `m.image`
 - Batch accumulation with configurable window (default 90 s)
 - Typing indicator while the agent processes
 - `send_matrix_message` and `get_matrix_history` MCP tools
