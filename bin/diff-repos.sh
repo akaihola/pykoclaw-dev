@@ -6,8 +6,8 @@
 # syntax-highlighted diff preview for each changed file.
 #
 # When called with no arguments, also includes untracked files (shown in
-# green with a [+] prefix). Untracked files are previewed as pure additions
-# via `git diff --no-index /dev/null`.
+# green with a [+] prefix). Untracked files are previewed with `bat` for
+# full syntax highlighting rather than as a diff.
 #
 # OPTIONS:
 #   --root=DIR        Workspace root to scan (default: ~/pykoclaw)
@@ -131,7 +131,7 @@ fi
 #
 # Untracked files are only emitted in default mode (no REF, no --before).
 # They are displayed in green with a [+] prefix and tagged UNTRACKED in {4}
-# so the preview/enter commands can use `git diff --no-index /dev/null`
+# so the preview/enter commands dispatch to `bat` for syntax highlighting
 # instead of `git diff <ref>`.
 # ---------------------------------------------------------------------------
 collect_entries() {
@@ -198,28 +198,29 @@ root_display="${ROOT/#$HOME/\~}"  # ~/pykoclaw instead of /home/agent/pykoclaw
 # ---------------------------------------------------------------------------
 # Build fzf command strings.
 #
-# Tracked files:   git diff {4} -- {3}          ({4} = branch/SHA/HEAD)
-# Untracked files: git diff --no-index /dev/null -- {3}  ({4} = UNTRACKED)
+# Tracked files:   git diff {4} -- {3}   ({4} = branch/SHA/HEAD)
+# Untracked files: bat --color=always     ({4} = sentinel "UNTRACKED")
 #
-# fzf substitutes {2}/{3}/{4} before the shell evaluates the if-expression,
-# so the sentinel check [ "{4}" = "UNTRACKED" ] works correctly.
+# Dispatch uses `case {4} in` with the placeholder unquoted.  Using
+# [ "{4}" = "UNTRACKED" ] looks right but fails: fzf shell-escapes the
+# substituted value, turning "{4}" into "'UNTRACKED'" in the final command,
+# so the quoted comparison is never equal.  An unquoted `case` match has no
+# such problem because UNTRACKED contains no shell-special characters.
 #
 # Ctrl-A (whole-repo view) in default mode also folds in untracked files by
 # piping ls-files --others into the same delta | less session.
 # ---------------------------------------------------------------------------
 PREVIEW_CMD='
-    if [ "{4}" = "UNTRACKED" ]; then
-        git -C {2} diff --no-index /dev/null -- {3} 2>/dev/null | delta
-    else
-        git -C {2} diff {4} -- {3} | delta
-    fi'
+    case {4} in
+      UNTRACKED) bat --color=always --paging=never {2}/{3} ;;
+      *)         git -C {2} diff {4} -- {3} | delta ;;
+    esac'
 
 ENTER_CMD='
-    if [ "{4}" = "UNTRACKED" ]; then
-        git -C {2} diff --no-index /dev/null -- {3} 2>/dev/null | delta | less -R
-    else
-        git -C {2} diff {4} -- {3} | delta | less -R
-    fi'
+    case {4} in
+      UNTRACKED) bat --color=always --paging=never {2}/{3} | less -R ;;
+      *)         git -C {2} diff {4} -- {3} | delta | less -R ;;
+    esac'
 
 if [ -z "$REF" ] && [ -z "$BEFORE" ]; then
     # Default mode: Ctrl-A shows tracked diffs + all untracked files together.
