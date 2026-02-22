@@ -29,12 +29,14 @@
 #   bin/diff-repos.sh --root=~/pykoclaw-dev/feat main  # feature worktree vs main
 #
 # KEYS (inside the browser):
-#   ↑ / ↓           Navigate file list
-#   Shift-↑ / ↓     Scroll preview one line
-#   Ctrl-U / Ctrl-D  Scroll preview half a page
-#   Enter            Open the selected file's full diff in delta pager
-#   Ctrl-A           Open the whole-repo diff for the entry under the cursor
-#   Ctrl-C / q      Quit
+#   ↑ / ↓                Navigate file list
+#   Shift-↑ / Shift-↓    Scroll preview one line up / down
+#   Ctrl-U  / Ctrl-D     Scroll preview half a page up / down
+#   Alt-V   / Ctrl-V     Scroll preview full page up / down
+#   PgUp    / PgDn       Scroll preview full page up / down
+#   Enter                Open the selected file's full diff in delta pager
+#   Ctrl-A               Open the whole-repo diff for the entry under the cursor
+#   Ctrl-C / q           Quit
 set -euo pipefail
 
 SUBREPOS=(
@@ -241,7 +243,7 @@ echo "$entries" | fzf \
     --ansi \
     --delimiter=$'\t' \
     --with-nth=1 \
-    --header="${root_display}  |  vs ${DIFF_LABEL}  (${changed_files} files)  |  Shift-↑↓/Ctrl-UD: scroll  Enter: open  Ctrl-A: repo" \
+    --header="${root_display}  |  vs ${DIFF_LABEL}  (${changed_files} files)  |  Sh-↑↓: line  C-UD: half  A-V/C-V/PgUp/Dn: page  Enter: open  C-A: repo" \
     --header-first \
     --preview="$PREVIEW_CMD" \
     --preview-window='right:65%:wrap' \
@@ -251,5 +253,9 @@ echo "$entries" | fzf \
     --bind='shift-down:preview-down' \
     --bind='ctrl-u:preview-half-page-up' \
     --bind='ctrl-d:preview-half-page-down' \
+    --bind='alt-v:preview-page-up' \
+    --bind='ctrl-v:preview-page-down' \
+    --bind='page-up:preview-page-up' \
+    --bind='page-down:preview-page-down' \
     --bind='ctrl-c:abort' \
     --bind='q:abort'

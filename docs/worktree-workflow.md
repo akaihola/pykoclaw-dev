@@ -103,12 +103,16 @@ for that point in time, so cross-repo snapshots are always consistent.
 
 Keys inside the browser:
 
-| Key    | Action                                      |
-| ------ | ------------------------------------------- |
-| ↑ / ↓  | Navigate the file list                      |
-| Enter  | Open the selected file's full diff in delta |
-| Ctrl-A | Open the whole-repo diff for that entry     |
-| Ctrl-C | Quit                                        |
+| Key               | Action                                      |
+| ----------------- | ------------------------------------------- |
+| ↑ / ↓             | Navigate the file list                      |
+| Shift-↑ / Shift-↓ | Scroll preview one line up / down           |
+| Ctrl-U / Ctrl-D   | Scroll preview half a page up / down        |
+| Alt-V / Ctrl-V    | Scroll preview full page up / down          |
+| PgUp / PgDn       | Scroll preview full page up / down          |
+| Enter             | Open the selected file's full diff in delta |
+| Ctrl-A            | Open the whole-repo diff for that entry     |
+| Ctrl-C / q        | Quit                                        |
 
 Examples:
 
