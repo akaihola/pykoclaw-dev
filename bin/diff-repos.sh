@@ -210,9 +210,11 @@ root_display="${ROOT/#$HOME/\~}"  # ~/pykoclaw instead of /home/agent/pykoclaw
 # Ctrl-A (whole-repo view) in default mode also folds in untracked files by
 # piping ls-files --others into the same delta | less session.
 # ---------------------------------------------------------------------------
+# SC2016: $FZF_PREVIEW_COLUMNS intentionally unexpanded — set by fzf at runtime.
+# shellcheck disable=SC2016
 PREVIEW_CMD='
     case {4} in
-      UNTRACKED) bat --color=always --paging=never {2}/{3} ;;
+      UNTRACKED) bat --color=always --paging=never --terminal-width="$FZF_PREVIEW_COLUMNS" {2}/{3} ;;
       *)         git -C {2} diff {4} -- {3} | delta ;;
     esac'
 
