@@ -51,5 +51,33 @@ Always run `.schema <table>` before writing `SELECT` queries against
 unfamiliar tables. Column names are not guessable (e.g. `conversations`
 uses `name` as PK, not `id`).
 
+## Dispatch timing as failure signal
+
+When an agent "chose silence", check how long the dispatch took:
+
+| Duration | Meaning                                                                                                     |
+| -------- | ----------------------------------------------------------------------------------------------------------- |
+| < 2s     | **Subprocess startup failure** — claude exited before processing. Check `~/.claude/debug/<session_id>.txt`. |
+| 2–5s     | Possible failure or very short response                                                                     |
+| ≥ 5s     | Normal — Claude made an actual API call                                                                     |
+
+A dispatch that returns `full_text=''` in under 2 seconds is almost never
+genuine silence — it's a silent subprocess crash.
+
+## Claude CLI debug artifacts
+
+Every claude subprocess invocation writes:
+
+- **`~/.claude/debug/<session_id>.txt`** — full startup/shutdown trace.
+  Check line count: < 60 lines = died during init, no API call was made.
+- **`~/.claude/projects/<project_hash>/<session_id>.jsonl`** — session
+  history file. Missing = subprocess never wrote it = died before doing work.
+
+The `project_hash` is derived from the `cwd` option passed to
+`ClaudeAgentOptions`. For WhatsApp: `data_dir/conversations/<conv_name>`.
+
+Find the session ID from `conversations` table, then check both files
+immediately — this shortcuts most silent-failure investigations.
+
 [channel-dispatch.md]: channel-dispatch.md
 [result-message-fallback.md]: result-message-fallback.md
