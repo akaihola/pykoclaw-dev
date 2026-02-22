@@ -1472,6 +1472,7 @@ name = "pykoclaw-messaging"
 version = "0.1.0"
 source = { editable = "pykoclaw-messaging" }
 dependencies = [
+    { name = "click" },
     { name = "pykoclaw" },
 ]
 
@@ -1482,7 +1483,10 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pykoclaw", editable = "pykoclaw" }]
+requires-dist = [
+    { name = "click" },
+    { name = "pykoclaw", editable = "pykoclaw" },
+]
 
 [package.metadata.requires-dev]
 dev = [

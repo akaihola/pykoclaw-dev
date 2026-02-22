@@ -23,6 +23,7 @@ SUBREPOS=(
     "pykoclaw-chat"
     "pykoclaw-whatsapp"
     "pykoclaw-messaging"
+    "pykoclaw-matrix"
 )
 
 AOE_BIN=""

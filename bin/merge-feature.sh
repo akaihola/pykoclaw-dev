@@ -20,6 +20,7 @@ SUBREPOS=(
     "pykoclaw-chat"
     "pykoclaw-whatsapp"
     "pykoclaw-messaging"
+    "pykoclaw-matrix"
 )
 
 if [[ -z "${1:-}" ]]; then

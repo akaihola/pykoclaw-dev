@@ -32,5 +32,24 @@ When running `uv run pytest` from the main workspace, Python imports from the
 main `.venv` — NOT from worktree source files. Always `cd` into the worktree
 and run from there to test worktree changes.
 
+## Check service file for log locations FIRST
+
+Don't start with `journalctl` — it often only shows systemd start/stop
+messages. Read the `.service` file first:
+
+```bash
+cat ~/.config/systemd/user/pykoclaw-matrix.service
+```
+
+Look for `StandardOutput=append:` / `StandardError=append:` — the actual
+application logs are there (e.g. `~/.local/state/pykoclaw/matrix.log`).
+Only fall back to `journalctl` if logs go to the journal.
+
+## DB schema before queries
+
+Always run `.schema <table>` before writing `SELECT` queries against
+unfamiliar tables. Column names are not guessable (e.g. `conversations`
+uses `name` as PK, not `id`).
+
 [channel-dispatch.md]: channel-dispatch.md
 [result-message-fallback.md]: result-message-fallback.md
