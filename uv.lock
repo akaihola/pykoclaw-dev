@@ -1500,6 +1500,8 @@ version = "0.1.0"
 source = { editable = "pykoclaw-whatsapp" }
 dependencies = [
     { name = "click" },
+    { name = "markdown-it-py" },
+    { name = "mdit-py-plugins" },
     { name = "neonize" },
     { name = "pykoclaw" },
     { name = "pykoclaw-messaging" },
@@ -1515,6 +1517,8 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "click" },
+    { name = "markdown-it-py", specifier = ">=3.0.0" },
+    { name = "mdit-py-plugins", specifier = ">=0.4.0" },
     { name = "neonize", specifier = ">=0.3.14" },
     { name = "pykoclaw", editable = "pykoclaw" },
     { name = "pykoclaw-messaging", editable = "pykoclaw-messaging" },
