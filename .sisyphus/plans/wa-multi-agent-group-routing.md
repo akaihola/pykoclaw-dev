@@ -1,112 +1,79 @@
 # WhatsApp Multi-Agent Group Routing
 
-## Status: In Progress
+## Status: Done
 
 ## Priority: 2
 
+## Completed: 2026-02-22
+
 ## TL;DR
 
-> **Quick Summary**: Enable multiple pykoclaw agent instances (Tyko, Ressu, future
-> agents) to participate in WhatsApp groups through a single shared WhatsApp
-> account. Each group maps to one or more agents. In multi-agent groups, agents
-> prefix messages with their identity (`[Ressu]: `, `[Tyko]: `) and follow
-> strict turn-taking rules to prevent agent-to-agent loops.
+> **Quick Summary**: Multiple pykoclaw agent personalities (Ressu, Tyko, Väinö)
+> participate in WhatsApp groups through a single shared WhatsApp account. Each
+> group maps to one or more agents via a JSON routing config. In multi-agent
+> groups, agents prefix messages with `[AgentName]:` and follow loop prevention
+> rules.
 >
 > **Estimated Effort**: Medium-Large
-> **Depends On**: [wa-ambient-participation.md] (batch/ambient observation model)
+> **Depends On**: [wa-ambient-participation.md]
 
 ---
 
-## Motivation
+## What was built
 
-The user runs multiple pykoclaw instances (agent personalities) on one machine,
-all sharing a single WhatsApp account/bridge (run by the pipsa/Ressu instance).
-The goal is to have different agents participate in different WhatsApp groups —
-some groups with a single agent, others with multiple agents — all through one
-WhatsApp number.
+### Core routing (`routing.py`)
 
-## Expected Outcome
+- `RoutingConfig` / `AgentConfig` dataclasses with `data_dir` and `model`
+  per agent
+- `load_routing_config()` loads from JSON or creates single-agent default
+- Group → agent lookup, multi-agent detection, conversation name
+  generation/parsing
 
-- Each WhatsApp group can be mapped to one or more pykoclaw agent instances
-- Agents in the same group prefix outgoing messages with `[AgentName]: `
-- Agents only respond when addressed (by name or context)
-- Agents never respond to another agent's message unless a human explicitly
-  redirects the conversation
-- Scheduled task delivery (e.g., Tyko's Willison blog summaries) routes to the
-  correct group
+### Per-agent dispatch (`connection.py`)
 
-## Design Decisions (Resolved)
+- `_handle_agent_trigger()` looks up agents for a chat JID, dispatches
+  sequentially
+- Each agent gets its own DB connection and `data_dir` (lazy init)
+- `[AgentName]:` prefixing on outgoing messages in multi-agent groups
+- Multi-agent-aware system prompts with loop prevention instructions
+- Per-agent hard mention routing (only the mentioned agent gets "MUST reply")
+- Delivery queue parsing supports the new `wa-{agent}-{jid}` conversation
+  format
 
-### Single process (Option 3)
+### Configuration
 
-One pykoclaw-whatsapp instance handles all agent personalities. This avoids
-IPC, shared DB polling, and distributed state. The neonize bridge is the single
-point of connection; dispatch fans out to multiple agents within the same process.
+- `PYKOCLAW_WA_AGENT_ROUTES` env var points to JSON routing config
+- Fully backward compatible: without the env var, single-agent behavior is
+  unchanged
 
-### JSON routing config
+### Tests
 
-A JSON file referenced by `PYKOCLAW_WA_AGENT_ROUTES` env var:
+102 tests passing — 21 new tests covering routing config, multi-agent
+dispatch, message prefixing, system prompt awareness, model overrides, and
+hard mention routing.
 
-```json
-{
-  "default_agent": "Ressu",
-  "agents": {
-    "Ressu": {},
-    "Tyko": { "model": "claude-opus-4-6" }
-  },
-  "routes": {
-    "120363...@g.us": ["Ressu"],
-    "120364...@g.us": ["Tyko"],
-    "120365...@g.us": ["Ressu", "Tyko"]
-  }
-}
-```
+### Documentation
 
-Without this file, the system behaves exactly as before (single agent from
-`PYKOCLAW_WA_TRIGGER_NAME`).
+Comprehensive README rewrite covering ambient participation, multi-agent
+setup walkthrough (data dirs → JSON config → JID discovery → deployment),
+per-agent isolation, and architecture diagrams.
 
-### Sequential dispatch
+## Design decisions
 
-When multiple agents are mapped to a group, they process the batch one at a
-time. Simpler than parallel, avoids resource contention.
-
-### Conversation namespace
-
-Format: `wa-{agent_name_lower}-{jid}`. Each agent gets its own conversation,
-session, and working directory. No migration needed — losing old session
-history is acceptable.
-
-## Implementation Progress
-
-### ✅ Phase 1: Core routing (DONE)
-
-- `routing.py` — `RoutingConfig`, `AgentConfig`, `load_routing_config()`
-- `config.py` — `PYKOCLAW_WA_AGENT_ROUTES` setting
-- `handler.py` — `trigger_names` (plural), `find_hard_mentions()` for multi-name
-  detection
-- `connection.py` — per-agent dispatch, `[AgentName]:` prefixing in multi-agent
-  groups, multi-agent-aware system prompts, delivery queue routing with agent
-  name parsing
-- `__init__.py` — load & display routing config on startup
-- 102 tests passing (21 new tests for routing + multi-agent behavior)
-
-### 🔲 Phase 2: Deployment & integration testing
-
-- Create the actual `agent-routes.json` for the production instance
-- Update the systemd service with `PYKOCLAW_WA_AGENT_ROUTES` env var
-- End-to-end test with real WhatsApp groups
-- Verify delivery queue routing works with the new conversation format
-
-### 🔲 Phase 3: Documentation
-
-- Update pykoclaw-whatsapp README with multi-agent setup instructions
-- Add example `agent-routes.json`
+| Decision            | Choice                                    |
+| ------------------- | ----------------------------------------- |
+| Process model       | Single process (one neonize bridge)       |
+| Config format       | JSON file referenced by env var           |
+| Dispatch order      | Sequential per group                      |
+| Conversation naming | `wa-{agent_lower}-{jid}`                  |
+| Per-agent DB        | Each agent's `data_dir/pykoclaw.db`       |
+| Message prefixing   | Applied at send layer, not by LLM         |
+| Loop prevention     | System prompt instructions + `is_from_me` |
 
 ## Related
 
-- [wa-ambient-participation.md] — Prerequisite: ambient observation model
-  (batch accumulation, LLM-driven reply decisions, session resumption)
-- [scheduled-task-delivery.md] — Delivery queue for task results to channels
+- [wa-ambient-participation.md] — Prerequisite: batch accumulation model
+- [scheduled-task-delivery.md] — Delivery queue for task results
 
 [wa-ambient-participation.md]: wa-ambient-participation.md
 [scheduled-task-delivery.md]: scheduled-task-delivery.md
