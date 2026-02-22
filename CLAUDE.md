@@ -120,7 +120,7 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 | `pykoclaw-messaging/src/pykoclaw_messaging/dispatch.py` | `dispatch_to_agent()`                    |
 | `pykoclaw-acp/src/pykoclaw_acp/server.py`               | ACP JSON-RPC server                      |
 | `pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py` | WhatsApp connection                      |
-| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/routing.py`   | Multi-agent group routing config         |
+| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/routing.py`    | Multi-agent group routing config         |
 | `pykoclaw-matrix/src/pykoclaw_matrix/connection.py`     | Matrix connection                        |
 
 ## Memory system
@@ -193,6 +193,27 @@ Key concepts:
   `.venv` imports its own installed packages, not the worktree source.
 - AoE sessions are optional (scripts degrade gracefully)
 - **Cleanup does NOT delete feature branches** — do that manually
+
+### Common worktree operations
+
+**Always use the scripts** — never run manual `git` commands for worktree
+operations. The scripts handle multi-worktree complexity (e.g., "main is
+already checked out" errors).
+
+**Checking commits ahead:**
+
+```bash
+# Compare feature branch against main in ~/pykoclaw
+cd ~/pykoclaw-dev/<feature>/<repo>
+git log ~/pykoclaw/<repo>/HEAD..HEAD --oneline
+```
+
+**Rebasing:** The scripts handle rebasing automatically. If you must rebase
+manually, use `git rebase origin/main` from within the worktree.
+
+**Merging into main:** Use `bin/merge-feature.sh <feature>`. This merges the
+feature branch into local main only — it does NOT push to origin. Push
+separately if needed.
 
 ## Backlog management
 
