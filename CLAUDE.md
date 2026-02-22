@@ -309,15 +309,36 @@ deployment layer is responsible for setting it.
 - **Plugin config `.env` files** — when `PYKOCLAW_DATA` is set to a custom
   directory, plugins won't find the `.env` there unless they resolve the path
   from `os.environ["PYKOCLAW_DATA"]`. See [plugin-config-env-file.md] memory.
+- **Neonize configures logging on import** — `neonize.utils.log` calls
+  `logging.basicConfig(level=INFO)` the moment it is imported. This is the
+  actual source of logging configuration for all WhatsApp plugin services.
+  To enable DEBUG for our code without drowning in whatsmeow noise, set
+  specific loggers AFTER neonize is imported:
+  ```python
+  for ns in ("pykoclaw", "pykoclaw_whatsapp", "pykoclaw_messaging", "claude_agent_sdk"):
+      logging.getLogger(ns).setLevel(logging.DEBUG)
+  ```
+  The WhatsApp `run` command honours `PYKOCLAW_LOG_LEVEL=DEBUG` to trigger this.
+- **`install-dev.sh` regenerates service files** — editing
+  `~/.config/systemd/user/pykoclaw-whatsapp.service` directly is futile; the
+  script overwrites it. To add a temporary env var (e.g. `PYKOCLAW_LOG_LEVEL`),
+  set it in the environment before running the service, or modify the source
+  template that `install-dev.sh` uses. Run `systemctl --user daemon-reload`
+  after any manual service file edit that survives a reinstall.
 - **CLI `run` commands must call `logging.basicConfig()`** — without it, all
   `log.info()` / `log.warning()` calls are silently swallowed. Always configure
   logging at the top of long-running CLI entry points.
-- **Session resume auto-retry** — both `dispatch_to_agent()` and the
-  scheduler's `run_task()` automatically catch `ProcessError` on resume,
-  clear the session via `upsert_conversation(…, None, …)`, and retry
-  fresh. They also detect stale `system_prompt_hash` and skip resume
-  when the prompt has changed. Channel plugins do NOT need their own
-  retry logic for this. See [session-resume-retry.md] memory note.
+- **Session resume has TWO failure modes** — `dispatch_to_agent()` retries
+  on `ProcessError` (exit code 1), but NOT on exit code 0 + empty
+  `full_text`. The latter looks like "chose silence" but completes in < 2s
+  (real responses take ≥ 5s). Channel plugins must detect `hard_mention=True`
+  - `full_text=""` and retry with `fresh=True`. See [session-resume-retry.md].
+- **Claude SDK stderr is silently discarded** — `ClaudeAgentOptions.stderr`
+  defaults to `None`, dropping all crash output. Always pass `stderr=_on_stderr`
+  callback in `agent_core.py` to pipe it to `logging.getLogger("claude_agent_sdk.stderr")`.
+  Claude also writes a full debug log to `~/.claude/debug/<session_id>.txt`
+  regardless — check this first when diagnosing silent failures. See
+  [claude-sdk-stderr-silence.md] memory note.
 - **`system_prompt` is ignored on session resume** — `ClaudeAgentOptions`
   bakes the system prompt into the session at creation. On resume, the
   parameter is silently discarded. Any per-turn dynamic instructions (e.g.
