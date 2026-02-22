@@ -29,42 +29,45 @@ Cross-reference of all memory files in the Pykoclaw project.
 | [matrix-agent-reply-storage.md]  | matrix, bugfix, gotcha, session-resume, context-loss | Agent replies not stored locally → context lost on session resume failure                  |
 | [multi-agent-routing.md]         | whatsapp, routing, multi-agent, architecture         | WhatsApp multi-agent group routing: config, per-agent DB, delivery polling                 |
 | [bananas-delivery-bug.md]        | scheduler, delivery, whatsapp, routing, bug-fix      | Bare target_conversation causes deliveries stuck as pending with channel_prefix='chat'     |
+| [whatsapp-typing-indicators.md]  | whatsapp, neonize, user-experience, presence         | WhatsApp "Writing..." indicator via send_chat_presence API                                 |
 
 ## By tag
 
-| Tag          | Files                                                                                                                                                                   |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| acp          | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md], [anyio-cancel-scope-leak.md], [process-isolated-workers.md]                  |
-| agent-core   | [result-message-fallback.md]                                                                                                                                            |
-| bugfix       | [acp-protocol-fix.md], [result-message-fallback.md], [tool-use-text-concatenation.md]                                                                                   |
-| claude-sdk   | [acp-protocol-fix.md], [acp-debugging.md], [sdk-schema-gotcha.md], [result-message-fallback.md]                                                                         |
-| debugging    | [acp-debugging.md], [debugging-workflow.md]                                                                                                                             |
-| architecture | [plugin-system.md], [channel-dispatch.md], [process-isolated-workers.md], [multi-agent-routing.md]                                                                      |
-| dev-workflow | [worktree-workflow.md]                                                                                                                                                  |
-| git          | [workspace-layout.md], [worktree-workflow.md]                                                                                                                           |
-| anyio        | [anyio-cancel-scope-leak.md]                                                                                                                                            |
-| asyncio      | [asyncio-shutdown-gotcha.md], [anyio-cancel-scope-leak.md]                                                                                                              |
-| gotcha       | [neonize-quirks.md], [sqlite-migration-gotcha.md], [asyncio-shutdown-gotcha.md], [tool-use-text-concatenation.md], [matrix-nio-gotchas.md], [plugin-config-env-file.md] |
-| messaging    | [channel-dispatch.md]                                                                                                                                                   |
-| mitto        | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md], [tool-use-text-concatenation.md]                                             |
-| zombie       | [asyncio-shutdown-gotcha.md]                                                                                                                                            |
-| mobile       | [mitto-setup.md]                                                                                                                                                        |
-| neonize      | [neonize-quirks.md]                                                                                                                                                     |
-| plugins      | [plugin-system.md]                                                                                                                                                      |
-| migration    | [sqlite-migration-gotcha.md]                                                                                                                                            |
-| schema       | [sdk-schema-gotcha.md], [sqlite-migration-gotcha.md]                                                                                                                    |
-| sqlite       | [threading-model.md], [sqlite-migration-gotcha.md]                                                                                                                      |
-| tailscale    | [mitto-setup.md]                                                                                                                                                        |
-| threading    | [threading-model.md]                                                                                                                                                    |
-| uv           | [workspace-layout.md]                                                                                                                                                   |
-| whatsapp     | [threading-model.md], [neonize-quirks.md], [multi-agent-routing.md]                                                                                                     |
-| multi-agent  | [multi-agent-routing.md]                                                                                                                                                |
-| routing      | [multi-agent-routing.md]                                                                                                                                                |
-| protocol     | [acp-protocol-fix.md]                                                                                                                                                   |
-| worktree     | [worktree-workflow.md]                                                                                                                                                  |
-| workspace    | [workspace-layout.md]                                                                                                                                                   |
-| multi-repo   | [worktree-workflow.md]                                                                                                                                                  |
-| mcp          | [sdk-schema-gotcha.md]                                                                                                                                                  |
+| Tag             | Files                                                                                                                                                                   |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| acp             | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md], [anyio-cancel-scope-leak.md], [process-isolated-workers.md]                  |
+| agent-core      | [result-message-fallback.md]                                                                                                                                            |
+| bugfix          | [acp-protocol-fix.md], [result-message-fallback.md], [tool-use-text-concatenation.md]                                                                                   |
+| claude-sdk      | [acp-protocol-fix.md], [acp-debugging.md], [sdk-schema-gotcha.md], [result-message-fallback.md]                                                                         |
+| debugging       | [acp-debugging.md], [debugging-workflow.md]                                                                                                                             |
+| architecture    | [plugin-system.md], [channel-dispatch.md], [process-isolated-workers.md], [multi-agent-routing.md]                                                                      |
+| dev-workflow    | [worktree-workflow.md]                                                                                                                                                  |
+| git             | [workspace-layout.md], [worktree-workflow.md]                                                                                                                           |
+| anyio           | [anyio-cancel-scope-leak.md]                                                                                                                                            |
+| asyncio         | [asyncio-shutdown-gotcha.md], [anyio-cancel-scope-leak.md]                                                                                                              |
+| gotcha          | [neonize-quirks.md], [sqlite-migration-gotcha.md], [asyncio-shutdown-gotcha.md], [tool-use-text-concatenation.md], [matrix-nio-gotchas.md], [plugin-config-env-file.md] |
+| messaging       | [channel-dispatch.md]                                                                                                                                                   |
+| mitto           | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md], [tool-use-text-concatenation.md]                                             |
+| zombie          | [asyncio-shutdown-gotcha.md]                                                                                                                                            |
+| mobile          | [mitto-setup.md]                                                                                                                                                        |
+| neonize         | [neonize-quirks.md]                                                                                                                                                     |
+| plugins         | [plugin-system.md]                                                                                                                                                      |
+| migration       | [sqlite-migration-gotcha.md]                                                                                                                                            |
+| schema          | [sdk-schema-gotcha.md], [sqlite-migration-gotcha.md]                                                                                                                    |
+| sqlite          | [threading-model.md], [sqlite-migration-gotcha.md]                                                                                                                      |
+| tailscale       | [mitto-setup.md]                                                                                                                                                        |
+| threading       | [threading-model.md]                                                                                                                                                    |
+| uv              | [workspace-layout.md]                                                                                                                                                   |
+| whatsapp        | [threading-model.md], [neonize-quirks.md], [multi-agent-routing.md], [whatsapp-typing-indicators.md]                                                                    |
+| multi-agent     | [multi-agent-routing.md]                                                                                                                                                |
+| presence        | [whatsapp-typing-indicators.md]                                                                                                                                         |
+| user-experience | [whatsapp-typing-indicators.md]                                                                                                                                         |
+| routing         | [multi-agent-routing.md]                                                                                                                                                |
+| protocol        | [acp-protocol-fix.md]                                                                                                                                                   |
+| worktree        | [worktree-workflow.md]                                                                                                                                                  |
+| workspace       | [workspace-layout.md]                                                                                                                                                   |
+| multi-repo      | [worktree-workflow.md]                                                                                                                                                  |
+| mcp             | [sdk-schema-gotcha.md]                                                                                                                                                  |
 
 | channel-plugins | [session-resume-retry.md], [matrix-agent-reply-storage.md] |
 | context-loss | [matrix-agent-reply-storage.md] |
@@ -104,3 +107,4 @@ Cross-reference of all memory files in the Pykoclaw project.
 [bananas-delivery-bug.md]: bananas-delivery-bug.md
 [multi-agent-routing.md]: multi-agent-routing.md
 [session-resume-retry.md]: session-resume-retry.md
+[whatsapp-typing-indicators.md]: whatsapp-typing-indicators.md
