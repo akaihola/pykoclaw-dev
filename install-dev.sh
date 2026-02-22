@@ -25,4 +25,13 @@ for svc in mitto-web pykoclaw-whatsapp pykoclaw-matrix; do
     fi
 done
 
+echo "Installing pykoclaw into ~/.venv/ for Claude Code skill access..."
+uv pip install --python ~/.venv/bin/python \
+    -e ./pykoclaw \
+    -e ./pykoclaw-messaging \
+    -e ./pykoclaw-chat \
+    -e ./pykoclaw-whatsapp \
+    -e ./pykoclaw-acp \
+    -e ./pykoclaw-matrix
+
 echo "Installation complete! Run 'pykoclaw --help' to verify."
