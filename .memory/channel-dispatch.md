@@ -1,10 +1,10 @@
 # Channel Dispatch Pattern
 
 **Tags:** messaging, architecture
-**Related:** [plugin-system.md], [threading-model.md], [agent-output-pipeline.md]
+**Related:** [plugin-system.md], [threading-model.md]
 
-Channel plugins (WhatsApp, Matrix, ACP, future Telegram) share the same flow
-via `pykoclaw-messaging`:
+Channel plugins (WhatsApp, ACP, future Telegram) share the same flow via
+`pykoclaw-messaging`:
 
 ```
 channel receives message
@@ -15,18 +15,11 @@ channel receives message
     → return DispatchResult(full_text, session_id)
 ```
 
-The `channel_prefix` convention (`wa-`, `matrix-`, `acp-`, `tg-`) keeps
-conversations namespaced per channel. The `on_text` callback enables
-real-time streaming to each channel's transport (stdout JSON-RPC for ACP,
-WhatsApp API for WA).
-
-`dispatch_to_agent()` also accepts `fresh=True` to skip session resume
-(used by `pykoclaw send` for one-off commands).
-
-`pykoclaw-messaging` is both a **library** (provides `dispatch_to_agent`)
-and a **plugin** (registers the `pykoclaw send` CLI command via
-`MessagingPlugin`). Channel-agnostic dispatch features belong here.
+The `channel_prefix` convention keeps conversations namespaced per channel.
+WhatsApp uses `wa-{agent_name}-` (e.g. `wa-ressu-`) to support multi-agent
+routing; other channels use simple prefixes (`matrix-`, `acp-`, `tg-`). The
+`on_text` callback enables real-time streaming to each channel's transport
+(stdout JSON-RPC for ACP, WhatsApp API for WA).
 
 [plugin-system.md]: plugin-system.md
 [threading-model.md]: threading-model.md
-[agent-output-pipeline.md]: agent-output-pipeline.md

@@ -46,7 +46,7 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 | `pykoclaw/`           | `pykoclaw`           | Core: CLI, plugins, agent, DB, scheduler |
 | `pykoclaw-chat/`      | `pykoclaw_chat`      | Terminal REPL plugin                     |
 | `pykoclaw-whatsapp/`  | `pykoclaw_whatsapp`  | WhatsApp channel plugin                  |
-| `pykoclaw-messaging/` | `pykoclaw_messaging` | Shared dispatch library + `send` command |
+| `pykoclaw-messaging/` | `pykoclaw_messaging` | Shared dispatch library                  |
 | `pykoclaw-acp/`       | `pykoclaw_acp`       | Agent Client Protocol plugin             |
 | `pykoclaw-matrix/`    | `pykoclaw_matrix`    | Matrix/Element channel plugin            |
 
@@ -76,12 +76,8 @@ Each subdirectory is a separate git repo AND a uv workspace member:
   loop in `ClientPool._query()`. Bugs in SDK message handling must be fixed
   in **both** places.
 - **Channel prefix:** conversations are named `{prefix}-{id}` (e.g.
-  `wa-ressu-<jid>`, `matrix-<room_id>`, `acp-<uuid>`). WhatsApp uses
-  `wa-{agent_name_lower}-{jid}` for multi-agent routing.
-- **WhatsApp multi-agent routing:** A single neonize bridge serves multiple
-  agent personalities. `PYKOCLAW_WA_AGENT_ROUTES` points to a JSON file
-  mapping group JIDs → agent names. Each agent has its own `data_dir` (DB,
-  conversations, CLAUDE.md). See `pykoclaw-whatsapp/README.md` for full setup.
+  `wa-ressu-<jid>`, `matrix-<room_id>`, `acp-<uuid>`). WhatsApp includes the
+  agent name: `wa-{agent}-{jid}`.
 - **DB:** SQLite with `ThreadSafeConnection` wrapper. Tables: `conversations`,
   `scheduled_tasks`, `task_run_logs`, `delivery_queue`. Plugins add tables via
   `get_db_migrations()`.
@@ -114,19 +110,18 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 
 ## Key files to know
 
-| File                                                    | Purpose                                    |
-| ------------------------------------------------------- | ------------------------------------------ |
-| `pykoclaw/src/pykoclaw/agent_core.py`                   | `query_agent()` — the central agent loop   |
-| `pykoclaw/src/pykoclaw/plugins.py`                      | Plugin protocol + discovery + migrations   |
-| `pykoclaw/src/pykoclaw/db.py`                           | DB init, ThreadSafeConnection, all CRUD    |
-| `pykoclaw/src/pykoclaw/config.py`                       | Settings (Pydantic Settings)               |
-| `pykoclaw/src/pykoclaw/tools.py`                        | MCP tool definitions                       |
-| `pykoclaw-messaging/src/pykoclaw_messaging/dispatch.py` | `dispatch_to_agent()`                      |
-| `pykoclaw-messaging/src/pykoclaw_messaging/plugin.py`   | `pykoclaw send` CLI command                |
-| `pykoclaw-acp/src/pykoclaw_acp/server.py`               | ACP JSON-RPC server                        |
-| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py` | WhatsApp connection + multi-agent dispatch |
-| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/routing.py`    | Multi-agent group routing config           |
-| `pykoclaw-matrix/src/pykoclaw_matrix/connection.py`     | Matrix connection                          |
+| File                                                    | Purpose                                  |
+| ------------------------------------------------------- | ---------------------------------------- |
+| `pykoclaw/src/pykoclaw/agent_core.py`                   | `query_agent()` — the central agent loop |
+| `pykoclaw/src/pykoclaw/plugins.py`                      | Plugin protocol + discovery + migrations |
+| `pykoclaw/src/pykoclaw/db.py`                           | DB init, ThreadSafeConnection, all CRUD  |
+| `pykoclaw/src/pykoclaw/config.py`                       | Settings (Pydantic Settings)             |
+| `pykoclaw/src/pykoclaw/tools.py`                        | MCP tool definitions                     |
+| `pykoclaw-messaging/src/pykoclaw_messaging/dispatch.py` | `dispatch_to_agent()`                    |
+| `pykoclaw-acp/src/pykoclaw_acp/server.py`               | ACP JSON-RPC server                      |
+| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py` | WhatsApp connection                      |
+| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/routing.py`   | Multi-agent group routing config         |
+| `pykoclaw-matrix/src/pykoclaw_matrix/connection.py`     | Matrix connection                        |
 
 ## Memory system
 
@@ -255,6 +250,10 @@ deployment layer is responsible for setting it.
 - `client.me` is not a JID — use `client.me.JID`.
 - WhatsApp plugin uses 3 threads sharing one SQLite connection — all DB access
   goes through `ThreadSafeConnection`.
+- **WhatsApp multi-agent routing** — each agent with a `data_dir` gets its own
+  DB; the bridge DB (`wa_messages`, `wa_chats`) is shared. Delivery polling
+  iterates all agent DBs. Conversation names include the agent:
+  `wa-{agent}-{jid}`.
 - The workspace root `pyproject.toml` has no deps — it only declares workspace
   members.
 - Each subdir is its own git repo. Commits go into the individual repos, not
@@ -289,20 +288,6 @@ deployment layer is responsible for setting it.
   no feedback while the agent processes a message. Send platform-specific
   "typing" signals before dispatch and clear them after (e.g.
   `client.room_typing()` for Matrix).
-- **Agent-to-channel pipelines need `fresh=True` + a system prompt** — when
-  agent output flows to a channel (not back to the invoker), never resume an
-  existing session (the baked-in ambient prompt leaks) and always include a
-  system prompt explaining the agent's output IS the delivery. Without both,
-  the agent produces meta-commentary or tells the user to send the message
-  themselves. See [agent-output-pipeline.md] memory note.
-- **`unset VIRTUAL_ENV` before `uv sync` in worktrees** — if the parent shell
-  has `VIRTUAL_ENV` pointing to the main workspace `.venv`, `uv sync` in a
-  worktree can wipe packages from the wrong venv.
-- **New entry points require rebuild** — after adding `[project.entry-points]`
-  to a package, `install-dev.sh` may not rebuild it. Use
-  `--reinstall-package <pkg>` and also `uv sync --all-packages` for the
-  workspace venv. Verify with `~/.local/bin/pykoclaw` directly — `which
-pykoclaw` may resolve to the stale workspace `.venv` binary.
 
 ## Known issues
 
@@ -324,5 +309,4 @@ pykoclaw` may resolve to the stale workspace `.venv` binary.
 [plugin-config-env-file.md]: .memory/plugin-config-env-file.md
 [session-resume-retry.md]: .memory/session-resume-retry.md
 [session-resume-system-prompt.md]: .memory/session-resume-system-prompt.md
-[agent-output-pipeline.md]: .memory/agent-output-pipeline.md
 [worktree workflow docs]: docs/worktree-workflow.md
