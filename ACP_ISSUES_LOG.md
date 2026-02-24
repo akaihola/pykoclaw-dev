@@ -25,6 +25,7 @@ in surprising ways.
 | 3 | Process hangs on shutdown → zombie chain | `asyncio.run()` unbounded `_cancel_all_tasks` | 2026-02-18 | ✅ Fixed |
 | 4 | Empty replies (text only in ResultMessage) | `ResultMessage.result` not forwarded | 2026-02-20 | ✅ Fixed |
 | 5 | "Connection lost" after idle period | anyio cancel scope leak → spin loop | 2026-02-20 | ✅ Fixed (v3) |
+| 6 | Context lost mid-conversation after idle | Re-spawned worker gets no `resume_session_id` | 2026-02-24 | ✅ Fixed |
 
 ---
 
@@ -59,6 +60,7 @@ Chronological list of every commit, with issue references where applicable.
 | `55124d6` | Feb 20 | Isolate disconnect in separate task | #5 (v2, insufficient) |
 | `adf208e` | Feb 21 | Replace disconnect() with subprocess kill | #5 (v3, **actual fix**) |
 | `aeb04f4` | Feb 21 | Architecture fragility backlog item | — |
+| `122babd` | Feb 24 | Look up stored session ID from DB on worker re-spawn | #6 |
 
 ### Related commits in other repos
 
@@ -282,6 +284,74 @@ mismatch makes it impossible to call safely from asyncio code. Kill the
 subprocess directly instead. See
 `pykoclaw-acp/backlog/001-acp-architecture-fragility.md` for the long-term
 architecture recommendation (process-isolated workers).
+
+---
+
+## Issue 6: Context Lost After Idle Worker Eviction (2026-02-24)
+
+**Commit:** `122babd` (pykoclaw-acp)
+
+### Symptom
+
+Mid-conversation context loss in a long-lived Mitto session ("Lightweight
+knowledge tree"). Agent replied "I don't see a proposal in our conversation"
+to a question about something it had written minutes earlier. The conversation
+had been active, idle for ~6 hours, then resumed.
+
+### Investigation
+
+Timeline for ACP session `5d2d33ed`:
+
+| Time | Event |
+|------|-------|
+| Feb 22, 13:22 | Worker spawned, first prompt, claude session `1bfcedb8` stored in DB |
+| Feb 22, 13:34 | Worker evicted (10 min idle) |
+| Feb 24, 10:33 | ACP process restarts; `session/load` registers `resume_session_id=81e3dfa5` in `self._sessions` |
+| Feb 24, 10:34 | First prompt → `resume_session_id` popped from `self._sessions`, passed to worker → session resumes ✅ |
+| Feb 24, 10:56 | Worker evicted again (10 min idle) |
+| Feb 24, 16:40 | New prompt → `_get_or_create` spawns fresh worker → **`resume_session_id=None`** → fresh context ❌ |
+
+### Root cause
+
+`_handle_session_prompt` in `server.py` pops `resume_session_id` from
+`self._sessions` on the **first prompt only**:
+
+```python
+resume_id = session.pop("resume_session_id", None)  # consumed, gone
+```
+
+When the worker is later evicted by `_sweep_loop`, `self._entries` loses the
+worker handle. The next prompt calls `_get_or_create`, which spawns a new
+worker — but `send()` passes `resume_session_id=None` because it's no longer
+in `self._sessions`. The worker starts a completely fresh Claude session.
+
+The DB always has the correct current session ID (the worker writes it via
+`upsert_conversation()` after every query), but `_get_or_create` never
+consulted it.
+
+### Fix
+
+In `_get_or_create`, when `resume_session_id` is not explicitly provided,
+look it up from the DB before spawning:
+
+```python
+if resume_session_id is None:
+    conv = get_conversation(self._db, f"acp-{session_id[:8]}")
+    if conv and conv.session_id:
+        resume_session_id = conv.session_id
+        log.info("Resuming evicted worker %s from stored claude session %s", ...)
+```
+
+This covers all re-spawn scenarios: idle eviction, crash-retry (second attempt
+already had no explicit ID), and process restart without a prior `session/load`.
+
+### Lesson
+
+**The DB is the authoritative source of the current claude session ID.**
+`self._sessions[resume_session_id]` is only ever set at `session/load` time
+and consumed on the first prompt. Any code path that spawns a worker without
+an explicit `resume_session_id` must fall back to the DB. Never rely solely on
+the in-memory session dict for resume state across worker lifetimes.
 
 ---
 
