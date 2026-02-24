@@ -348,6 +348,15 @@ deployment layer is responsible for setting it.
   no feedback while the agent processes a message. Send platform-specific
   "typing" signals before dispatch and clear them after (e.g.
   `client.room_typing()` for Matrix).
+- **Mitto ACP wrapper scripts MUST `export PYKOCLAW_DATA` explicitly** — Mitto
+  launches all workspace ACP processes as children of the same `mitto-web`
+  service. If one workspace's process sets `PYKOCLAW_DATA` in its environment,
+  subsequent spawns inherit it, overriding the `.env` file in the new workspace's
+  directory (env vars take precedence over `.env` in Pydantic Settings). Symptom:
+  Ressu workspace (`~/pipsa`) reports itself as Tyko. Fix: always `export
+PYKOCLAW_DATA=/home/agent/<datadir>` at the top of every wrapper script
+  (`~/.local/bin/pykoclaw-ressu`, `~/.local/bin/pykoclaw-tyko`, etc.) — never
+  rely solely on the `.env` file for identity-critical variables.
 
 ## Known issues
 
@@ -355,12 +364,13 @@ deployment layer is responsible for setting it.
   the `fix-worktree-script` merge have the wrapper repo checked out into a `root/`
   subdirectory with symlinked `pyproject.toml`/`uv.lock` at the feature base.
   New worktrees created from main no longer have this issue.
-- **Mitto must reference the `uv tool` binary, not `.venv`** — After
-  `install-dev.sh`, the pykoclaw binary is at `~/.local/bin/pykoclaw` (uv tool
-  install). The `.venv/bin/pykoclaw` binary has stale code. Mitto's
-  `settings.json` and `workspaces.json` must both point to
-  `/home/agent/.local/bin/pykoclaw acp`. Mitto only reads config at startup —
-  restart the service AND create a new session to pick up path changes.
+- **Mitto must reference the `~/.venv` or project `.venv` binary** — After
+  `install-dev.sh`, the pykoclaw binary is at `~/.venv/bin/pykoclaw` (or
+  `~/pykoclaw/.venv/bin/pykoclaw`). The old `uv tool` path
+  (`~/.local/bin/pykoclaw`) no longer exists. Mitto's `settings.json` and
+  `workspaces.json` must both point to the `.venv` binary. Mitto only reads
+  config at startup — restart the service AND create a new session to pick up
+  path changes.
 
 [acp-log]: ACP_ISSUES_LOG.md
 [memory index]: .memory/INDEX.md
