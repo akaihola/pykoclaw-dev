@@ -28,11 +28,12 @@ naive whitespace splitting (no shell quoting support).
 ```sh
 # ~/.local/bin/pykoclaw-ressu
 #!/bin/sh
+export PYKOCLAW_DATA=/home/agent/pipsa   # MUST export — see gotcha #8
 cd /home/agent/pipsa && exec /home/agent/pykoclaw/.venv/bin/pykoclaw acp
 ```
 
-Each data directory has a `.env` with `PYKOCLAW_DATA=/path/to/dir` which
-pykoclaw's Pydantic Settings picks up from CWD.
+Each data directory has a `.env` with `PYKOCLAW_DATA=/path/to/dir`, but
+**do not rely on this alone** — see gotcha #8.
 
 ```yaml
 # ~/.mittorc
@@ -94,15 +95,21 @@ Mitto binds to `127.0.0.1:8080` (local only). External access uses
    whatever `acp_command` was persisted in `workspaces.json`.
 
 6. **`install-dev.sh` binary path**: After `install-dev.sh`, the binary is
-   at `~/.local/bin/pykoclaw` (uv tool install), NOT at
-   `/home/agent/pykoclaw/.venv/bin/pykoclaw`. Mitto config must reference
-   `~/.local/bin/pykoclaw` (or the absolute path
-   `/home/agent/.local/bin/pykoclaw`). The `.venv` binary has stale code.
+   at `~/.venv/bin/pykoclaw` (or `/home/agent/pykoclaw/.venv/bin/pykoclaw`).
+   The old `uv tool` path (`~/.local/bin/pykoclaw`) no longer exists.
+   Mitto config must reference the `.venv` binary path.
 
 7. **Mitto reads config at startup only**: Changes to `settings.json` or
    `workspaces.json` require `systemctl --user restart mitto-web`. Already
    running sessions keep their old `acp_command` — you must create a new
    session (or manually edit `workspaces.json` and restart) to pick up
    a new binary path.
+
+8. **`PYKOCLAW_DATA` leaks across workspaces — always `export` it in wrapper
+   scripts**: Mitto spawns all workspace ACP processes as children of the same
+   `mitto-web` process. If Tyko's env has `PYKOCLAW_DATA=/home/agent/my-knowledge`,
+   the Ressu process inherits it, overriding `~/pipsa/.env` (env vars beat
+   `.env` in Pydantic Settings). Symptom: Ressu claims to be Tyko. Fix: always
+   `export PYKOCLAW_DATA=/path/to/datadir` at the top of every wrapper script.
 
 [channel-dispatch.md]: channel-dispatch.md
