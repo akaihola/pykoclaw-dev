@@ -13,6 +13,19 @@ if [ -z "$MAIN_CHECKOUT" ]; then
     exit 1
 fi
 
+# Sanity-check: MAIN_CHECKOUT must be an absolute path that actually exists.
+# If it is relative or missing, subrepo paths will resolve wrong and worktrees
+# will be created in unexpected locations (e.g. inside .claude/).
+if [[ "$MAIN_CHECKOUT" != /* ]]; then
+    echo "Error: MAIN_CHECKOUT resolved to a relative path: '$MAIN_CHECKOUT'" >&2
+    echo "       Run this script from the main pykoclaw-dev checkout, not from a worktree." >&2
+    exit 1
+fi
+if [ ! -d "$MAIN_CHECKOUT" ]; then
+    echo "Error: MAIN_CHECKOUT does not exist: '$MAIN_CHECKOUT'" >&2
+    exit 1
+fi
+
 DEV_ROOT="$HOME/pykoclaw-dev"
 
 AOE_BIN=""
@@ -78,6 +91,23 @@ for repo in "${SUBREPOS[@]}"; do
     worktree_path="$WORKTREE_BASE/$repo"
 
     echo "Processing: $repo"
+
+    # Hard-fail if the subrepo doesn't exist under MAIN_CHECKOUT.
+    # Without this check, git -C falls back to the current directory and
+    # creates the worktree relative to wherever the shell is running —
+    # which has put worktrees inside .claude/ in the past.
+    if [ ! -d "$repo_path/.git" ] && [ ! -f "$repo_path/.git" ]; then
+        echo "  ERROR: Subrepo not found at expected path: $repo_path" >&2
+        echo "  Aborting — MAIN_CHECKOUT may be wrong: $MAIN_CHECKOUT" >&2
+        exit 1
+    fi
+
+    # Double-check that the worktree target path is absolute and under DEV_ROOT.
+    # This guards against any future path-resolution surprises.
+    if [[ "$worktree_path" != "$DEV_ROOT"/* ]]; then
+        echo "  ERROR: Computed worktree path escapes DEV_ROOT: $worktree_path" >&2
+        exit 1
+    fi
 
     if git -C "$repo_path" rev-parse --verify "$BRANCH_NAME" >/dev/null 2>&1; then
         echo "  ERROR: Branch '$BRANCH_NAME' already exists in $repo" >&2
