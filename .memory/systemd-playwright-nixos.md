@@ -27,7 +27,7 @@ Resolve dynamically at service startup via `nix-build`:
 ```ini
 ExecStart=/bin/sh -c '\
   export PLAYWRIGHT_BROWSERS_PATH="$(/run/current-system/sw/bin/nix-build "<nixpkgs>" -A playwright-driver.browsers --no-out-link 2>/dev/null)" \
-  && exec /home/agent/.local/bin/pykoclaw matrix run'
+  && exec /home/agent/.venv/bin/pykoclaw matrix run'
 ```
 
 ## Verification

@@ -12,7 +12,7 @@ Key implications:
 - Changes inside `pykoclaw/`, `pykoclaw-chat/`, etc. must be committed in those
   subdirectories' own repos.
 - `./pull-all.sh` runs `git pull --rebase` in every subdir.
-- `./install-dev.sh` installs all packages in editable mode via `uv tool install -e`.
+- `./install-dev.sh` installs all packages in editable mode via `uv pip install -e` into `~/.venv/`.
 - The root `pyproject.toml` has **no dependencies** — it only declares workspace
   membership.
 
