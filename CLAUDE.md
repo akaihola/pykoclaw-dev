@@ -360,6 +360,11 @@ PYKOCLAW_DATA=/home/agent/<datadir>` at the top of every wrapper script
 
 ## Known issues
 
+- **`KNOWN_CHANNEL_PREFIXES` is hardcoded** — `db.py` has a frozenset that
+  `resolve_delivery_target()` uses for prefix detection. Any new channel plugin
+  must add its prefix here or cross-agent delivery will mangle conversation
+  names. Backlog plan `dynamic-channel-prefix-discovery` replaces this with
+  plugin-declared `channel_prefixes` class attributes collected at startup.
 - **Older worktrees use `root/` subdirectory layout** — worktrees created before
   the `fix-worktree-script` merge have the wrapper repo checked out into a `root/`
   subdirectory with symlinked `pyproject.toml`/`uv.lock` at the feature base.
