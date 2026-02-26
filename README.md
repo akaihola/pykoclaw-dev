@@ -1,5 +1,9 @@
 # Pykoclaw
 
+[![Built with Claude Code](https://img.shields.io/badge/Built_with-Claude_Code-6f42c1?logo=anthropic&logoColor=white)](https://claude.ai/code)
+
+> This project is developed by an AI coding agent ([Claude Code](https://claude.ai/code)), with human oversight and direction.
+
 A modular Python AI agent ecosystem built on the Claude Agent SDK. Pykoclaw
 provides a plugin-based CLI framework for running Claude-powered agents across
 multiple communication channels, with built-in conversation persistence and task
