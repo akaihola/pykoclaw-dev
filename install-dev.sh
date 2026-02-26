@@ -17,14 +17,12 @@ uv pip install --python ~/.venv/bin/python \
 
 echo ""
 
-# Restart pykoclaw services so they pick up the new code
+# Restart pykoclaw/mitto services so they pick up the new code
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-for svc in mitto-web pykoclaw-whatsapp pykoclaw-matrix-tyko \
-           pykoclaw-scheduler-pipsa pykoclaw-scheduler-tyko pykoclaw-scheduler-vaino; do
-    if systemctl --user is-active --quiet "$svc" 2>/dev/null; then
-        echo "Restarting $svc..."
-        systemctl --user restart "$svc"
-    fi
+for svc in $(systemctl --user list-units --type=service --state=active \
+             --no-legend 'pykoclaw-*' 'mitto-*' | awk '{print $1}'); do
+    echo "Restarting $svc..."
+    systemctl --user restart "$svc"
 done
 
 echo "Installation complete! Run '~/.venv/bin/pykoclaw --help' to verify."
