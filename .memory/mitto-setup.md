@@ -105,7 +105,14 @@ Mitto binds to `127.0.0.1:8080` (local only). External access uses
    session (or manually edit `workspaces.json` and restart) to pick up
    a new binary path.
 
-8. **`PYKOCLAW_DATA` leaks across workspaces — always `export` it in wrapper
+8. **`MITTO_DIR` env var controls Mitto's data directory**: By default Mitto
+   uses `~/.local/share/mitto/` for `settings.json`, `workspaces.json`, and
+   sessions. Set `MITTO_DIR=/path/to/dir` to give an instance its own isolated
+   data directory. This is how `mitto-web-testi` is isolated from the main
+   `mitto-web` instance — it has `MITTO_DIR=/home/agent/.testi-mitto` in its
+   service file. Discovered by scanning `strings ~/.local/bin/mitto`.
+
+9. **`PYKOCLAW_DATA` leaks across workspaces — always `export` it in wrapper
    scripts**: Mitto spawns all workspace ACP processes as children of the same
    `mitto-web` process. If Tyko's env has `PYKOCLAW_DATA=/home/agent/my-knowledge`,
    the Ressu process inherits it, overriding `~/pipsa/.env` (env vars beat

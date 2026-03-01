@@ -39,8 +39,12 @@ prevents re-treading failed approaches.
 - **Install deps:** `uv sync`
 - **Run tests:** `uv run pytest`
 - **Run CLI:** `uv run pykoclaw`
-- **Deploy:** `./install-dev.sh` (never inspect it first — just run it)
-- **Deploy + verify:** combine in one call:
+- **Deploy to production:** `./install-dev.sh` — installs into `~/.venv`,
+  restarts all active services.
+- **Deploy to testi:** `./install-testi.sh [<worktree>]` — installs into
+  `~/.testi-venv`, restarts only testi services. Pass a worktree name to
+  deploy a feature branch: `./install-testi.sh streaming-responses`.
+- **Deploy + verify (production):** combine in one call:
   `./install-dev.sh && sleep 3 && export XDG_RUNTIME_DIR="/run/user/$(id -u)" && systemctl --user status mitto-web | head -20`
 - **`install-dev.sh` restarts all active services** (mitto-web,
   pykoclaw-whatsapp, pykoclaw-matrix) so they pick up code changes.
@@ -261,6 +265,24 @@ always run `bin/update-backlog.sh` explicitly after editing plans.
 .sisyphus/query_backlog.py --sort completed        # by completion date
 ```
 
+## NixOS home-manager rebuild
+
+**Never try `home-manager switch` or edit symlinked service files directly.**
+Service files under `~/.config/systemd/user/` are symlinks into `/nix/store` —
+editing them is silently overwritten on the next activation.
+
+The one and only rebuild command is:
+
+```bash
+sudo -u akaihola /home/akaihola/repos/nixos-config/pull-rebase-rebuild.sh
+```
+
+This pulls akaihola's nixos-config from origin, rebases the `agent` remote
+(i.e. `~/repos/nixos-config`) on top, and runs `nixos-rebuild switch`.
+
+**Workflow:** commit changes to `~/repos/nixos-config`, then run the script.
+The script pulls and rebases automatically before rebuilding.
+
 ## NixOS boundary rule
 
 **Never put Nix/NixOS-specific code in any pykoclaw Python package.** All
@@ -278,6 +300,15 @@ deployment layer is responsible for setting it.
 
 ## Important gotchas
 
+- **Testi uses `~/.testi-venv` and `~/.testi-mitto`, not `~/.venv`** — testi
+  services are fully isolated from production. `install-testi.sh` deploys to
+  `~/.testi-venv`; `mitto-web-testi` reads `MITTO_DIR=~/.testi-mitto` which
+  has its own `settings.json` pointing the `"testi"` ACP server at
+  `~/.testi-venv/bin/pykoclaw acp`. Do NOT run `install-dev.sh` to deploy to
+  testi — that would deploy to production `~/.venv`.
+- **`MITTO_DIR` env var controls Mitto's data directory** — by default Mitto
+  uses `~/.local/share/mitto/`. Set `MITTO_DIR` to give an instance its own
+  isolated `settings.json`, `workspaces.json`, and sessions.
 - **`ClaudeAgentOptions.setting_sources` controls skill discovery** — `"user"`
   loads `~/.claude/skills/`, `"project"` loads `./.claude/skills/`. Skills are
   concatenated in order and resolved by first-match, so order = precedence.
