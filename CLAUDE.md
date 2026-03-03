@@ -58,6 +58,7 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 | --------------------- | -------------------- | ---------------------------------------- |
 | `pykoclaw/`           | `pykoclaw`           | Core: CLI, plugins, agent, DB, scheduler |
 | `pykoclaw-chat/`      | `pykoclaw_chat`      | Terminal REPL plugin                     |
+| `pykoclaw-slack/`     | `pykoclaw_slack`     | Slack gateway plugin (Socket Mode)       |
 | `pykoclaw-whatsapp/`  | `pykoclaw_whatsapp`  | WhatsApp channel plugin                  |
 | `pykoclaw-messaging/` | `pykoclaw_messaging` | Shared dispatch library                  |
 | `pykoclaw-acp/`       | `pykoclaw_acp`       | Agent Client Protocol plugin             |

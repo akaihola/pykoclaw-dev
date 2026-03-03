@@ -35,6 +35,7 @@ Cross-reference of all memory files in the Pykoclaw project.
 | [claude-sdk-setting-sources.md]     | claude-sdk, skills, agent-core, gotcha, configuration | setting_sources controls skill discovery + precedence; project first = project wins        |
 | [claude-sdk-stream-event.md]        | claude-sdk, streaming, sdk-consume, gotcha            | StreamEvent import location, include_partial_messages, double-emission trap                |
 | [testi-venv-isolation.md]           | testi, deployment, venv, mitto, isolation             | ~/.testi-venv + ~/.testi-mitto isolate testi from production; install-testi.sh             |
+| [slack-plugin-gotchas.md]           | slack, socket-mode, ack, bot-token, threading         | Slack plugin: token types, ack() timeout, bot self-message loop, thread-aware replies      |
 
 ## By tag
 
@@ -123,3 +124,4 @@ Cross-reference of all memory files in the Pykoclaw project.
 [claude-sdk-setting-sources.md]: claude-sdk-setting-sources.md
 [claude-sdk-stream-event.md]: claude-sdk-stream-event.md
 [testi-venv-isolation.md]: testi-venv-isolation.md
+[slack-plugin-gotchas.md]: slack-plugin-gotchas.md

@@ -22,6 +22,7 @@ pykoclaw-dev (this repo)
 ├── pykoclaw-matrix/       Plugin — Matrix/Element channel via matrix-nio
 ├── pykoclaw-messaging/    Shared library — channel-agnostic dispatch_to_agent()
 ├── pykoclaw-acp/          Plugin — Agent Client Protocol (JSON-RPC over stdio)
+├── pykoclaw-slack/        Plugin — Slack gateway via Socket Mode
 └── docs/                  Research notes and integration plans
 ```
 
@@ -34,7 +35,9 @@ pykoclaw-whatsapp ──► pykoclaw-messaging ──► pykoclaw (core)
                         ▲
 pykoclaw-matrix ────────┤
                         │
-pykoclaw-acp ───────────┘
+pykoclaw-acp ───────────┤
+                        │
+pykoclaw-slack ─────────┘
 ```
 
 ## Packages
@@ -115,6 +118,30 @@ Exposes pykoclaw as an ACP-compatible agent over JSON-RPC 2.0 on stdio.
 - Methods: `initialize`, `session/new`, `session/prompt`
 - Streaming via `session/update` notifications
 - Backed by `pykoclaw-messaging` dispatch
+
+### `pykoclaw-slack` — Slack gateway plugin
+
+Connects Slack workspaces to pykoclaw agents via Socket Mode (no public URL needed).
+
+- **Socket Mode** — uses `xapp-...` App-Level Token; no HTTP ingress required
+- **Batch accumulation** — debounces rapid messages before dispatching to agent
+- **Hard-mention detection** — `@BotName` or DM triggers immediate flush
+- **Thread-aware replies** — replies go into the triggering thread
+- **mrkdwn formatting** — converts agent Markdown to Slack's mrkdwn dialect
+- **Delivery queue** — scheduled task results delivered via `slack-` prefix
+
+Required env vars:
+
+```
+PYKOCLAW_SLACK_BOT_TOKEN=xoxb-...
+PYKOCLAW_SLACK_APP_TOKEN=xapp-...
+PYKOCLAW_SLACK_TRIGGER_NAME=YourBotName
+```
+
+```bash
+uv run pykoclaw slack run
+uv run pykoclaw slack healthcheck
+```
 
 ## Development
 
