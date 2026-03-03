@@ -42,13 +42,13 @@ uv pip install --python "$TESTI_VENV/bin/python" \
     -e "$SOURCE_DIR/pykoclaw-whatsapp" \
     -e "$SOURCE_DIR/pykoclaw-acp" \
     -e "$SOURCE_DIR/pykoclaw-matrix" \
-    -e "$SOURCE_DIR/pykoclaw-slack"
+    -e "$SOURCE_DIR/pykoclaw-slack"  # installed but no testi service — coleaders only
 
 echo ""
 
 # Restart only the testi services so production is unaffected
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-for svc in pykoclaw-scheduler-testi pykoclaw-matrix-testi mitto-web-testi pykoclaw-slack-testi; do
+for svc in pykoclaw-scheduler-testi pykoclaw-matrix-testi mitto-web-testi; do
     if systemctl --user is-active --quiet "$svc" 2>/dev/null; then
         echo "Restarting $svc ..."
         systemctl --user restart "$svc"
