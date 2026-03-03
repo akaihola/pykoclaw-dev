@@ -22,6 +22,7 @@ pykoclaw-dev (this repo)
 ├── pykoclaw-matrix/       Plugin — Matrix/Element channel via matrix-nio
 ├── pykoclaw-messaging/    Shared library — channel-agnostic dispatch_to_agent()
 ├── pykoclaw-acp/          Plugin — Agent Client Protocol (JSON-RPC over stdio)
+├── pykoclaw-slack/        Plugin — Slack gateway via Socket Mode
 └── docs/                  Research notes and integration plans
 ```
 
@@ -34,7 +35,9 @@ pykoclaw-whatsapp ──► pykoclaw-messaging ──► pykoclaw (core)
                         ▲
 pykoclaw-matrix ────────┤
                         │
-pykoclaw-acp ───────────┘
+pykoclaw-acp ───────────┤
+                        │
+pykoclaw-slack ─────────┘
 ```
 
 ## Packages
@@ -115,6 +118,48 @@ Exposes pykoclaw as an ACP-compatible agent over JSON-RPC 2.0 on stdio.
 - Methods: `initialize`, `session/new`, `session/prompt`
 - Streaming via `session/update` notifications
 - Backed by `pykoclaw-messaging` dispatch
+
+### `pykoclaw-slack` — Slack gateway plugin
+
+Connects Slack workspaces to pykoclaw agents via Socket Mode (no public URL needed).
+Inspired by and validated against the OpenClaw and nanobot reference implementations.
+
+- **Socket Mode** — uses `xapp-...` App-Level Token; no HTTP ingress required
+- **Batch accumulation** — debounces rapid messages before dispatching to agent
+- **Hard-mention detection** — `@BotName` or DM triggers immediate flush
+- **Thread-scoped sessions** — each Slack thread gets its own isolated Claude session
+  (`C12345:t:<thread_ts>` dispatch key)
+- **replyToMode** — `all` (default) / `first` / `off` controls threading behaviour
+- **mrkdwn formatting** — [`slackify-markdown`][slackify-markdown] library with a
+  table pre-pass (Markdown tables → `• *Header*: value` bullets)
+- **Emoji ACK reaction** — reacts with `:eyes:` on receipt, removes after reply
+- **Channel type inference** — `D`/`C`/`G` prefix → `im`/`channel`/`group` (no API call)
+- **Bot filtering** — own messages always dropped; other bots gated by `allow_bots`
+- **Delivery queue** — scheduled task results delivered via `slack-` prefix
+
+Required env vars:
+
+```
+PYKOCLAW_SLACK_BOT_TOKEN=xoxb-...
+PYKOCLAW_SLACK_APP_TOKEN=xapp-...
+PYKOCLAW_SLACK_TRIGGER_NAME=YourBotName
+```
+
+Optional env vars:
+
+```
+PYKOCLAW_SLACK_ACK_EMOJI=eyes        # empty string to disable
+PYKOCLAW_SLACK_REPLY_TO_MODE=all     # all | first | off
+PYKOCLAW_SLACK_ALLOW_BOTS=false      # true to allow other Slack bots
+PYKOCLAW_SLACK_BATCH_WINDOW_SECONDS=90
+```
+
+```bash
+uv run pykoclaw slack run
+uv run pykoclaw slack healthcheck
+```
+
+[slackify-markdown]: https://pypi.org/project/slackify-markdown/
 
 ## Development
 

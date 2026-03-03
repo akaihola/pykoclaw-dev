@@ -5,7 +5,7 @@ description = "Pykoclaw workspace root"
 requires-python = ">=3.12"
 
 [tool.uv.workspace]
-members = ["pykoclaw", "pykoclaw-chat", "pykoclaw-whatsapp", "pykoclaw-messaging", "pykoclaw-acp", "pykoclaw-matrix"]
+members = ["pykoclaw", "pykoclaw-chat", "pykoclaw-whatsapp", "pykoclaw-messaging", "pykoclaw-acp", "pykoclaw-matrix", "pykoclaw-slack"]
 
 [dependency-groups]
 dev = [
