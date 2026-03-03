@@ -58,7 +58,7 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 | --------------------- | -------------------- | ---------------------------------------- |
 | `pykoclaw/`           | `pykoclaw`           | Core: CLI, plugins, agent, DB, scheduler |
 | `pykoclaw-chat/`      | `pykoclaw_chat`      | Terminal REPL plugin                     |
-| `pykoclaw-slack/`     | `pykoclaw_slack`     | Slack gateway plugin (Socket Mode)       |
+| `pykoclaw-slack/`     | `pykoclaw_slack`     | Slack gateway plugin (Socket Mode, thread-scoped sessions) |
 | `pykoclaw-whatsapp/`  | `pykoclaw_whatsapp`  | WhatsApp channel plugin                  |
 | `pykoclaw-messaging/` | `pykoclaw_messaging` | Shared dispatch library                  |
 | `pykoclaw-acp/`       | `pykoclaw_acp`       | Agent Client Protocol plugin             |
@@ -397,6 +397,8 @@ PYKOCLAW_DATA=/home/agent/<datadir>` at the top of every wrapper script
   must add its prefix here or cross-agent delivery will mangle conversation
   names. Backlog plan `dynamic-channel-prefix-discovery` replaces this with
   plugin-declared `channel_prefixes` class attributes collected at startup.
+  - **pykoclaw-slack entry is `"slack"`** — added in feature/slack-gateway, verify
+    it's present on any branch that adds channel plugins.
 - **Older worktrees use `root/` subdirectory layout** — worktrees created before
   the `fix-worktree-script` merge have the wrapper repo checked out into a `root/`
   subdirectory with symlinked `pyproject.toml`/`uv.lock` at the feature base.
