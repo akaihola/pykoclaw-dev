@@ -13,7 +13,8 @@ uv pip install --python ~/.venv/bin/python \
     -e ./pykoclaw-chat \
     -e ./pykoclaw-whatsapp \
     -e ./pykoclaw-acp \
-    -e ./pykoclaw-matrix
+    -e ./pykoclaw-matrix \
+    -e ./pykoclaw-slack
 
 echo ""
 
