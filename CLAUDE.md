@@ -300,6 +300,12 @@ deployment layer is responsible for setting it.
 
 ## Important gotchas
 
+- **`WebSearch` (Claude Code built-in) is US-only** — it returns empty results
+  outside the US. All pykoclaw agents have the `brave_search` MCP tool
+  registered automatically (reads `BRAVE_API_KEY` from env, already present
+  in the systemd user environment). Prefer `brave_search` over `WebSearch`.
+  For YouTube-specific searches, `yt-dlp` works without an API key:
+  `yt-dlp --flat-playlist "ytsearch10:<query>" --print title --print url`
 - **Testi uses `~/.testi-venv` and `~/.testi-mitto`, not `~/.venv`** — testi
   services are fully isolated from production. `install-testi.sh` deploys to
   `~/.testi-venv`; `mitto-web-testi` reads `MITTO_DIR=~/.testi-mitto` which
