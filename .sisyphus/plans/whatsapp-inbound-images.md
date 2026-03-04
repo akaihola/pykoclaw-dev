@@ -1,6 +1,6 @@
 # WhatsApp Inbound Image Support (Vision)
 
-## Status: Backlog
+## Status: In Progress
 
 ## Priority: 1
 
@@ -193,6 +193,31 @@ We have two options:
 - **Option B**: Modify dispatch signature to accept content blocks
 
 Decision: Option A - MCP tool keeps changes localized
+
+### 6. Vision API client (codebase investigation finding)
+
+The `anthropic` Python package is **not installed** in the workspace. Use `httpx`
+(already a transitive dependency) to call the Anthropic API directly. The
+system-wide `ANTHROPIC_API_KEY` and `ANTHROPIC_BASE_URL` env vars are already set.
+
+### 7. DB schema for attachments (codebase investigation finding)
+
+`run_db_migrations()` uses `db.executescript(sql)` wrapped in a single try/except
+per migration string. Adding `ALTER TABLE ADD COLUMN` to `wa_messages` would log a
+noisy error on every subsequent startup. Use a separate `wa_attachments` table
+(`CREATE TABLE IF NOT EXISTS`) instead — it's idempotent.
+
+### 8. `download_any` argument (codebase investigation finding)
+
+`client.download_any()` takes the full `MessageEv` event (=
+`neonize.proto.Neonize_pb2.Message`), not the inner `event.Message` field. Message
+ID is at `event.Info.ID`.
+
+### 9. Return type of `get_new_messages_for_chat` (codebase investigation finding)
+
+Change from `list[tuple[str, str, str]]` → `list[tuple[str, str, str | None, str | None]]`
+(sender, timestamp, text, attachment_path). Update all callers: `format_xml_messages()`,
+`_handle_agent_trigger()` in connection.py, and `get_chat_history` MCP tool.
 
 ---
 
