@@ -54,15 +54,16 @@ prevents re-treading failed approaches.
 
 Each subdirectory is a separate git repo AND a uv workspace member:
 
-| Package               | Import name          | Role                                     |
-| --------------------- | -------------------- | ---------------------------------------- |
-| `pykoclaw/`           | `pykoclaw`           | Core: CLI, plugins, agent, DB, scheduler |
-| `pykoclaw-chat/`      | `pykoclaw_chat`      | Terminal REPL plugin                     |
+| Package               | Import name          | Role                                                       |
+| --------------------- | -------------------- | ---------------------------------------------------------- |
+| `pykoclaw/`           | `pykoclaw`           | Core: CLI, plugins, agent, DB, scheduler                   |
+| `pykoclaw-chat/`      | `pykoclaw_chat`      | Terminal REPL plugin                                       |
 | `pykoclaw-slack/`     | `pykoclaw_slack`     | Slack gateway plugin (Socket Mode, thread-scoped sessions) |
-| `pykoclaw-whatsapp/`  | `pykoclaw_whatsapp`  | WhatsApp channel plugin                  |
-| `pykoclaw-messaging/` | `pykoclaw_messaging` | Shared dispatch library                  |
-| `pykoclaw-acp/`       | `pykoclaw_acp`       | Agent Client Protocol plugin             |
-| `pykoclaw-matrix/`    | `pykoclaw_matrix`    | Matrix/Element channel plugin            |
+| `pykoclaw-whatsapp/`  | `pykoclaw_whatsapp`  | WhatsApp channel plugin                                    |
+| `pykoclaw-messaging/` | `pykoclaw_messaging` | Shared dispatch library                                    |
+| `pykoclaw-acp/`       | `pykoclaw_acp`       | Agent Client Protocol plugin                               |
+| `pykoclaw-matrix/`    | `pykoclaw_matrix`    | Matrix/Element channel plugin                              |
+| `pykoclaw-vision/`    | `pykoclaw_vision`    | Vision plugin (image analysis, generation, editing)        |
 
 ## Code conventions
 

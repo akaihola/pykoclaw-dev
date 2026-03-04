@@ -42,7 +42,9 @@ uv pip install --python "$TESTI_VENV/bin/python" \
     -e "$SOURCE_DIR/pykoclaw-whatsapp" \
     -e "$SOURCE_DIR/pykoclaw-acp" \
     -e "$SOURCE_DIR/pykoclaw-matrix" \
-    -e "$SOURCE_DIR/pykoclaw-slack"  # installed but no testi service — coleaders only
+    -e "$SOURCE_DIR/pykoclaw-slack" \
+    -e "$SOURCE_DIR/pykoclaw-vision"
+    # pykoclaw-slack: installed above but has no testi service — coleaders only
 
 echo ""
 

@@ -25,6 +25,7 @@ SUBREPOS=(
     "pykoclaw-messaging"
     "pykoclaw-matrix"
     "pykoclaw-slack"
+    "pykoclaw-vision"
 )
 
 AOE_BIN=""
