@@ -1,6 +1,6 @@
 # WhatsApp Inbound Image Support (Vision)
 
-## Status: Backlog
+## Status: In Progress
 
 ## Priority: 1
 
@@ -194,6 +194,31 @@ We have two options:
 
 Decision: Option A - MCP tool keeps changes localized
 
+### 6. Vision API client (codebase investigation finding)
+
+The `anthropic` Python package is **not installed** in the workspace. Use `httpx`
+(already a transitive dependency) to call the Anthropic API directly. The
+system-wide `ANTHROPIC_API_KEY` and `ANTHROPIC_BASE_URL` env vars are already set.
+
+### 7. DB schema for attachments (codebase investigation finding)
+
+`run_db_migrations()` uses `db.executescript(sql)` wrapped in a single try/except
+per migration string. Adding `ALTER TABLE ADD COLUMN` to `wa_messages` would log a
+noisy error on every subsequent startup. Use a separate `wa_attachments` table
+(`CREATE TABLE IF NOT EXISTS`) instead — it's idempotent.
+
+### 8. `download_any` argument (codebase investigation finding)
+
+`client.download_any()` takes the full `MessageEv` event (=
+`neonize.proto.Neonize_pb2.Message`), not the inner `event.Message` field. Message
+ID is at `event.Info.ID`.
+
+### 9. Return type of `get_new_messages_for_chat` (codebase investigation finding)
+
+Change from `list[tuple[str, str, str]]` → `list[tuple[str, str, str | None, str | None]]`
+(sender, timestamp, text, attachment_path). Update all callers: `format_xml_messages()`,
+`_handle_agent_trigger()` in connection.py, and `get_chat_history` MCP tool.
+
 ---
 
 ## Supported Formats
@@ -211,13 +236,13 @@ Decision: Option A - MCP tool keeps changes localized
 
 ## Must Have
 
-- [ ] Image messages detected and trigger agent (like text)
-- [ ] Images downloaded via `client.download_any()`
-- [ ] Images stored in conversation attachments directory
-- [ ] `analyze_image` MCP tool available to agent
-- [ ] Agent can describe images when asked
-- [ ] Works in DMs and group chats
-- [ ] Graceful handling of download failures
+- [x] Image messages detected and trigger agent (like text)
+- [x] Images downloaded via `client.download_any()`
+- [x] Images stored in conversation attachments directory
+- [x] `analyze_image` MCP tool available to agent
+- [x] Agent can describe images when asked
+- [x] Works in DMs and group chats
+- [x] Graceful handling of download failures
 
 ## Nice to Have
 
@@ -229,9 +254,9 @@ Decision: Option A - MCP tool keeps changes localized
 
 ## Must NOT Have
 
-- [ ] No image generation (outbound, separate feature)
-- [ ] No modification to core dispatch signature
-- [ ] No video frame analysis in Phase 1
+- [x] No image generation (outbound, separate feature)
+- [x] No modification to core dispatch signature
+- [x] No video frame analysis in Phase 1
 
 ---
 
@@ -281,7 +306,8 @@ src/pykoclaw_messaging/
 
 ## Dependencies
 
-- **Anthropic API key**: For vision capability (ANTHROPIC_API_KEY or configured)
+- **Gemini API key**: For vision capability (`GEMINI_API_KEY`, defaults to
+  `gemini-3.1-flash-lite-preview`, override via `PYKOCLAW_WA_VISION_MODEL`)
 - **Disk space**: For attachment storage
 - **Network**: For downloading from WhatsApp CDN
 
@@ -300,3 +326,90 @@ src/pykoclaw_messaging/
 - WhatsApp media URLs expire, so we must download immediately
 - The handler pattern from whatsapp-chatgpt-python could be adopted for cleaner
   separation, but incremental change to existing handler.py is simpler
+- Vision is handled via the Gemini API (not Anthropic): model defaults to
+  `gemini-3.1-flash-lite-preview`, set `GEMINI_API_KEY` in the environment
+
+---
+
+## Phase 2 (Future): Extract vision plugin
+
+**Status:** Done (extracted in this worktree before merge)  
+**Depends on:** Phase 1 (complete)
+
+### Rationale
+
+Image vision (`analyze_image`) and generation (`generate_image`, `edit_image`)
+will be needed by all channel plugins (WhatsApp, Matrix, Slack). Duplicating
+the Gemini client, model selection, and tool definitions in every plugin is
+wasteful. Extract to a shared `pykoclaw-vision` package.
+
+### New package: pykoclaw-vision
+
+A new workspace member with **no CLI, no entry points, no DB migrations** —
+pure Python library exporting MCP tool factories.
+
+```
+pykoclaw-vision/
+├── src/pykoclaw_vision/
+│   ├── __init__.py      # exports: make_analyze_image_tool,
+│   │                    #         make_generate_image_tool,
+│   │                    #         make_edit_image_tool
+│   └── vision.py        # shared Gemini client, model config
+├── pyproject.toml
+└── tests/
+```
+
+### Exports
+
+The vision plugin exports factory functions that channel plugins call:
+
+```python
+# In each channel plugin's get_mcp_servers()
+from pykoclaw_vision import (
+    make_analyze_image_tool,
+    make_generate_image_tool,
+    make_edit_image_tool,
+)
+
+def get_mcp_servers(...):
+    return {
+        "whatsapp": create_sdk_mcp_server(
+            name="whatsapp",
+            tools=[send_message, get_chat_history,
+                   make_analyze_image_tool(),
+                   make_generate_image_tool(),
+                   make_edit_image_tool()],
+        )
+    }
+```
+
+### Configuration
+
+Shared between all plugins via environment:
+
+- `GEMINI_API_KEY` — required, read by the vision plugin
+- `PYKOCLAW_VISION_MODEL` — override for image analysis, default: `gemini-3.1-flash-lite-preview`
+- `PYKOCLAW_IMAGE_MODEL` — override for image generation/editing, default: `gemini-3.1-flash-image-preview`
+
+### Migration steps
+
+1. Create `pykoclaw-vision/` repo with workspace member and stub package
+2. Move `attachments.py:make_analyze_image_tool()` → `pykoclaw-vision/vision.py`
+3. Add `make_generate_image_tool()` and `make_edit_image_tool()` factories
+4. In `pykoclaw-whatsapp`, `import from pykoclaw_vision` instead of local
+5. Update plan `wa-outbound-images.md` when it resumes to use the extracted
+   tools instead of duplicating
+6. Update `matrix-inbound-images.md`, `slack-gateway` plans to import from
+   pykoclaw-vision
+
+### Why not pykoclaw-messaging?
+
+`pykoclaw-messaging` is the routing/dispatch layer — it knows about conversation
+lookup, agent dispatch, session management. Mixing vision API helpers in there
+adds an unrelated dependency. A vision plugin has a clear single responsibility.
+
+### Why a proper package and not a module in pykoclaw-core?
+
+Vision capabilities may have large dependencies (Pillow, possibly video
+processing libraries). Keeping them isolated in their own dependency group
+means users who don't need vision don't pull them in.

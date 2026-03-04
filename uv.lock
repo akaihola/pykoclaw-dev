@@ -10,6 +10,7 @@ members = [
     "pykoclaw-matrix",
     "pykoclaw-messaging",
     "pykoclaw-slack",
+    "pykoclaw-vision",
     "pykoclaw-whatsapp",
     "pykoclaw-workspace",
 ]
@@ -1529,6 +1530,33 @@ dev = [
 ]
 
 [[package]]
+name = "pykoclaw-vision"
+version = "0.1.0"
+source = { editable = "pykoclaw-vision" }
+dependencies = [
+    { name = "claude-agent-sdk" },
+    { name = "httpx" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "claude-agent-sdk" },
+    { name = "httpx", specifier = ">=0.27" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=9.0.2" },
+    { name = "pytest-asyncio", specifier = ">=0.25.0" },
+]
+
+[[package]]
 name = "pykoclaw-whatsapp"
 version = "0.1.0"
 source = { editable = "pykoclaw-whatsapp" }
@@ -1539,6 +1567,7 @@ dependencies = [
     { name = "neonize" },
     { name = "pykoclaw" },
     { name = "pykoclaw-messaging" },
+    { name = "pykoclaw-vision" },
     { name = "qrcode" },
 ]
 
@@ -1556,6 +1585,7 @@ requires-dist = [
     { name = "neonize", specifier = ">=0.3.14" },
     { name = "pykoclaw", editable = "pykoclaw" },
     { name = "pykoclaw-messaging", editable = "pykoclaw-messaging" },
+    { name = "pykoclaw-vision", editable = "pykoclaw-vision" },
     { name = "qrcode" },
 ]
 
