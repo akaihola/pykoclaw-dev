@@ -95,7 +95,7 @@ support.
 - Ambient listening with trigger-based replies (`@Andy` mention or DM)
 - Rich formatting — Markdown → Matrix HTML (bold, code, tables, strikethrough,
   auto-linked URLs, task lists with emoji checkboxes)
-- Mermaid diagram rendering — `` ```mermaid `` `` blocks → inline PNG images
+- Mermaid diagram rendering — ` ```mermaid ` `` blocks → inline PNG images
 - Image file uploads — absolute paths to images in agent text sent as `m.image`
 - Batch accumulation with configurable window (default 90 s)
 - Typing indicator while the agent processes
@@ -135,6 +135,11 @@ Inspired by and validated against the OpenClaw and nanobot reference implementat
 - **Emoji ACK reaction** — reacts with `:eyes:` on receipt, removes after reply
 - **Channel type inference** — `D`/`C`/`G` prefix → `im`/`channel`/`group` (no API call)
 - **Bot filtering** — own messages always dropped; other bots gated by `allow_bots`
+- **Inbound images** — images uploaded to Slack are downloaded (via
+  `url_private_download` + bot-token auth) and stored in
+  `{data_dir}/slack_attachments/{channel_id}/`. The `analyze_image` MCP tool
+  (from `pykoclaw-vision` / Gemini) is registered so the agent can describe,
+  OCR, or reason about images. Requires the `files:read` OAuth scope on the Slack app.
 - **Delivery queue** — scheduled task results delivered via `slack-` prefix
 
 Required env vars:
@@ -207,11 +212,11 @@ See [worktree workflow docs] for full details and terminology.
 
 ## Configuration
 
-| Variable             | Default                   | Description                                       |
-| -------------------- | ------------------------- | ------------------------------------------------- |
-| `PYKOCLAW_DATA`      | `~/.local/share/pykoclaw` | Data directory (database, conversations, history)  |
-| `PYKOCLAW_MODEL`     | `claude-opus-4-6`         | Claude model to use                                |
-| `PYKOCLAW_CLI_PATH`  | *(bundled)*               | Path to Claude CLI binary (overrides bundled SDK)  |
+| Variable            | Default                   | Description                                       |
+| ------------------- | ------------------------- | ------------------------------------------------- |
+| `PYKOCLAW_DATA`     | `~/.local/share/pykoclaw` | Data directory (database, conversations, history) |
+| `PYKOCLAW_MODEL`    | `claude-opus-4-6`         | Claude model to use                               |
+| `PYKOCLAW_CLI_PATH` | _(bundled)_               | Path to Claude CLI binary (overrides bundled SDK) |
 
 WhatsApp-specific settings: see [pykoclaw-whatsapp README].
 Matrix-specific settings: see [pykoclaw-matrix README].
