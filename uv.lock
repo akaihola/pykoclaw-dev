@@ -1502,8 +1502,10 @@ version = "0.1.0"
 source = { editable = "pykoclaw-slack" }
 dependencies = [
     { name = "click" },
+    { name = "httpx" },
     { name = "pykoclaw" },
     { name = "pykoclaw-messaging" },
+    { name = "pykoclaw-vision" },
     { name = "slack-bolt" },
     { name = "slackify-markdown" },
 ]
@@ -1517,8 +1519,10 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "click" },
+    { name = "httpx", specifier = ">=0.27.0" },
     { name = "pykoclaw", editable = "pykoclaw" },
     { name = "pykoclaw-messaging", editable = "pykoclaw-messaging" },
+    { name = "pykoclaw-vision", editable = "pykoclaw-vision" },
     { name = "slack-bolt", specifier = ">=1.20.0" },
     { name = "slackify-markdown", specifier = ">=0.2.0" },
 ]
