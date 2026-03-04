@@ -1,6 +1,6 @@
 # Slack Plugin Gotchas
 
-**Tags:** slack, socket-mode, ack, bot-token, threading, slackify-markdown, thread-scoped-sessions
+**Tags:** slack, socket-mode, ack, bot-token, threading, slackify-markdown, thread-scoped-sessions, inbound-images, vision
 **Related:** [plugin-config-env-file.md], [session-resume-system-prompt.md], [session-resume-retry.md]
 
 ## Token types
@@ -45,6 +45,7 @@ in the same channel don't share conversation history.
 ## replyToMode
 
 Configured via `PYKOCLAW_SLACK_REPLY_TO_MODE` (default `all`):
+
 - `'all'` — always reply in thread
 - `'first'` — only first reply per effective-channel-id goes in thread
 - `'off'` — never thread replies
@@ -64,6 +65,7 @@ swallowed (best-effort, debug-logged only).
 ## Channel type inference from ID prefix
 
 Slack channel IDs encode their type:
+
 - `D…` → `im` (DM)
 - `C…` → `channel` (public channel)
 - `G…` → `group` (private channel / group DM)
@@ -76,6 +78,7 @@ back to `'channel'` for unknown prefixes.
 
 `formatting.py` uses `slackify_markdown` (markdown-it-based) instead of
 regexes. Key points:
+
 - Library deliberately **disables table support** — pre-process tables first
 - Table pre-pass in `_convert_table` converts `| H | H |` to `• **H**: val`
   using Markdown `**bold**` (not `*bold*`) so slackify renders as Slack bold
@@ -98,6 +101,29 @@ duplicates while ensuring @-mentions always trigger immediate flush.
 Running `uv sync` in a worktree only installs workspace-root deps. To install
 all workspace members (including `pykoclaw-slack`), use `uv sync --all-packages`.
 Tests must run with `uv run --all-packages pytest` for the same reason.
+
+## Inbound image support (attachments.py)
+
+When a user uploads an image to Slack, the `message` event carries a `files`
+array with `url_private_download`, `mimetype`, and `id`. Key points:
+
+- `attachments.py` handles download: `extract_image_files()` filters to
+  `VISION_MIMETYPES`; `download_slack_image()` fetches with
+  `Authorization: Bearer <bot_token>`; `download_event_images()` orchestrates.
+- Files stored at `{data_dir}/slack_attachments/{channel_id}/{file_id}.{ext}`.
+- `handler.py` returns 4-tuples: `(sender, timestamp, text, attachment_paths)`.
+  `get_new_messages_for_channel` returns `list[str] | None` for attachment paths.
+- `format_xml_message` emits `<attachment type="image" path="..."/>` inside
+  `<message>` when paths are present — the agent calls `analyze_image` with
+  the path.
+- `slack_messages` table has `attachment_path TEXT` column (added via
+  `ALTER TABLE` migration — run_db_migrations catches the OperationalError if
+  column already exists).
+- Image-only messages (text="" but files present) are now accepted — the
+  previous `if not text: return` guard became `if not text and not has_files`.
+- `pykoclaw-vision` added to `pyproject.toml` deps; `make_analyze_image_tool()`
+  registered in `get_mcp_servers()`.
+- Requires `files:read` OAuth scope on the Slack app.
 
 [plugin-config-env-file.md]: plugin-config-env-file.md
 [session-resume-system-prompt.md]: session-resume-system-prompt.md
