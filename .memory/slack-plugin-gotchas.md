@@ -1,7 +1,7 @@
 # Slack Plugin Gotchas
 
 **Tags:** slack, socket-mode, ack, bot-token, threading, slackify-markdown, thread-scoped-sessions, inbound-images, vision
-**Related:** [plugin-config-env-file.md], [session-resume-system-prompt.md], [session-resume-retry.md]
+**Related:** [plugin-config-env-file.md], [session-resume-system-prompt.md], [session-resume-retry.md], [slack-reply-extraction.md]
 
 ## Token types
 
@@ -149,3 +149,4 @@ Committed in pykoclaw-slack `2b74d23`.
 [plugin-config-env-file.md]: plugin-config-env-file.md
 [session-resume-system-prompt.md]: session-resume-system-prompt.md
 [session-resume-retry.md]: session-resume-retry.md
+[slack-reply-extraction.md]: slack-reply-extraction.md
