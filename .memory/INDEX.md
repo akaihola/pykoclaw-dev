@@ -36,7 +36,7 @@ Cross-reference of all memory files in the Pykoclaw project.
 | [claude-sdk-stream-event.md]        | claude-sdk, streaming, sdk-consume, gotcha                                               | StreamEvent import location, include_partial_messages, double-emission trap                                                                          |
 | [testi-venv-isolation.md]           | testi, deployment, venv, mitto, isolation                                                | ~/.testi-venv + ~/.testi-mitto isolate testi from production; install-testi.sh                                                                       |
 | [slack-plugin-gotchas.md]           | slack, socket-mode, ack, bot-token, threading, slackify-markdown, thread-scoped-sessions | Slack plugin: tokens, ack() timeout, thread-scoped sessions, replyToMode, ACK reaction, channel-type inference, allowBots, slackify-markdown gotchas |
-| [slack-reply-extraction.md]         | slack, reply-extraction, gotcha, bugfix, tool-use                                        | `_extract_reply` drops response when agent opens `<reply>` before tool calls but never closes it — fix + diagnosis                                   |
+| [slack-reply-extraction.md]         | slack, reply-extraction, gotcha, bugfix, tool-use, hard-mention                          | Two `_extract_reply` failure modes: unclosed tag (fixed 2026-03-04) + no tag at all on hard mention (Plan A+B fallback, 2026-03-04)                  |
 
 ## By tag
 
@@ -83,6 +83,7 @@ Cross-reference of all memory files in the Pykoclaw project.
 | thread-scoped-sessions | [slack-plugin-gotchas.md]                                                                                                                                                                                                                                                   |
 | slack                  | [slack-plugin-gotchas.md], [slack-reply-extraction.md]                                                                                                                                                                                                                      |
 | reply-extraction       | [slack-reply-extraction.md]                                                                                                                                                                                                                                                 |
+| hard-mention           | [slack-reply-extraction.md]                                                                                                                                                                                                                                                 |
 
 | channel-plugins | [matrix-agent-reply-storage.md] |
 | context-loss | [matrix-agent-reply-storage.md] |

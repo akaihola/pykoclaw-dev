@@ -371,7 +371,14 @@ deployment layer is responsible for setting it.
   on `ProcessError` (exit code 1), but NOT on exit code 0 + empty
   `full_text`. The latter looks like "chose silence" but completes in < 2s
   (real responses take ≥ 5s). Channel plugins must detect `hard_mention=True`
-  - `full_text=""` and retry with `fresh=True`. See [session-resume-retry.md].
+  + `full_text=""` and retry with `fresh=True`. See [session-resume-retry.md].
+- **`_extract_reply` has TWO silent-drop failure modes** — (1) Agent opens
+  `<reply>` before tool calls but never closes it (unclosed-tag fallback in
+  `_extract_reply` handles this). (2) Agent produces valid text with NO
+  `<reply>` tag at all — typically "I cannot find X"-style responses on
+  hard mentions. Handled by `_extract_hard_mention_fallback()` called after
+  `_extract_reply` returns `None` when `hard_mention=True`. Logs a `WARNING`.
+  Group-channel ambient silence is NOT affected. See [slack-reply-extraction.md].
 - **Claude SDK stderr is silently discarded** — `ClaudeAgentOptions.stderr`
   defaults to `None`, dropping all crash output. Always pass `stderr=_on_stderr`
   callback in `agent_core.py` to pipe it to `logging.getLogger("claude_agent_sdk.stderr")`.
@@ -426,4 +433,5 @@ PYKOCLAW_DATA=/home/agent/<datadir>` at the top of every wrapper script
 [session-resume-retry.md]: .memory/session-resume-retry.md
 [session-resume-system-prompt.md]: .memory/session-resume-system-prompt.md
 [claude-sdk-setting-sources.md]: .memory/claude-sdk-setting-sources.md
+[slack-reply-extraction.md]: .memory/slack-reply-extraction.md
 [worktree workflow docs]: docs/worktree-workflow.md
