@@ -333,8 +333,8 @@ src/pykoclaw_messaging/
 
 ## Phase 2 (Future): Extract vision plugin
 
-**Status:** Not started  
-**Depends on:** This feature (Phase 1) completing
+**Status:** Done (extracted in this worktree before merge)  
+**Depends on:** Phase 1 (complete)
 
 ### Rationale
 
