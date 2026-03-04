@@ -1,7 +1,7 @@
 # Hard-Mention Reply Fallback (Plan A + B)
 
-## Status: In Progress
-## Priority: 1
+## Status: Done
+## Completed: 2026-03-04
 
 ## TL;DR
 
