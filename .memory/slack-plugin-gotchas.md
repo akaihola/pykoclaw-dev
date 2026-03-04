@@ -55,12 +55,20 @@ Reset on process restart (same trade-off as `_thread_ts_map`).
 
 ## ACK reaction (add + remove)
 
-`reactions_add(name=ack_emoji)` is called when a hard mention arrives.
-`reactions_remove` is called at the **very start** of `_handle_agent_trigger`
-(before the early-return-on-no-messages guard) so it always fires even if
-no agent dispatch occurs. Configured via `PYKOCLAW_SLACK_ACK_EMOJI` (default
-`eyes`); set to empty string to disable. All reaction API errors are silently
-swallowed (best-effort, debug-logged only).
+`reactions_add(name=ack_emoji)` is called when a hard mention arrives,
+immediately and before `flush_now`.
+
+`reactions_remove` is called **after `dispatch_to_agent` completes** so
+`:eyes:` (or whatever emoji) stays visible the entire time the agent is
+thinking. The `ack_ts` is popped from `_ack_ts_map` eagerly to claim
+ownership, but the API call is deferred. One exception: when
+`get_new_messages_for_channel` returns an empty list (race / cursor already
+advanced), there is no agent call and the reaction is removed in the early-
+exit branch so it doesn't linger.
+
+Configured via `PYKOCLAW_SLACK_ACK_EMOJI` (default `eyes`); set to empty
+string to disable. All reaction API errors are silently swallowed
+(best-effort, debug-logged only).
 
 ## Channel type inference from ID prefix
 
