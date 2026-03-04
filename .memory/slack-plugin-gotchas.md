@@ -125,6 +125,27 @@ array with `url_private_download`, `mimetype`, and `id`. Key points:
   registered in `get_mcp_servers()`.
 - Requires `files:read` OAuth scope on the Slack app.
 
+## Cross-domain redirect drops auth header (image download gotcha)
+
+`url_private_download` redirects from `files.slack.com` to
+`workspace.slack.com`. **httpx silently strips the `Authorization` header on
+cross-domain redirects** (security feature). Slack sees the unauthenticated
+request and returns `200 OK` with an HTML login page — `raise_for_status()`
+doesn't catch it, so the HTML gets written as a `.png` and Gemini rejects it
+with 400 Bad Request.
+
+Three-layer defence in `download_slack_image()`:
+
+1. **Re-inject auth on every leg** — `event_hooks={"request": [_inject_auth]}`
+   re-adds `Authorization: Bearer <token>` for each request including redirects.
+2. **Validate Content-Type** — response must be an image MIME (`VISION_MIMETYPES`);
+   `text/html` or anything unexpected → log warning, return `None`.
+3. **Evict stale HTML cache** — `_looks_like_html(path)` checks the first 16 bytes
+   for `<!doctype` / `<html`. If a cached file is HTML, it's deleted and
+   re-downloaded rather than returned as-is.
+
+Committed in pykoclaw-slack `2b74d23`.
+
 [plugin-config-env-file.md]: plugin-config-env-file.md
 [session-resume-system-prompt.md]: session-resume-system-prompt.md
 [session-resume-retry.md]: session-resume-retry.md
