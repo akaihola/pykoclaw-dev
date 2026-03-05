@@ -1,8 +1,8 @@
 # WhatsApp Outbound Image Support
 
-## Status: In Progress
+## Status: Done
 
-## Completed: 2026-02-22
+## Completed: 2026-03-05
 
 ## Priority: 1
 
