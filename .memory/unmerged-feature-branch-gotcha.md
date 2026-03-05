@@ -4,9 +4,12 @@
 **Related:** [worktree-workflow.md]
 
 Features committed to a `feature/*` branch but never merged into `main` are
-silently missing at runtime. This has happened at least once (WhatsApp
-Markdown formatter: committed to `feature/whatsapp-markdown`, `main` left
-at the parent commit).
+silently missing at runtime. This has happened twice:
+
+1. WhatsApp Markdown formatter — `feature/whatsapp-markdown` never merged.
+2. Brave Search (`brave_search` MCP tool) — `feature/brave-search` sat
+   unmerged for 2 days; tyko agent used US-only `WebSearch` instead,
+   reported "Web search seems to be down" (2026-03-05).
 
 **Symptom:** code exists in git history and passes all tests on the feature
 branch, but has no effect in production because the branch was never merged.
