@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Pre-commit hook: validate plan files and auto-regenerate BACKLOG.md
+# when any .sisyphus/plans/*.md files are in the commit.
+
+# Only run if plan files are being committed
+PLAN_FILES_CHANGED=$(git diff --cached --name-only -- '.sisyphus/plans/*.md' || true)
+
+if [[ -z "$PLAN_FILES_CHANGED" ]]; then
+    exit 0
+fi
+
+echo "[backlog] Plan files changed, running validation..."
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# Run validation (errors = hard fail)
+if ! "$REPO_ROOT/bin/update-backlog.sh" --check; then
+    echo ""
+    echo "[backlog] ✗ Fix the errors above before committing."
+    exit 1
+fi
+
+# Regenerate BACKLOG.md and auto-stage it
+echo "[backlog] Regenerating BACKLOG.md..."
+"$REPO_ROOT/.sisyphus/query_backlog.py" --format full --output "$REPO_ROOT/.sisyphus/BACKLOG.md"
+git add "$REPO_ROOT/.sisyphus/BACKLOG.md"
+echo "[backlog] ✓ BACKLOG.md regenerated and staged"
