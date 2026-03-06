@@ -149,6 +149,23 @@ else
     echo "Run: cd $WORKTREE_BASE && uv sync --all-packages"
 fi
 
+# --- dora index ---
+if command -v dora >/dev/null 2>&1; then
+    echo ""
+    echo "Initializing dora code index in $WORKTREE_BASE..."
+    if (cd "$WORKTREE_BASE" && dora init && dora index) 2>&1; then
+        echo "dora index completed successfully."
+    else
+        echo "WARNING: dora index failed. Run manually when ready:"
+        echo "  cd $WORKTREE_BASE && dora init && dora index"
+    fi
+else
+    echo ""
+    echo "dora not found in PATH — skipping code index."
+    echo "Install with: bun install -g @butttons/dora"
+    echo "Then run: cd $WORKTREE_BASE && dora init && dora index"
+fi
+
 # --- AoE sessions ---
 if [ -n "$AOE_BIN" ]; then
     AOE_GROUP="pykoclaw/$FEATURE_NAME"
