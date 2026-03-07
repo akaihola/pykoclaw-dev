@@ -8,3 +8,10 @@ __pycache__/
 
 # uv
 .venv
+
+# dora code context index
+.dora/
+
+# local Claude Code settings and generated skill links
+.claude/settings.local.json
+.claude/skills/dora/
