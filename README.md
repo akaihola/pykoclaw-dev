@@ -1,16 +1,19 @@
-# Pykoclaw
+# pykoclaw-dev
 
 [![Built with Claude Code](https://img.shields.io/badge/Built_with-Claude_Code-6f42c1?logo=anthropic&logoColor=white)](https://claude.ai/code)
 
 > This project is developed by an AI coding agent ([Claude Code](https://claude.ai/code)), with human oversight and direction.
 
-A modular Python AI agent ecosystem built on the Claude Agent SDK. Pykoclaw
-provides a plugin-based CLI framework for running Claude-powered agents across
-multiple communication channels, with built-in conversation persistence and task
-scheduling.
+Private development workspace for the Pykoclaw ecosystem.
 
-This is the **development workspace** (`pykoclaw-dev`) that aggregates all
-subprojects as a [uv workspace].
+This repository is **not** the public core project. It is the private
+`pykoclaw-dev` umbrella repo that aggregates the public `pykoclaw` core repo
+plus related plugin and support-package repos as a single [uv workspace].
+
+The public core repository lives in [`pykoclaw/`](pykoclaw/README.md).
+
+Every currently present workspace package is linked below so this root README is
+also a directory of the full ecosystem inside the dev workspace.
 
 ## Ecosystem overview
 
@@ -20,9 +23,10 @@ pykoclaw-dev (this repo)
 ├── pykoclaw-chat/         Plugin — interactive terminal REPL
 ├── pykoclaw-whatsapp/     Plugin — WhatsApp channel via Neonize/whatsmeow
 ├── pykoclaw-matrix/       Plugin — Matrix/Element channel via matrix-nio
-├── pykoclaw-messaging/    Shared library — channel-agnostic dispatch_to_agent()
+├── pykoclaw-messaging/    Plugin/library — dispatch_to_agent() + pykoclaw send
 ├── pykoclaw-acp/          Plugin — Agent Client Protocol (JSON-RPC over stdio)
 ├── pykoclaw-slack/        Plugin — Slack gateway via Socket Mode
+├── pykoclaw-vision/       Library — shared Gemini image-analysis tooling
 └── docs/                  Research notes and integration plans
 ```
 
@@ -32,19 +36,21 @@ pykoclaw-dev (this repo)
 pykoclaw-chat ──────────┐
                         ▼
 pykoclaw-whatsapp ──► pykoclaw-messaging ──► pykoclaw (core)
+        │               ▲
+        └──────────► pykoclaw-vision
                         ▲
 pykoclaw-matrix ────────┤
                         │
 pykoclaw-acp ───────────┤
                         │
-pykoclaw-slack ─────────┘
+pykoclaw-slack ─────────┴──────► pykoclaw-vision
 ```
 
 ## Packages
 
-### `pykoclaw` — Core framework
+### [`pykoclaw`](pykoclaw/README.md) — Public core repository
 
-The foundation of the ecosystem. Provides:
+The public core project in this workspace. It provides:
 
 - **Plugin system** — auto-discovery via Python entry points
   (`pykoclaw.plugins` group). Plugins register CLI commands, MCP tools, DB
@@ -62,7 +68,7 @@ The foundation of the ecosystem. Provides:
 - **Configuration** — Pydantic Settings with `PYKOCLAW_` env prefix and `.env`
   file support.
 
-### `pykoclaw-chat` — Terminal chat plugin
+### [`pykoclaw-chat`](pykoclaw-chat/README.md) — Plugin repository
 
 Interactive readline-based REPL for conversing with a Claude agent.
 
@@ -71,7 +77,7 @@ Interactive readline-based REPL for conversing with a Claude agent.
 - Per-conversation `CLAUDE.md` instructions
 - Shared readline history
 
-### `pykoclaw-whatsapp` — WhatsApp plugin
+### [`pykoclaw-whatsapp`](pykoclaw-whatsapp/README.md) — Plugin repository
 
 Connects a Claude agent to WhatsApp using [Neonize] (Python wrapper for the
 whatsmeow Go library).
@@ -85,7 +91,7 @@ whatsmeow Go library).
 - `send_message` and `get_chat_history` MCP tools
 - Thread-safe SQLite with `ThreadSafeConnection` (3-thread model)
 
-### `pykoclaw-matrix` — Matrix/Element plugin
+### [`pykoclaw-matrix`](pykoclaw-matrix/README.md) — Plugin repository
 
 Connects a Claude agent to [Matrix] rooms using [matrix-nio] with full E2EE
 support.
@@ -101,25 +107,28 @@ support.
 - Typing indicator while the agent processes
 - `send_matrix_message` and `get_matrix_history` MCP tools
 
-### `pykoclaw-messaging` — Shared dispatch library
+### [`pykoclaw-messaging`](pykoclaw-messaging/README.md) — Support-package repository
 
-Channel-agnostic dispatch kernel used by WhatsApp, Matrix, ACP, and future
-channel plugins (e.g. Telegram).
+Channel-agnostic dispatch kernel used by WhatsApp, Matrix, ACP, Slack, and
+future channel plugins (e.g. Telegram). It also registers the `pykoclaw send`
+CLI command via the `pykoclaw.plugins` entry-point group.
 
 - `dispatch_to_agent()` — conversation lookup, `query_agent()` call, streaming
   text callback, session persistence
+- `pykoclaw send <conversation> <prompt>` — one-off dispatch plus optional queue delivery
 - `DispatchResult` — aggregated response text + session ID
-- Channel prefix convention: `wa-{agent}-`, `matrix-`, `acp-`, `tg-`, etc.
+- Channel prefix convention: `wa-{agent}-`, `matrix-`, `acp-`, `slack-`, `tg-`, etc.
 
-### `pykoclaw-acp` — Agent Client Protocol plugin
+### [`pykoclaw-acp`](pykoclaw-acp/README.md) — Plugin repository
 
 Exposes pykoclaw as an ACP-compatible agent over JSON-RPC 2.0 on stdio.
 
 - Methods: `initialize`, `session/new`, `session/prompt`
 - Streaming via `session/update` notifications
+- Worker subprocesses are evicted after an idle timeout (default 30 minutes)
 - Backed by `pykoclaw-messaging` dispatch
 
-### `pykoclaw-slack` — Slack gateway plugin
+### [`pykoclaw-slack`](pykoclaw-slack/README.md) — Plugin repository
 
 Connects Slack workspaces to pykoclaw agents via Socket Mode (no public URL needed).
 Inspired by and validated against the OpenClaw and nanobot reference implementations.
@@ -163,6 +172,14 @@ PYKOCLAW_SLACK_BATCH_WINDOW_SECONDS=90
 uv run pykoclaw slack run
 uv run pykoclaw slack healthcheck
 ```
+
+### [`pykoclaw-vision`](pykoclaw-vision/README.md) — Support-package repository
+
+Shared Gemini-powered image tooling used by channel plugins.
+
+- Exposes the `analyze_image` MCP tool factory
+- Used by WhatsApp and Slack for inbound image understanding
+- Configured with `GEMINI_API_KEY` and optional `PYKOCLAW_VISION_MODEL`
 
 [slackify-markdown]: https://pypi.org/project/slackify-markdown/
 
@@ -217,9 +234,12 @@ See [worktree workflow docs] for full details and terminology.
 | `PYKOCLAW_DATA`     | `~/.local/share/pykoclaw` | Data directory (database, conversations, history) |
 | `PYKOCLAW_MODEL`    | `claude-opus-4-6`         | Claude model to use                               |
 | `PYKOCLAW_CLI_PATH` | _(bundled)_               | Path to Claude CLI binary (overrides bundled SDK) |
+| `BRAVE_API_KEY`     | _(unset)_                 | Enables the `brave_search` MCP tool               |
 
 WhatsApp-specific settings: see [pykoclaw-whatsapp README].
 Matrix-specific settings: see [pykoclaw-matrix README].
+Slack and vision settings are documented inline in this workspace README and in
+package source until dedicated package READMEs are added.
 
 ## Data directory layout
 
