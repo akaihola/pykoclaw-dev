@@ -2,6 +2,8 @@
 # that developers should clone and manage independently
 pykoclaw/
 pykoclaw-*/
+!pykoclaw-pykofinder/
+!pykoclaw-pykofinder/**
 
 # Python
 __pycache__/

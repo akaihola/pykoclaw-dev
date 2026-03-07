@@ -9,6 +9,7 @@ members = [
     "pykoclaw-chat",
     "pykoclaw-matrix",
     "pykoclaw-messaging",
+    "pykoclaw-pykofinder",
     "pykoclaw-slack",
     "pykoclaw-vision",
     "pykoclaw-whatsapp",
@@ -1495,6 +1496,31 @@ dev = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
 ]
+
+[[package]]
+name = "pykoclaw-pykofinder"
+version = "0.1.0"
+source = { editable = "pykoclaw-pykofinder" }
+dependencies = [
+    { name = "click" },
+    { name = "pydantic-settings" },
+    { name = "pykoclaw" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "click" },
+    { name = "pydantic-settings" },
+    { name = "pykoclaw", editable = "pykoclaw" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.0.2" }]
 
 [[package]]
 name = "pykoclaw-slack"
