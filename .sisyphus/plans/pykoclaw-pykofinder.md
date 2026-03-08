@@ -7,21 +7,21 @@
 ## TL;DR
 
 > **Quick Summary**: Add a `pykoclaw-pykofinder` plugin that post-processes LLM
-> responses and rewrites internal file links (Markdown links, image links, and
+> responses and rewrites internal document/file links (Markdown links and
 > Obsidian-style wikilinks) to point to files served by a running pykofinder
-> instance. The transformation happens after the agent replies but before
-> channel-specific formatting. Channel plugins (WhatsApp, Matrix) are extended
-> to recognise HTTP image URLs in the response and download-then-attach them,
-> mirroring how they already handle local file paths.
+> instance, while preserving local media paths for channels that explicitly
+> declare native attachment support. The transformation happens after the agent
+> replies but before channel-specific formatting, and is parameterised by the
+> target channel's native file capabilities.
 >
 > **Deliverables**:
 >
 > - `pykoclaw-pykofinder/` — new uv workspace member + package
-> - `transform_response` plugin hook in core + dispatch pipeline
+> - context-aware `transform_response` hook in core + dispatch pipeline
 > - Link transformation engine: relative links, absolute links, wikilinks
+> - Channel-native file capability declarations
 > - Obsidian-compatible wikilink index with full wikilink syntax support
-> - URL image segment support in `pykoclaw-whatsapp` (download + attach)
-> - URL image segment support in `pykoclaw-matrix` (download + attach)
+> - Native media path preservation in `pykoclaw-whatsapp` and `pykoclaw-matrix`
 > - Comprehensive test suite
 >
 > **Estimated Effort**: Medium
@@ -57,13 +57,18 @@ the knowledge-base workspace root. In practice each agent instance has its own
 The pykofinder plugin derives the workspace root from `pykoclaw.config.settings.data`
 — no separate config needed for the path.
 
-### Current image handling
+### Current media handling
 
 Both `pykoclaw-whatsapp` and `pykoclaw-matrix` split agent responses into
-interleaved text and image segments (`split_segments()`). They currently recognise
-only **absolute local file paths** as image segments (checked with `Path.is_file()`).
-After the pykofinder transform turns `![alt](local.png)` into an HTTP URL, the
-existing code no longer sees it as an image segment. This must be fixed.
+interleaved text and media segments (`split_segments()`). They already recognise
+**absolute local file paths** as native attachments and can read/upload those
+from disk. ACP/Mitto, by contrast, renders text/Markdown and cannot natively
+open arbitrary local paths from the agent host.
+
+This means the pykofinder transform should not treat every channel the same:
+channels with declared native support for a media file type should keep local
+absolute paths for those files, while channels without native support should
+receive pykofinder HTTP URLs instead.
 
 ---
 
@@ -85,39 +90,49 @@ The package is added as a uv workspace member in the root `pyproject.toml`.
 
 ### Plugin hook: `transform_response`
 
-A new method is added to the plugin protocol:
+A new method is added to the plugin protocol, with channel context:
 
 ```
-PykoClawPlugin.transform_response(text: str) -> str
+PykoClawPlugin.transform_response(text: str, ctx: TransformContext) -> str
 ```
+
+`TransformContext` carries the target channel prefix plus the set of file
+extensions the channel can handle natively from disk.
 
 `PykoClawPluginBase` provides an identity default. `dispatch_to_agent()` in
-`pykoclaw-messaging` gains an optional `response_transformer: Callable[[str], str] | None`
-parameter. After assembling `full_text` from the agent stream but before
-returning `DispatchResult`, it applies the transformer:
+`pykoclaw-messaging` continues to accept an optional response transformer, but
+channel plugins now build that transformer for a specific `TransformContext`.
+After assembling `full_text` from the agent stream but before returning
+`DispatchResult`, it applies the transformer:
 
 ```
 full_text = response_transformer(full_text)   # if transformer is not None
 ```
 
-Channel plugins build the composite transformer by loading all plugins and
-chaining their `transform_response` methods, then pass it into `dispatch_to_agent`.
+Channel plugins build the composite transformer by loading all plugins,
+constructing the channel's `TransformContext`, and chaining each plugin's
+`transform_response` for that context.
 
 ### How channel plugins pass the transformer
 
 Each channel plugin's CLI `run` command currently calls `run_db_migrations` with
 just its own plugin. It should instead call `load_plugins()` to get ALL loaded
-plugins, run DB migrations for all of them, and build a composite transformer:
+plugins, run DB migrations for all of them, declare the channel's native file
+capabilities, and build a composite transformer for that channel:
 
 ```
 all_plugins = load_plugins()
 run_db_migrations(db, all_plugins)
-transformer = compose_transformers(all_plugins)   # chains transform_response calls
+ctx = TransformContext(
+    channel_prefix="wa",
+    native_file_extensions=WhatsAppPlugin.native_file_extensions(),
+)
+transformer = compose_transformers(all_plugins, ctx)
 ```
 
 `compose_transformers` is a small helper (can live in `pykoclaw.plugins`) that
 returns a single `Callable[[str], str]` that applies each plugin's
-`transform_response` in registration order.
+`transform_response` in registration order for the provided context.
 
 `WhatsAppConnection.__init__` and `MatrixConnection.__init__` gain a
 `response_transformer: Callable[[str], str] | None = None` parameter, stored as
@@ -163,9 +178,13 @@ Rules for items 2 and 3:
 
 - If the URL already starts with a recognised scheme (`http://`, `https://`,
   `ftp://`, `mailto:`, etc.) → **leave untouched**
-- If the path starts with `/` → it is an absolute local path → construct
-  pykofinder URL using the path as-is
-- Otherwise → treat as relative to `workspace_root` → join and construct URL
+- Text/document links are always rewritten to pykofinder URLs
+- Media/image links are conditional:
+  - if the resolved target extension is in `ctx.native_file_extensions` → keep
+    it as an absolute local path so the channel can deliver it natively
+  - otherwise → construct a pykofinder URL
+- Relative local paths are resolved against `workspace_root` before either
+  preserving them or converting them to URLs
 
 ### Wikilink index and Obsidian resolution semantics
 
@@ -215,39 +234,43 @@ resolving the path, emit `![Note.png](pykofinder_url)`. Note embeds
 
 ---
 
-## URL image segments in channel plugins
+## Native media capabilities in channel plugins
 
-After the pykofinder transform, image references in the response text are HTTP
-URLs, not local paths. Both channel plugins must be extended to handle them.
+The pykofinder transform should preserve native local media paths for channels
+that declare support for them, and only fall back to HTTP URLs for channels
+without native support (notably ACP/Mitto).
 
 ### Changes to `pykoclaw-whatsapp`
 
-**`images.py`**: add a compiled regex `IMAGE_URL_MD_RE` that matches Markdown
-image syntax `![alt](https?://url)`, capturing the URL. This regex must not
-overlap with the existing `IMAGE_PATH_RE` (which only matches paths starting
-with `/`).
+**`__init__.py` or plugin class**: declare native file extensions that WhatsApp
+can send from disk (at minimum the already-supported image extensions; optionally
+video/document types as follow-up work).
 
-**`segments.py`**: extend `split_segments()` to also scan for `IMAGE_URL_MD_RE`
-matches. For each match, add an `ImageRef(kind="url", source=url_string)` marker.
-Extend `ImageRef.kind` to `Literal["file", "url"]`.
+**`segments.py`**: keep absolute local-path media detection as the primary native
+attachment mechanism. Avoid new URL-only branches unless required for ACP/Mitto-
+style transformed responses.
 
-**`connection.py`**: in `_send_message()`, add a branch for `ref.kind == "url"`:
-download the URL with `httpx` (synchronous `httpx.get`, since `_send_message`
-is sync) or via `urllib.request.urlopen`, read the bytes, infer MIME type from
-the URL extension using `mimetypes`, and pass bytes to `_send_image()`. Log on
-failure, do not raise.
+**`connection.py`**: continue sending native attachments from disk for preserved
+local paths. Any temporary URL-download support should be removed or minimised if
+capability-aware transforms make it unnecessary.
 
 ### Changes to `pykoclaw-matrix`
 
-**`images.py`**: same — add `IMAGE_URL_MD_RE`.
+**`__init__.py` or plugin class**: declare native file extensions that Matrix
+can send from disk.
 
-**`segments.py`**: `ImageRef` already has `kind: Literal["mermaid", "file"]`.
-Extend to `Literal["mermaid", "file", "url"]`. Add URL image detection
-(same `IMAGE_URL_MD_RE` scan) alongside existing mermaid and file scans.
+**`segments.py`**: keep native local-path media detection as the primary
+attachment mechanism alongside Mermaid handling.
 
-**`connection.py`**: in `_send_message()`, add a branch for `ref.kind == "url"`:
-download asynchronously with `httpx.AsyncClient.get()` (Matrix plugin is fully
-async), infer MIME type, call `_send_image()` with the bytes.
+**`connection.py`**: continue uploading native attachments from disk for
+preserved local paths. As with WhatsApp, URL-download support should be avoided
+unless still needed for backward compatibility.
+
+### ACP / Mitto
+
+ACP/Mitto declares no native local-file capability. For ACP-targeted responses,
+media links should still be rewritten to pykofinder HTTP URLs so Mitto can render
+or link to them in chat.
 
 ---
 

@@ -13,6 +13,6 @@
 - [x] Turn `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/.sisyphus/plans/pykoclaw-pykofinder.md` into a repo/file implementation checklist
 - [x] Add core response-transform hook in `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw` and `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-messaging`
 - [x] Create `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-pykofinder/` package skeleton with config, index, transform, and tests
-- [ ] Wire composed transformers into `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-whatsapp` and `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-matrix`
-- [ ] Add URL-image segmentation and sending support in `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-whatsapp` and `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-matrix`
-- [ ] Run focused pytest slices for core, messaging, pykofinder, WhatsApp, and Matrix changes
+- [x] Wire composed transformers into `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-whatsapp` and `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-matrix`
+- [x] Add URL-image segmentation and sending support in `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-whatsapp` and `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-matrix`
+- [x] Run focused pytest slices for core, messaging, pykofinder, WhatsApp, and Matrix changes
