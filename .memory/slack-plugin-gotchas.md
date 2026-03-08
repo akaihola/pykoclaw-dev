@@ -1,7 +1,7 @@
 # Slack Plugin Gotchas
 
-**Tags:** slack, socket-mode, ack, bot-token, threading, slackify-markdown, thread-scoped-sessions, inbound-images, vision
-**Related:** [plugin-config-env-file.md], [session-resume-system-prompt.md], [session-resume-retry.md], [slack-reply-extraction.md]
+**Tags:** slack, socket-mode, ack, bot-token, threading, slackify-markdown, thread-scoped-sessions, inbound-images, vision, response-transformer, pykofinder
+**Related:** [plugin-config-env-file.md], [session-resume-system-prompt.md], [session-resume-retry.md], [slack-reply-extraction.md], [agent-output-pipeline.md]
 
 ## Token types
 
@@ -153,6 +153,32 @@ Three-layer defence in `download_slack_image()`:
    re-downloaded rather than returned as-is.
 
 Committed in pykoclaw-slack `2b74d23`.
+
+## response_transformer must be wired through SlackConnection
+
+Like Matrix and WhatsApp, the Slack `run` command must:
+
+1. Call `load_plugins()` to get all plugins (not just `[SlackPlugin()]`).
+2. Build a `compose_transformers(all_plugins, TransformContext(...))` with
+   `channel_prefix="slack"` and `native_file_extensions=frozenset()` (Slack
+   cannot serve local file bytes — it needs HTTP URLs).
+3. Pass `response_transformer=` to `SlackConnection.__init__`.
+4. `SlackConnection` stores it as `self._response_transformer` and passes it
+   to all three `dispatch_to_agent()` call sites.
+
+Without this, pykofinder (and any other plugin transformers) never run on
+Slack responses. Image paths like `![alt](~/coleaders/docs/.../kuva.png)`
+appear as raw Markdown text in Slack instead of being converted to pykofinder
+HTTP URLs. Fixed in pykoclaw-slack commit `b371281` (Pi-Session d0a4058c).
+
+## pykofinder does not expand ~/... paths (fixed)
+
+`transform.py` previously treated `~/path` as a relative path joined onto
+`workspace_root`, producing `/w/pykoclaw/~/...` in the URL instead of
+expanding the home directory. Fixed by checking `target.startswith("~")` and
+calling `Path(target).expanduser()` in both `_replace_markdown_link` and
+`_replace_html_img`. Fixed in pykoclaw-pykofinder commit `6ea4cef`
+(Pi-Session d0a4058c).
 
 [plugin-config-env-file.md]: plugin-config-env-file.md
 [session-resume-system-prompt.md]: session-resume-system-prompt.md
