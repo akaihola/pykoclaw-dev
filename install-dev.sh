@@ -15,7 +15,8 @@ uv pip install --python ~/.venv/bin/python \
     -e ./pykoclaw-acp \
     -e ./pykoclaw-matrix \
     -e ./pykoclaw-slack \
-    -e ./pykoclaw-vision
+    -e ./pykoclaw-vision \
+    -e ./pykoclaw-pykofinder
 
 echo ""
 
