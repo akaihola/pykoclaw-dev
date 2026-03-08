@@ -36,6 +36,9 @@ prevents re-treading failed approaches.
   - Every commit message must contain the current Pi session `shortId`.
   - Every project, plan, task, and issue description must contain the current
     session's `Pi-Session-File` path.
+- **Commit frequently during active implementation** — prefer small, logical
+  commits as milestones instead of batching many unrelated edits into one large
+  commit.
 
 ## Build & run
 

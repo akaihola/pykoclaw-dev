@@ -27,6 +27,7 @@ pykoclaw-dev (this repo)
 ├── pykoclaw-acp/          Plugin — Agent Client Protocol (JSON-RPC over stdio)
 ├── pykoclaw-slack/        Plugin — Slack gateway via Socket Mode
 ├── pykoclaw-vision/       Library — shared Gemini image-analysis tooling
+├── pykoclaw-pykofinder/   Plugin — rewrite local file links to Pykofinder URLs
 └── docs/                  Research notes and integration plans
 ```
 
@@ -183,6 +184,16 @@ Shared Gemini-powered image tooling used by channel plugins.
 - Exposes the `analyze_image` MCP tool factory
 - Used by WhatsApp and Slack for inbound image understanding
 - Configured with `GEMINI_API_KEY` and optional `PYKOCLAW_VISION_MODEL`
+
+### [`pykoclaw-pykofinder`](pykoclaw-pykofinder/README.md) — Plugin repository
+
+Rewrites local workspace file references in agent replies into Pykofinder URLs
+for channels that cannot open host-local paths directly.
+
+- Plain file links become viewer URLs using `/f/?path=<absolute-path>`
+- Image/static embeds become raw-file URLs using `/w/<workspace>/<relative-path>`
+- Supports Markdown links, image embeds, Obsidian wikilinks, and HTML `<img>` tags
+- Preserves absolute local image paths for channels with native attachment support
 
 [slackify-markdown]: https://pypi.org/project/slackify-markdown/
 
