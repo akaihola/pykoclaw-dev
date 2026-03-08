@@ -47,6 +47,7 @@ SUBREPOS=(
     "pykoclaw-messaging"
     "pykoclaw-matrix"
     "pykoclaw-slack"
+    "pykoclaw-pykofinder"
 )
 
 # ---------------------------------------------------------------------------

@@ -26,6 +26,7 @@ SUBREPOS=(
     "pykoclaw-matrix"
     "pykoclaw-slack"
     "pykoclaw-vision"
+    "pykoclaw-pykofinder"
 )
 
 AOE_BIN=""
