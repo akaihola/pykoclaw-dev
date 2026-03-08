@@ -154,6 +154,25 @@ Three-layer defence in `download_slack_image()`:
 
 Committed in pykoclaw-slack `2b74d23`.
 
+## Outbound image embeds: download + upload via files_upload_v2
+
+When the agent produces `![alt](https://gogo.crane-boa.ts.net:8445/w/...)`,
+`slackify_markdown` converts it to a plain `<url|alt>` hyperlink — not a
+visible image. `outbound_images.py` intercepts these **before** mrkdwn
+conversion in `_send_message`:
+
+1. `extract_image_embeds(text)` — strips all `![alt](https://...)` tokens,
+   returns `ExtractResult(cleaned_text, images)`.
+2. Prose (if any) posted first via `chat_postMessage` so context appears above images.
+3. Each image downloaded with `httpx` (no auth, Tailscale-internal) and
+   uploaded via `files_upload_v2` (3-step getUploadURL → PUT → complete).
+4. Image-only reply: alt used as `initial_comment`. Reply with prose: comment
+   omitted to avoid repeating text already posted.
+5. HTML content-type response → skip + warning. Any error → log + swallow.
+
+Plain `[label](url)` links are NOT extracted — `slackify_markdown` already
+handles them as `<url|label>` Slack hyperlinks. Committed `38af722`.
+
 ## response_transformer must be wired through SlackConnection
 
 Like Matrix and WhatsApp, the Slack `run` command must:
