@@ -35,6 +35,14 @@ The feature root **is** the workspace root worktree — `pyproject.toml` and
 `uv.lock` are real checked-out files, so `uv sync --all-packages` works
 immediately without any symlink setup.
 
+## How subrepos are discovered
+
+Scripts **do not maintain a hardcoded list** of subrepos. Instead, each script
+scans `~/pykoclaw/*/` (or `--root` for `diff-repos.sh`) and selects every
+subdirectory that has both a `pyproject.toml` and a `.git` entry. Adding a new
+package to `~/pykoclaw/` makes it automatically visible to all scripts — no
+script edits required.
+
 ## Scripts
 
 All scripts live in `bin/` and take `<feature-name>` as the first argument.
@@ -45,21 +53,61 @@ Creates a feature worktree. Steps:
 
 1. Creates `feature/<feature>` branch in the workspace root repo
    (pykoclaw-dev) and adds its worktree at `~/pykoclaw-dev/<feature>/`
-2. For each subrepo, creates `feature/<feature>` and adds its worktree
+2. Auto-detects all subrepos and for each creates `feature/<feature>` + worktree
    at `~/pykoclaw-dev/<feature>/<subrepo>/`
 3. Runs `uv sync --all-packages` in the worktree root
 4. If [AoE][aoe] is available, creates an AoE session group
    `pykoclaw/<feature>` with one OpenCode session per repo
 
+### `bin/new-plugin.sh <feature> <plugin-name>`
+
+Creates a new plugin subrepo **correctly** inside an existing feature worktree.
+This is the only supported way to add a new package during feature development.
+Never `git init` directly in the feature worktree — see [adding a new plugin].
+
+Steps:
+
+1. Initialises canonical git repo at `~/pykoclaw/<plugin-name>/` with an
+   initial scaffold commit on `main`
+2. Creates `feature/<feature>` branch in the canonical repo
+3. Adds a git worktree at `~/pykoclaw-dev/<feature>/<plugin-name>/`
+4. Records the new package in the workspace `pyproject.toml` on the feature
+   branch and commits it (merge-feature.sh carries this to main)
+5. Runs `uv sync --all-packages`
+6. Creates an AoE session if available
+
+### `bin/merge-feature.sh <feature>`
+
+Merges `feature/<feature>` into `main` for all repos with commits ahead.
+Runs in two phases:
+
+**Phase 1 — Adoption:** scans the feature worktree for any standalone git repos
+(dirs where `.git` is a directory, not a file — i.e. created via `git init`
+rather than `git worktree add`). For each one not already in `~/pykoclaw/`:
+
+- Clones it to `~/pykoclaw/<name>/` (the canonical location)
+- Replaces the standalone dir with a proper git worktree
+- Commits the new workspace member to the feature branch's `pyproject.toml`
+
+**Phase 2 — Merge:** auto-detects all subrepos (now including newly adopted
+ones) and merges `feature/<feature>` → `main` for each with commits ahead.
+
 ### `bin/cleanup-worktree.sh <feature>`
 
-Tears down a feature worktree. It:
+Tears down a feature worktree. Before removing anything it checks for
+**unadopted standalone repos** — new plugins that exist only in the feature
+worktree (`.git` is a directory) and haven't been merged yet. If any are found
+it prints a warning and refuses to proceed in non-interactive mode; in a
+terminal it prompts for confirmation. Always run `merge-feature.sh` first.
 
-1. Removes git worktrees from all repos (force-removes if dirty)
-2. Removes AoE sessions and group (if AoE is available)
-3. Runs `git worktree prune`
-4. Deletes `~/pykoclaw-dev/<feature>/`
-5. Deletes temp directories (`/tmp/pykoclaw-dev-<feature>`,
+Cleanup steps:
+
+1. Preflight: detect unadopted repos and warn / abort
+2. Removes git worktrees from all repos (force-removes if dirty)
+3. Removes AoE sessions and group (if AoE is available)
+4. Runs `git worktree prune`
+5. Deletes `~/pykoclaw-dev/<feature>/`
+6. Deletes temp directories (`/tmp/pykoclaw-dev-<feature>`,
    `/tmp/mitto-dev-<feature>`)
 
 **Note:** does NOT delete the `feature/<feature>` branches. Delete them
@@ -162,7 +210,7 @@ Auto-detects feature name from CWD if not provided.
 # 1. Create feature worktree
 bin/create-worktree.sh my-feature
 
-# 2. Work in the worktree — the feature root IS the workspace root
+# 2. Work in the worktree
 cd ~/pykoclaw-dev/my-feature
 # ... edit code across repos ...
 
@@ -176,7 +224,7 @@ bin/staging.sh my-feature
 # 5. Review all cross-repo changes before merging
 bin/diff-feature.sh my-feature
 
-# 6. Merge feature branches into main
+# 6. Merge feature branches into main (also adopts any new plugins)
 bin/merge-feature.sh my-feature
 
 # 7. Deploy (editable reinstall picks up merged code)
@@ -186,11 +234,54 @@ bin/merge-feature.sh my-feature
 bin/cleanup-worktree.sh my-feature
 
 # 9. Optionally delete feature branches
-for repo in pykoclaw pykoclaw-acp pykoclaw-chat pykoclaw-whatsapp pykoclaw-messaging; do
-    git -C ~/pykoclaw/$repo branch -d feature/my-feature 2>/dev/null
+for d in ~/pykoclaw/*/; do
+    [[ -f "${d}pyproject.toml" ]] && [[ -e "${d}.git" ]] || continue
+    git -C "$d" branch -d feature/my-feature 2>/dev/null || true
 done
 git branch -d feature/my-feature 2>/dev/null
 ```
+
+## Adding a new plugin
+
+Use `bin/new-plugin.sh` to create a new package inside an existing feature
+worktree. This sets up both the canonical repo (in `~/pykoclaw/`) and the
+worktree correctly from the start.
+
+```bash
+# Inside an existing feature worktree session:
+bin/new-plugin.sh my-feature pykoclaw-myplugin
+
+# Develop the new plugin
+cd ~/pykoclaw-dev/my-feature/pykoclaw-myplugin/
+# ... write code, add tests, commit ...
+
+# Merge as usual — the new plugin is included automatically
+bin/merge-feature.sh my-feature
+./install-dev.sh
+bin/cleanup-worktree.sh my-feature
+```
+
+### What happens if you `git init` in the worktree instead
+
+If a new plugin was accidentally created at
+`~/pykoclaw-dev/<feature>/<name>/` with `git init` (`.git` is a directory),
+`merge-feature.sh` will detect it in Phase 1 and adopt it automatically:
+
+1. Clones the repo to `~/pykoclaw/<name>/` (canonical location)
+2. Renames the branch to `main` if needed
+3. Replaces the standalone dir with a proper git worktree on `feature/<feature>`
+4. Commits the new workspace member to the feature branch's `pyproject.toml`
+5. Phase 2 merges proceed normally
+
+So the workflow is still:
+
+```bash
+bin/merge-feature.sh my-feature   # adoption happens automatically in Phase 1
+./install-dev.sh
+bin/cleanup-worktree.sh my-feature
+```
+
+[adding a new plugin]: #adding-a-new-plugin
 
 ## AoE integration
 

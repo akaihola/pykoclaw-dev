@@ -195,11 +195,12 @@ Full docs: [worktree workflow docs].
 | Command                                                | What it does                                                                                        |
 | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
 | `bin/create-worktree.sh <feature>`                     | Create worktrees + branches + AoE                                                                   |
+| `bin/new-plugin.sh <feature> <plugin-name>`            | Create a new plugin subrepo inside an existing feature worktree                                     |
 | `bin/qa-check.sh [feature]`                            | Run full test suite against worktree                                                                |
 | `bin/staging.sh <feature>`                             | Launch Mitto web + ACP for user review                                                              |
-| `bin/merge-feature.sh <feature>`                       | Merge feature branches → main                                                                       |
+| `bin/merge-feature.sh <feature>`                       | Adopt new plugins + merge feature branches → main                                                   |
 | `./install-dev.sh`                                     | Deploy (editable reinstall)                                                                         |
-| `bin/cleanup-worktree.sh <feature>`                    | Tear down worktrees + AoE + temp dirs                                                               |
+| `bin/cleanup-worktree.sh <feature>`                    | Tear down worktrees + AoE + temp dirs (aborts if unadopted new plugins found)                       |
 | `bin/list-worktrees.sh`                                | List active feature worktrees                                                                       |
 | `bin/diff-feature.sh <feature>`                        | Browse all cross-repo diffs (fzf+delta)                                                             |
 | `bin/diff-repos.sh [--root=DIR] [--before=TIME] [REF]` | General multi-repo diff browser: uncommitted changes, any ref, or vs last commit before a timestamp |
@@ -213,29 +214,62 @@ Key concepts:
 - **Always `cd ~/pykoclaw-dev/<feature>/` and run `uv run` from there** — never
   run tests from the main workspace against worktree files. The main workspace
   `.venv` imports its own installed packages, not the worktree source.
+- **Subrepo list is auto-detected** — scripts scan `~/pykoclaw/*/` for dirs with
+  both `.git` and `pyproject.toml`. Never hardcode a plugin list anywhere.
 - AoE sessions are optional (scripts degrade gracefully)
 - **Cleanup does NOT delete feature branches** — do that manually
 
-### Common worktree operations
+### Creating a new plugin during feature development
 
-**Always use the scripts** — never run manual `git` commands for worktree
-operations. The scripts handle multi-worktree complexity (e.g., "main is
-already checked out" errors).
+**Always use `bin/new-plugin.sh`** — never `git init` directly inside the
+feature worktree. The canonical repo must be created in `~/pykoclaw/` first;
+the worktree is then added from it.
+
+```bash
+bin/new-plugin.sh my-feature pykoclaw-myplugin
+# Creates ~/pykoclaw/pykoclaw-myplugin/      (canonical, branch: main)
+# Creates ~/pykoclaw-dev/my-feature/pykoclaw-myplugin/  (worktree, branch: feature/my-feature)
+# Updates workspace pyproject.toml on the feature branch
+# Runs uv sync --all-packages
+
+cd ~/pykoclaw-dev/my-feature/pykoclaw-myplugin/
+# ... develop, commit ...
+
+bin/merge-feature.sh my-feature   # merges all repos including the new plugin
+./install-dev.sh
+bin/cleanup-worktree.sh my-feature
+```
+
+### Recovery: plugin was git-init'd directly in the worktree
+
+If a plugin was accidentally created with `git init` at
+`~/pykoclaw-dev/<feature>/<name>/` (`.git` is a directory, not a file),
+`merge-feature.sh` auto-detects and adopts it before merging — no manual steps:
+
+```bash
+bin/merge-feature.sh <feature>
+# Adoption output:  Adopting '<name>': .../worktree/<name> → ~/pykoclaw/<name>
+# Then normal merge proceeds
+```
+
+### Common worktree git operations
+
+**Always use the scripts** — they handle all multi-worktree complexity.
 
 **Checking commits ahead:**
 
 ```bash
-# Compare feature branch against main in ~/pykoclaw
 cd ~/pykoclaw-dev/<feature>/<repo>
 git log ~/pykoclaw/<repo>/HEAD..HEAD --oneline
 ```
 
-**Rebasing:** The scripts handle rebasing automatically. If you must rebase
-manually, use `git rebase origin/main` from within the worktree.
+**Never use `git checkout -b`** to create feature branches. That occupies the
+branch in the current checkout and makes `git worktree add` fail with "already
+used by worktree". The correct sequence is `git branch <name>` (no checkout)
+followed by `git worktree add <path> <name>`. The scripts do this correctly.
 
-**Merging into main:** Use `bin/merge-feature.sh <feature>`. This merges the
-feature branch into local main only — it does NOT push to origin. Push
-separately if needed.
+**Merging into main:** Use `bin/merge-feature.sh <feature>`. Merges into local
+main only — does NOT push to origin. Push separately if needed.
 
 ## Backlog management
 

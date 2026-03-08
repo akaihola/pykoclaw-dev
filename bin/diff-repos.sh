@@ -39,17 +39,6 @@
 #   Ctrl-C / q           Quit
 set -euo pipefail
 
-SUBREPOS=(
-    "pykoclaw"
-    "pykoclaw-acp"
-    "pykoclaw-chat"
-    "pykoclaw-whatsapp"
-    "pykoclaw-messaging"
-    "pykoclaw-matrix"
-    "pykoclaw-slack"
-    "pykoclaw-pykofinder"
-)
-
 # ---------------------------------------------------------------------------
 # Parse arguments
 # ---------------------------------------------------------------------------
@@ -88,6 +77,13 @@ fi
 
 command -v fzf   >/dev/null || { echo "Error: fzf is not installed" >&2; exit 1; }
 command -v delta >/dev/null || { echo "Error: delta is not installed" >&2; exit 1; }
+
+# Auto-detect subrepos from ROOT: every subdirectory with pyproject.toml + .git.
+mapfile -t SUBREPOS < <(
+    for d in "$ROOT"/*/; do
+        [[ -f "${d}pyproject.toml" ]] && [[ -e "${d}.git" ]] && basename "$d"
+    done
+)
 
 # ---------------------------------------------------------------------------
 # Resolve the git ref for a given repo directory.

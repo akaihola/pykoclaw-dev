@@ -17,16 +17,12 @@ if [ -z "$MAIN_CHECKOUT" ]; then
     exit 1
 fi
 
-SUBREPOS=(
-    "pykoclaw"
-    "pykoclaw-acp"
-    "pykoclaw-chat"
-    "pykoclaw-whatsapp"
-    "pykoclaw-messaging"
-    "pykoclaw-matrix"
-    "pykoclaw-slack"
-    "pykoclaw-vision"
-    "pykoclaw-pykofinder"
+# Auto-detect subrepos: every subdirectory of MAIN_CHECKOUT that has both a
+# pyproject.toml and a .git entry.  No manual list needed.
+mapfile -t SUBREPOS < <(
+    for d in "$MAIN_CHECKOUT"/*/; do
+        [[ -f "${d}pyproject.toml" ]] && [[ -e "${d}.git" ]] && basename "$d"
+    done
 )
 
 AOE_BIN=""
@@ -52,6 +48,38 @@ echo ""
 
 CLEANED_REPOS=()
 FAILED_REPOS=()
+
+# --- Safety check: warn about new standalone repos not yet adopted ---
+# A standalone repo has .git as a DIRECTORY; a proper worktree has .git as a FILE.
+# If any exist in the worktree but not in MAIN_CHECKOUT, their commits will be
+# permanently lost when WORKTREE_BASE is deleted.
+UNADOPTED=()
+if [[ -d "$WORKTREE_BASE" ]]; then
+    for d in "$WORKTREE_BASE"/*/; do
+        [[ -f "${d}pyproject.toml" ]] || continue
+        [[ -d "${d}.git" ]] || continue   # .git as DIR = standalone repo
+        name="$(basename "$d")"
+        [[ -d "$MAIN_CHECKOUT/$name" ]] && continue
+        UNADOPTED+=("$name")
+        print_status "$RED" "WARNING: '$name' is a new repo not yet adopted into $MAIN_CHECKOUT"
+        print_status "$RED" "         Its commits will be permanently deleted by cleanup."
+    done
+fi
+if [[ ${#UNADOPTED[@]} -gt 0 ]]; then
+    echo ""
+    print_status "$YELLOW" "Run 'bin/merge-feature.sh $FEATURE' first to adopt and preserve these repos."
+    echo ""
+    if [[ -t 0 ]]; then
+        read -r -p "Proceed with cleanup anyway and permanently lose the above? [y/N] " _confirm
+        if [[ "${_confirm,,}" != "y" ]]; then
+            print_status "$YELLOW" "Cleanup aborted."
+            exit 1
+        fi
+    else
+        print_status "$RED" "Running non-interactively — aborting to prevent data loss."
+        exit 1
+    fi
+fi
 
 # --- Subrepos ---
 for repo in "${SUBREPOS[@]}"; do
