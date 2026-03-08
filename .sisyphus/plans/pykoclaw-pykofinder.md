@@ -1,6 +1,8 @@
 # Pykofinder Link Translation Plugin
 
-## Status: In Progress
+## Status: Done
+
+## Completed: 2026-03-08
 
 ## Priority: 10
 
