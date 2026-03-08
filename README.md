@@ -141,7 +141,8 @@ Inspired by and validated against the OpenClaw and nanobot reference implementat
 - **replyToMode** — `all` (default) / `first` / `off` controls threading behaviour
 - **mrkdwn formatting** — [`slackify-markdown`][slackify-markdown] library with a
   table pre-pass (Markdown tables → `• *Header*: value` bullets)
-- **Emoji ACK reaction** — reacts with `:eyes:` on receipt, removes after reply
+- **Emoji ACK reaction** — reacts with `:eyes:` on receipt, optionally cycling
+  through a sequence of emojis on each streaming chunk; removes after reply
 - **Channel type inference** — `D`/`C`/`G` prefix → `im`/`channel`/`group` (no API call)
 - **Bot filtering** — own messages always dropped; other bots gated by `allow_bots`
 - **Inbound images** — images uploaded to Slack are downloaded (via
@@ -162,9 +163,11 @@ PYKOCLAW_SLACK_TRIGGER_NAME=YourBotName
 Optional env vars:
 
 ```
-PYKOCLAW_SLACK_ACK_EMOJI=eyes        # empty string to disable
-PYKOCLAW_SLACK_REPLY_TO_MODE=all     # all | first | off
-PYKOCLAW_SLACK_ALLOW_BOTS=false      # true to allow other Slack bots
+PYKOCLAW_SLACK_ACK_EMOJI=eyes                    # empty string to disable
+PYKOCLAW_SLACK_ACK_EMOJI_CYCLE=[]               # e.g. ["thought_balloon","brain"]
+PYKOCLAW_SLACK_ACK_EMOJI_CYCLE_INTERVAL_S=15    # min seconds between rotations
+PYKOCLAW_SLACK_REPLY_TO_MODE=all                 # all | first | off
+PYKOCLAW_SLACK_ALLOW_BOTS=false                  # true to allow other Slack bots
 PYKOCLAW_SLACK_BATCH_WINDOW_SECONDS=90
 ```
 
