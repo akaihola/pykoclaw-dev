@@ -154,6 +154,26 @@ Three-layer defence in `download_slack_image()`:
 
 Committed in pykoclaw-slack `2b74d23`.
 
+## Required Slack OAuth bot token scopes
+
+Current scopes needed for full functionality:
+
+| Scope                                                                 | Used for                                          |
+| --------------------------------------------------------------------- | ------------------------------------------------- |
+| `chat:write`                                                          | `chat_postMessage`                                |
+| `reactions:write`                                                     | ACK emoji reactions                               |
+| `channels:history` / `groups:history` / `im:history` / `mpim:history` | reading message history                           |
+| `channels:read`                                                       | channel info                                      |
+| `app_mentions:read`                                                   | `app_mention` events                              |
+| `files:write`                                                         | **`files_upload_v2` — image uploads**             |
+| `files:read`                                                          | downloading Slack-uploaded files (inbound images) |
+
+**`files:write` is required for outbound image upload.** Without it,
+`files.getUploadURLExternal` returns `missing_scope` and the upload silently
+fails (exception is caught and logged). The prose text still posts; only the
+image is missing. Add scopes at api.slack.com/apps → OAuth & Permissions →
+Bot Token Scopes, then reinstall to workspace to get a new `xoxb-` token.
+
 ## Outbound image embeds: download + upload via files_upload_v2
 
 When the agent produces `![alt](https://gogo.crane-boa.ts.net:8445/w/...)`,
