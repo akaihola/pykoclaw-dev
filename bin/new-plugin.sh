@@ -12,9 +12,9 @@ set -euo pipefail
 # "standalone" and auto-adopt it, which works but is slower and error-prone.
 #
 # What this script does:
-#   1. Create canonical repo at ~/pykoclaw/<plugin-name>/ with initial commit on main
+#   1. Create canonical repo at ~/prg/pykoclaw-dev/<plugin-name>/ with initial commit on main
 #   2. Create feature/<feature> branch pointing to that commit
-#   3. Add git worktree at ~/pykoclaw-dev/<feature>/<plugin-name>/ (on feature branch)
+#   3. Add git worktree at ~/prg/pykoclaw-worktrees/<feature>/<plugin-name>/ (on feature branch)
 #   4. Add the plugin to the workspace pyproject.toml on the feature branch and commit
 #   5. Run uv sync --all-packages in the worktree so the new package is available
 #   6. Create AoE session (if aoe is available)
@@ -49,7 +49,7 @@ FEATURE="$1"
 PLUGIN="$2"
 BRANCH="feature/$FEATURE"
 CANONICAL="$MAIN_CHECKOUT/$PLUGIN"
-WORKTREE_BASE="$HOME/pykoclaw-dev/$FEATURE"
+WORKTREE_BASE="$HOME/prg/pykoclaw-worktrees/$FEATURE"
 WORKTREE="$WORKTREE_BASE/$PLUGIN"
 PKG_NAME="${PLUGIN//-/_}"
 

@@ -26,7 +26,7 @@ if [ ! -d "$MAIN_CHECKOUT" ]; then
     exit 1
 fi
 
-DEV_ROOT="$HOME/pykoclaw-dev"
+DEV_ROOT="$HOME/prg/pykoclaw-worktrees"
 
 AOE_BIN=""
 if command -v aoe >/dev/null 2>&1; then

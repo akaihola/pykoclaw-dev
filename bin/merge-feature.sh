@@ -33,7 +33,7 @@ fi
 
 FEATURE="$1"
 BRANCH="feature/$FEATURE"
-WORKTREE_BASE="$HOME/pykoclaw-dev/$FEATURE"
+WORKTREE_BASE="$HOME/prg/pykoclaw-worktrees/$FEATURE"
 
 MERGED=()
 SKIPPED=()

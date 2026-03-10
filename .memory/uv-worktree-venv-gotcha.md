@@ -19,12 +19,12 @@ at `~/.local/bin/pykoclaw`. The workspace `.venv/bin/pykoclaw` had stale
 metadata.
 
 **New:** `install-dev.sh` now uses `uv pip install -e` into `~/.venv/`
-(or `~/pykoclaw/.venv/`). The `uv tool` path (`~/.local/bin/pykoclaw`)
+(or `~/prg/pykoclaw-dev/.venv/`). The `uv tool` path (`~/.local/bin/pykoclaw`)
 no longer exists. All configs (Mitto, systemd) must reference the `.venv`
 binary.
 
 **Wrapper scripts** (`~/.local/bin/pykoclaw-tyko`, `pykoclaw-ressu`) already
-point to `~/pykoclaw/.venv/bin/pykoclaw` and are still correct.
+point to `~/prg/pykoclaw-dev/.venv/bin/pykoclaw` and are still correct.
 
 [worktree-workflow.md]: worktree-workflow.md
 [workspace-layout.md]: workspace-layout.md

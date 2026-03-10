@@ -10,7 +10,7 @@
 # full syntax highlighting rather than as a diff.
 #
 # OPTIONS:
-#   --root=DIR        Workspace root to scan (default: ~/pykoclaw)
+#   --root=DIR        Workspace root to scan (default: ~/prg/pykoclaw-dev)
 #   --before=TIME     Diff against the last commit before TIME in each repo.
 #                     TIME is any format git understands: "2024-01-15 14:00",
 #                     "yesterday", "2 hours ago", "2024-01-15T14:00:00".
@@ -26,7 +26,7 @@
 #   bin/diff-repos.sh HEAD~5                       # vs 5 commits ago
 #   bin/diff-repos.sh main                         # vs main branch
 #   bin/diff-repos.sh --before="2025-01-15 14:00" # vs last commit before that time
-#   bin/diff-repos.sh --root=~/pykoclaw-dev/feat main  # feature worktree vs main
+#   bin/diff-repos.sh --root=~/prg/pykoclaw-worktrees/feat main  # feature worktree vs main
 #
 # KEYS (inside the browser):
 #   ↑ / ↓                Navigate file list
@@ -42,7 +42,7 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # Parse arguments
 # ---------------------------------------------------------------------------
-ROOT="$HOME/pykoclaw"
+ROOT="$HOME/prg/pykoclaw-dev"
 BEFORE=""
 REF=""
 
@@ -191,7 +191,7 @@ if [ -z "$entries" ]; then
 fi
 
 changed_files=$(echo "$entries" | wc -l | tr -d ' ')
-root_display="${ROOT/#$HOME/\~}"  # ~/pykoclaw instead of /home/agent/pykoclaw
+root_display="${ROOT/#$HOME/\~}"  # ~/prg/pykoclaw-dev instead of /home/agent/prg/pykoclaw-dev
 
 # ---------------------------------------------------------------------------
 # Build fzf command strings.

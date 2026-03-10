@@ -14,7 +14,7 @@ if [ -z "${1:-}" ]; then
 fi
 
 FEATURE_NAME="$1"
-WORKTREE_BASE="$HOME/pykoclaw-dev/$FEATURE_NAME"
+WORKTREE_BASE="$HOME/prg/pykoclaw-worktrees/$FEATURE_NAME"
 
 if [ ! -d "$WORKTREE_BASE" ]; then
     echo "Error: Worktree not found: $WORKTREE_BASE" >&2

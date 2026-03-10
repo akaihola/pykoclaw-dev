@@ -37,7 +37,7 @@ print_status() { echo -e "${1}${2}${NC}"; }
 [[ $# -lt 1 ]] && { print_status "$RED" "Error: Feature name required"; echo "Usage: $0 <feature-name>"; exit 1; }
 
 FEATURE="$1"
-WORKTREE_BASE="$HOME/pykoclaw-dev/$FEATURE"
+WORKTREE_BASE="$HOME/prg/pykoclaw-worktrees/$FEATURE"
 TEMP_PYKOCLAW="/tmp/pykoclaw-dev-$FEATURE"
 TEMP_MITTO="/tmp/mitto-dev-$FEATURE"
 

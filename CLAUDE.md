@@ -212,12 +212,12 @@ Key concepts:
 
 - A **feature** is a short name like `my-feature`
 - Creates `feature/<name>` branch in every repo (root + subrepos)
-- Worktree root: `~/pykoclaw-dev/<feature>/` — this IS the pykoclaw-dev worktree
-- Subrepos sit directly inside: `~/pykoclaw-dev/<feature>/pykoclaw/` etc.
-- **Always `cd ~/pykoclaw-dev/<feature>/` and run `uv run` from there** — never
+- Worktree root: `~/prg/pykoclaw-worktrees/<feature>/` — this IS the pykoclaw-dev worktree
+- Subrepos sit directly inside: `~/prg/pykoclaw-worktrees/<feature>/pykoclaw/` etc.
+- **Always `cd ~/prg/pykoclaw-worktrees/<feature>/` and run `uv run` from there** — never
   run tests from the main workspace against worktree files. The main workspace
   `.venv` imports its own installed packages, not the worktree source.
-- **Subrepo list is auto-detected** — scripts scan `~/pykoclaw/*/` for dirs with
+- **Subrepo list is auto-detected** — scripts scan `~/prg/pykoclaw-dev/*/` for dirs with
   both `.git` and `pyproject.toml`. Never hardcode a plugin list anywhere.
 - AoE sessions are optional (scripts degrade gracefully)
 - **Cleanup does NOT delete feature branches** — do that manually
@@ -225,17 +225,17 @@ Key concepts:
 ### Creating a new plugin during feature development
 
 **Always use `bin/new-plugin.sh`** — never `git init` directly inside the
-feature worktree. The canonical repo must be created in `~/pykoclaw/` first;
+feature worktree. The canonical repo must be created in `~/prg/pykoclaw-dev/` first;
 the worktree is then added from it.
 
 ```bash
 bin/new-plugin.sh my-feature pykoclaw-myplugin
-# Creates ~/pykoclaw/pykoclaw-myplugin/      (canonical, branch: main)
-# Creates ~/pykoclaw-dev/my-feature/pykoclaw-myplugin/  (worktree, branch: feature/my-feature)
+# Creates ~/prg/pykoclaw-dev/pykoclaw-myplugin/      (canonical, branch: main)
+# Creates ~/prg/pykoclaw-worktrees/my-feature/pykoclaw-myplugin/  (worktree, branch: feature/my-feature)
 # Updates workspace pyproject.toml on the feature branch
 # Runs uv sync --all-packages
 
-cd ~/pykoclaw-dev/my-feature/pykoclaw-myplugin/
+cd ~/prg/pykoclaw-worktrees/my-feature/pykoclaw-myplugin/
 # ... develop, commit ...
 
 bin/merge-feature.sh my-feature   # merges all repos including the new plugin
@@ -246,12 +246,12 @@ bin/cleanup-worktree.sh my-feature
 ### Recovery: plugin was git-init'd directly in the worktree
 
 If a plugin was accidentally created with `git init` at
-`~/pykoclaw-dev/<feature>/<name>/` (`.git` is a directory, not a file),
+`~/prg/pykoclaw-worktrees/<feature>/<name>/` (`.git` is a directory, not a file),
 `merge-feature.sh` auto-detects and adopts it before merging — no manual steps:
 
 ```bash
 bin/merge-feature.sh <feature>
-# Adoption output:  Adopting '<name>': .../worktree/<name> → ~/pykoclaw/<name>
+# Adoption output:  Adopting '<name>': .../worktree/<name> → ~/prg/pykoclaw-dev/<name>
 # Then normal merge proceeds
 ```
 
@@ -262,8 +262,8 @@ bin/merge-feature.sh <feature>
 **Checking commits ahead:**
 
 ```bash
-cd ~/pykoclaw-dev/<feature>/<repo>
-git log ~/pykoclaw/<repo>/HEAD..HEAD --oneline
+cd ~/prg/pykoclaw-worktrees/<feature>/<repo>
+git log ~/prg/pykoclaw-dev/<repo>/HEAD..HEAD --oneline
 ```
 
 **Never use `git checkout -b`** to create feature branches. That occupies the
@@ -461,7 +461,7 @@ PYKOCLAW_DATA=/home/agent/<datadir>` at the top of every wrapper script
   New worktrees created from main no longer have this issue.
 - **Mitto must reference the `~/.venv` or project `.venv` binary** — After
   `install-dev.sh`, the pykoclaw binary is at `~/.venv/bin/pykoclaw` (or
-  `~/pykoclaw/.venv/bin/pykoclaw`). The old `uv tool` path
+  `~/prg/pykoclaw-dev/.venv/bin/pykoclaw`). The old `uv tool` path
   (`~/.local/bin/pykoclaw`) no longer exists. Mitto's `settings.json` and
   `workspaces.json` must both point to the `.venv` binary. Mitto only reads
   config at startup — restart the service AND create a new session to pick up
