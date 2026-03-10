@@ -458,7 +458,7 @@ No changes outside `pykoclaw-slack`. No new dependencies. No changes to
 ### Unit tests
 
 ```bash
-cd ~/pykoclaw-dev/<worktree>
+cd ~/prg/pykoclaw-worktrees/<worktree>
 uv run pytest pykoclaw-slack/tests/ -v -k "unique_index or store_messages or fetch_channel"
 ```
 

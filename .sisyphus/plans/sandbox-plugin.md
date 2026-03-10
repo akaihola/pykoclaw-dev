@@ -29,7 +29,7 @@ security relies entirely on trust in the message sender.
 
 The threat is not limited to ACP workers. Channel gateways use `query_agent()`
 with the same `bypassPermissions` flag — a user asking through WhatsApp, Matrix,
-or Slack to "read ~/.ssh/id_rsa" or "exfiltrate ~/pykoclaw/.env" will be served.
+or Slack to "read ~/.ssh/id_rsa" or "exfiltrate ~/prg/pykoclaw-dev/.env" will be served.
 The Bash tool makes this worse: arbitrary shell commands inherit the same
 unrestricted environment.
 

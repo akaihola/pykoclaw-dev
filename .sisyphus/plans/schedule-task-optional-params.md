@@ -553,7 +553,7 @@ since this is a single-agent execution, sequential is fine.
 
   **5b. Commit in workspace root** (CLAUDE.md + memory file):
   ```bash
-  cd /home/agent/pykoclaw
+  cd /home/agent/prg/pykoclaw-dev
   git add CLAUDE.md .memory/sdk-schema-gotcha.md .memory/INDEX.md
   git commit -m "docs: add failing-test-first rule and SDK schema gotcha memory"
   ```
@@ -593,11 +593,11 @@ since this is a single-agent execution, sequential is fine.
     Steps:
       1. cd pykoclaw/ && git log -1 --oneline
       2. Assert: message contains "make target_conversation and context_mode optional"
-      3. cd /home/agent/pykoclaw && git log -1 --oneline
+      3. cd /home/agent/prg/pykoclaw-dev && git log -1 --oneline
       4. Assert: message contains "failing-test-first rule"
       5. cd pykoclaw/ && git status
       6. Assert: working tree clean
-      7. cd /home/agent/pykoclaw && git status
+      7. cd /home/agent/prg/pykoclaw-dev && git status
       8. Assert: working tree clean (for tracked files)
     Expected Result: Two clean commits in two repos
     Evidence: git log output captured

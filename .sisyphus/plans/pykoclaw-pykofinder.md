@@ -474,50 +474,50 @@ filesystem needed except for wikilink resolution tests which use `tmp_path`):
 
 ## Implementation Checklist
 
-### Root workspace — `/home/agent/pykoclaw-dev/pykoclaw-pykofinder`
+### Root workspace — `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder`
 
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pyproject.toml` — add `pykoclaw-pykofinder` as a uv workspace member
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/TASKS.md` — track the implementation slices for this feature
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/.sisyphus/plans/pykoclaw-pykofinder.md` — keep the checklist/status current as slices land
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/.sisyphus/BACKLOG.md` — regenerate via `bin/update-backlog.sh` after plan edits
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pyproject.toml` — add `pykoclaw-pykofinder` as a uv workspace member
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/TASKS.md` — track the implementation slices for this feature
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/.sisyphus/plans/pykoclaw-pykofinder.md` — keep the checklist/status current as slices land
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/.sisyphus/BACKLOG.md` — regenerate via `bin/update-backlog.sh` after plan edits
 
-### Core repo — `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw`
+### Core repo — `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw`
 
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw/src/pykoclaw/plugins.py` — add `transform_response()` to the plugin protocol/base class and add `compose_transformers()`
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw/tests/test_plugins.py` — cover default transform behaviour and transformer chaining order
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw/src/pykoclaw/plugins.py` — add `transform_response()` to the plugin protocol/base class and add `compose_transformers()`
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw/tests/test_plugins.py` — cover default transform behaviour and transformer chaining order
 
-### Messaging repo — `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-messaging`
+### Messaging repo — `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-messaging`
 
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-messaging/src/pykoclaw_messaging/dispatch.py` — accept `response_transformer` and apply it to final `full_text`
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-messaging/tests/test_dispatch.py` — verify transformed output and callback semantics stay correct
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-messaging/src/pykoclaw_messaging/dispatch.py` — accept `response_transformer` and apply it to final `full_text`
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-messaging/tests/test_dispatch.py` — verify transformed output and callback semantics stay correct
 
-### New plugin repo — `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-pykofinder`
+### New plugin repo — `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-pykofinder`
 
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-pykofinder/pyproject.toml` — create package metadata, workspace source, and plugin entry point
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-pykofinder/src/pykoclaw_pykofinder/config.py` — add cached settings loader for `PYKOCLAW_PYKOFINDER_BASE_URL`
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-pykofinder/src/pykoclaw_pykofinder/index.py` — build wikilink index with hidden-dir exclusion and Obsidian resolution rules
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-pykofinder/src/pykoclaw_pykofinder/transform.py` — rewrite wikilinks and Markdown links/images to pykofinder URLs
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-pykofinder/src/pykoclaw_pykofinder/__init__.py` — wire plugin class, lazy index creation, and transform hook
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-pykofinder/tests/test_index.py` — cover resolution precedence, path-qualified names, and hidden directories
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-pykofinder/tests/test_transform.py` — cover link rewriting, fragments, aliases, encoding, and unresolved links
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-pykofinder/pyproject.toml` — create package metadata, workspace source, and plugin entry point
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-pykofinder/src/pykoclaw_pykofinder/config.py` — add cached settings loader for `PYKOCLAW_PYKOFINDER_BASE_URL`
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-pykofinder/src/pykoclaw_pykofinder/index.py` — build wikilink index with hidden-dir exclusion and Obsidian resolution rules
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-pykofinder/src/pykoclaw_pykofinder/transform.py` — rewrite wikilinks and Markdown links/images to pykofinder URLs
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-pykofinder/src/pykoclaw_pykofinder/__init__.py` — wire plugin class, lazy index creation, and transform hook
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-pykofinder/tests/test_index.py` — cover resolution precedence, path-qualified names, and hidden directories
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-pykofinder/tests/test_transform.py` — cover link rewriting, fragments, aliases, encoding, and unresolved links
 
-### WhatsApp repo — `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-whatsapp`
+### WhatsApp repo — `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-whatsapp`
 
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-whatsapp/src/pykoclaw_whatsapp/__init__.py` — load all plugins, run all migrations, compose response transformers, pass transformer to connection
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-whatsapp/src/pykoclaw_whatsapp/images.py` — detect Markdown image URLs in addition to local image paths
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-whatsapp/src/pykoclaw_whatsapp/segments.py` — emit `url` image refs in message order
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py` — forward `response_transformer` and add URL-download image sending
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-whatsapp/tests/test_wa_segments.py` — cover URL image segmentation ordering and non-image HTTP links
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-whatsapp/tests/test_connection.py` — cover transformed dispatch and URL image sending fallback/logging
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-whatsapp/src/pykoclaw_whatsapp/__init__.py` — load all plugins, run all migrations, compose response transformers, pass transformer to connection
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-whatsapp/src/pykoclaw_whatsapp/images.py` — detect Markdown image URLs in addition to local image paths
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-whatsapp/src/pykoclaw_whatsapp/segments.py` — emit `url` image refs in message order
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py` — forward `response_transformer` and add URL-download image sending
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-whatsapp/tests/test_wa_segments.py` — cover URL image segmentation ordering and non-image HTTP links
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-whatsapp/tests/test_connection.py` — cover transformed dispatch and URL image sending fallback/logging
 
-### Matrix repo — `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-matrix`
+### Matrix repo — `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-matrix`
 
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-matrix/src/pykoclaw_matrix/__init__.py` — load all plugins, run all migrations, compose response transformers, pass transformer to connection
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-matrix/src/pykoclaw_matrix/images.py` — detect Markdown image URLs in addition to local image paths
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-matrix/src/pykoclaw_matrix/segments.py` — emit `url` image refs while preserving Mermaid/file ordering
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-matrix/src/pykoclaw_matrix/connection.py` — forward `response_transformer` and add async URL-download image sending
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-matrix/tests/test_segments.py` — cover URL images alongside Mermaid and local files
-- [ ] `/home/agent/pykoclaw-dev/pykoclaw-pykofinder/pykoclaw-matrix/tests/test_connection.py` — cover transformed dispatch and URL image upload fallback/logging
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-matrix/src/pykoclaw_matrix/__init__.py` — load all plugins, run all migrations, compose response transformers, pass transformer to connection
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-matrix/src/pykoclaw_matrix/images.py` — detect Markdown image URLs in addition to local image paths
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-matrix/src/pykoclaw_matrix/segments.py` — emit `url` image refs while preserving Mermaid/file ordering
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-matrix/src/pykoclaw_matrix/connection.py` — forward `response_transformer` and add async URL-download image sending
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-matrix/tests/test_segments.py` — cover URL images alongside Mermaid and local files
+- [ ] `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-matrix/tests/test_connection.py` — cover transformed dispatch and URL image upload fallback/logging
 
 ## Non-goals (v1)
 

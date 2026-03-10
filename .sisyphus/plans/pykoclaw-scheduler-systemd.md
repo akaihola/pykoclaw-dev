@@ -171,8 +171,8 @@ Only one file is being edited. Sequential execution is appropriate.
   - `/home/agent/my-knowledge/.env` — Contains `PYKOCLAW_DATA=/home/agent/my-knowledge` and `PYKOCLAW_WA_TRIGGER_NAME=Tyko`. Same usage.
 
   **Code References** (understanding the scheduler):
-  - `/home/agent/pykoclaw/pykoclaw/src/pykoclaw/scheduler.py:86-95` — `run_scheduler()` is a `while True` loop that polls every 60 seconds. It's a long-running daemon, confirming `Type = "simple"` is correct.
-  - `/home/agent/pykoclaw/pykoclaw/src/pykoclaw/config.py:10-11` — `env_file` tuple shows `.env` is loaded from CWD, confirming `WorkingDirectory` matters.
+  - `/home/agent/prg/pykoclaw-dev/pykoclaw/src/pykoclaw/scheduler.py:86-95` — `run_scheduler()` is a `while True` loop that polls every 60 seconds. It's a long-running daemon, confirming `Type = "simple"` is correct.
+  - `/home/agent/prg/pykoclaw-dev/pykoclaw/src/pykoclaw/config.py:10-11` — `env_file` tuple shows `.env` is loaded from CWD, confirming `WorkingDirectory` matters.
 
   **Acceptance Criteria**:
 

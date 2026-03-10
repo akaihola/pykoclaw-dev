@@ -11,9 +11,9 @@
 > **Deliverables**:
 >
 > - `pykoclaw-telegram` workspace package with plugin registration
-> - Telegram bot connection and update polling/webhook integration
+> - Telegram bot connection via long-polling (`getUpdates`)
 > - DM and group message handling with mention/reply triggering rules
-> - Markdown/HTML-safe Telegram output formatting
+> - HTML-formatted Telegram output (safe escaping, unified with V2 captions)
 > - MCP tool for sending Telegram messages
 > - DB tables for Telegram chats and messages
 >
@@ -54,14 +54,36 @@ Implement Telegram as a dedicated plugin package, likely `pykoclaw-telegram`, us
 
 Prefer the smallest integration that matches existing pykoclaw patterns. Reuse `pykoclaw-messaging` for dispatch, conversation lookup, and agent interaction rather than inventing Telegram-specific orchestration.
 
-### Key Design Questions
+### Design Decisions
 
-- **Library choice**: choose a maintained Python Telegram library with good async support
-- **Transport mode**: start with polling for simplicity, or support webhooks if that meaningfully improves deployability
-- **Trigger semantics**: define when the bot responds in groups (DM always, mention/reply in groups, optional ambient mode later)
-- **Formatting**: decide between Telegram MarkdownV2 and HTML output modes based on escaping complexity and reliability
-- **Identity model**: define conversation naming and sender labeling conventions consistent with other channel plugins
-- **Media scope**: start text-first, or include image/document handling in the initial plugin boundary
+- **Transport mode: polling.** gogo has no public HTTPS endpoint — only
+  Tailscale. Long-polling via `getUpdates` needs zero infrastructure beyond
+  the bot token, matches how every other pykoclaw gateway works (WhatsApp
+  Neonize connection, Matrix sync loop, Slack Socket Mode), and delivers
+  near-instantly with a 30s poll timeout.
+- **Formatting: HTML (`parse_mode=HTML`).** MarkdownV2 has brutal escaping
+  rules — 15+ special characters that must all be `\`-escaped outside code
+  blocks. One miss → 400 error, message not delivered. HTML only needs `<`,
+  `>`, `&` escaped (standard entities), and Markdown → HTML conversion is a
+  solved problem. HTML also keeps the formatting pipeline unified with V2
+  image captions (which use the same `parse_mode` and have a 1024-char
+  limit). This is the pragmatic choice.
+- **Media scope: text-only in V1.** Image support (inbound vision + outbound
+  `sendPhoto`) is deferred to a dedicated V2 plan
+  (`telegram-image-support.md`). This keeps V1 focused on the gateway
+  fundamentals and matches the phased approach used for WhatsApp.
+
+### Open Design Questions
+
+- **Library choice**: choose a maintained async Python Telegram library
+  (e.g. `python-telegram-bot`, `aiogram`, or raw `httpx` against the Bot
+  API — evaluate maintenance activity and dependency weight)
+- **Trigger semantics**: DM always triggers; groups need mention or reply
+  to bot (match WhatsApp/Slack pattern). Ambient mode deferred.
+- **Identity model**: conversation naming convention — likely
+  `tg-{chat_id}` for DMs, `tg-{chat_id}` for groups (Telegram chat IDs are
+  globally unique). Sender labeling from `User.first_name` /
+  `User.username`.
 
 ---
 
@@ -87,7 +109,6 @@ A working Telegram gateway that receives messages from Telegram chats, dispatche
 ### Nice to Have
 
 - Bot commands such as `/help` or `/reset`
-- Photo/image inbound support via `pykoclaw-vision`
 - Multi-agent routing in groups
 - Delivery acknowledgements or typing indicators if supported cleanly
 - MCP tool for channel history / recent context fetches
@@ -105,7 +126,7 @@ A working Telegram gateway that receives messages from Telegram chats, dispatche
 
 - Unit test: Telegram update payload → normalized inbound message handling
 - Unit test: group mention/reply logic triggers correctly
-- Unit test: outbound formatting escapes Telegram markup safely
+- Unit test: outbound HTML formatting escapes correctly, strips unsupported tags
 - Integration test: inbound Telegram message → agent response round-trip
 - Integration test: conversation naming and persistence match expected DB behavior
 - Manual verification: DM and group chat both work with the chosen trigger rules
@@ -125,4 +146,12 @@ A working Telegram gateway that receives messages from Telegram chats, dispatche
 
 ## Notes
 
-Treat Telegram as a first-class gateway/plugin, not a one-off integration. Keep it aligned with pykoclaw's minimal-core architecture and shared messaging patterns so future channel additions stay coherent.
+Treat Telegram as a first-class gateway/plugin, not a one-off integration.
+Keep it aligned with pykoclaw's minimal-core architecture and shared
+messaging patterns so future channel additions stay coherent.
+
+**V2 follow-up**: Image support (inbound vision + outbound `sendPhoto`) is
+planned separately in `telegram-image-support.md`. The HTML formatting
+decision here was made with V2 in mind — image captions use the same
+`parse_mode=HTML`, so the formatting pipeline stays unified across text
+messages and photo captions.
