@@ -8,6 +8,11 @@
 - [x] Add dedicated READMEs for `/home/agent/prg/pykoclaw-dev/pykoclaw-slack`, `/home/agent/prg/pykoclaw-dev/pykoclaw-messaging`, and `/home/agent/prg/pykoclaw-dev/pykoclaw-vision`
 - [x] Clarify private workspace vs public core-repo boundaries in root and package docs
 
+## Pykoclaw-Slack: Thread Routing
+
+- [ ] Fix `connection.py`: tallenna `thread_ts` `_thread_ts_map`-sanakirjaan aina kun ketjuun tulee viesti – ei vain @-maininnan yhteydessä. Nyt pehmeät triggerit (aikakatkaisu, passiiviset tarkkailijat) vastaavat päävirtaan koska `_thread_ts_map.get(effective_channel_id)` palauttaa `None`.
+- [ ] Paranna `pykoclaw-slack`-agentin system prompt -injektiota ja/tai `send_slack_message`-työkalun ohjetekstiä: työkalu on tarkoitettu *aloittamaan* viestejä muilla kanavilla, ei koskaan vastaamaan ketjussa – tämä pitää olla yksiselitteisesti kirjattu ohjeistukseen niin ettei agentti käytä sitä ketjuvastauksiin.
+
 ## Pykofinder Plugin
 
 - [x] Turn `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/.sisyphus/plans/pykoclaw-pykofinder.md` into a repo/file implementation checklist
