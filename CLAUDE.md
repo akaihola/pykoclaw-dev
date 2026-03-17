@@ -106,6 +106,42 @@ Each subdirectory is a separate git repo AND a uv workspace member:
   `get_db_migrations()`.
 - **MCP tools:** defined in `pykoclaw/tools.py`, created via
   `create_sdk_mcp_server()` from `claude-agent-sdk`.
+- **Scheduled task delivery modes:** `ScheduledTask.output_mode` controls how
+  the scheduler delivers results. See
+  `pykoclaw/.memory/scheduled-task-output-modes.md` for the full design.
+  - `deliver_final` (default) — scheduler delivers the task's final reply.
+    The task must not send channel messages itself.
+  - `ack_only` — the task sends the main summary to a target channel directly;
+    the task's final reply is only a short acknowledgement for the default
+    destination.
+  Use `schedule_channel_report_task` (MCP tool) instead of `schedule_task`
+  when creating channel-reporting tasks — it automatically appends the correct
+  output contract so the agent does not leak progress narration or send
+  duplicate messages.
+
+## Scheduled task prompt rules
+
+Scheduled tasks that deliver results to a channel **must** include an output
+contract.  `schedule_channel_report_task` appends this automatically.  When
+writing raw `schedule_task` prompts, always end with one of:
+
+```
+Output contract — mandatory:
+- Work silently. No narration. No "Now I will...", "Let me...", "Done."
+- Your final reply must be ONLY the ready-to-send summary/report.
+- The scheduler will deliver your final reply to the configured destination.
+- Do NOT send any separate message yourself.
+```
+
+or (for `ack_only`):
+
+```
+Output contract — mandatory:
+- Work silently. No narration. No "Now I will...", "Let me...", "Done."
+- The target-channel message must contain only the report content.
+- Your final reply must be ONLY a brief acknowledgement for the default destination.
+- Do NOT repeat the full summary in the acknowledgement.
+```
 
 ## Testing
 
@@ -137,9 +173,9 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 | ------------------------------------------------------- | ---------------------------------------- |
 | `pykoclaw/src/pykoclaw/agent_core.py`                   | `query_agent()` — the central agent loop |
 | `pykoclaw/src/pykoclaw/plugins.py`                      | Plugin protocol + discovery + migrations |
-| `pykoclaw/src/pykoclaw/db.py`                           | DB init, ThreadSafeConnection, all CRUD  |
+| `pykoclaw/src/pykoclaw/db.py`                           | DB init, ThreadSafeConnection, all CRUD; `output_mode` column |
 | `pykoclaw/src/pykoclaw/config.py`                       | Settings (Pydantic Settings)             |
-| `pykoclaw/src/pykoclaw/tools.py`                        | MCP tool definitions                     |
+| `pykoclaw/src/pykoclaw/tools.py`                        | MCP tool definitions; `schedule_channel_report_task` helper; output contract constants |
 | `pykoclaw-messaging/src/pykoclaw_messaging/dispatch.py` | `dispatch_to_agent()`                    |
 | `pykoclaw-acp/src/pykoclaw_acp/server.py`               | ACP JSON-RPC server                      |
 | `pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py` | WhatsApp connection                      |
@@ -148,8 +184,8 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 
 ## Memory system
 
-This project uses a structured memory system in `.memory/`. See
-[`.memory/INDEX.md`][memory index] for the cross-reference index.
+This project uses a structured memory system in `pykoclaw/.memory/`. See
+[`pykoclaw/.memory/INDEX.md`][memory index] for the cross-reference index.
 
 **Rule: continuously record important learnings.**
 
@@ -468,7 +504,7 @@ PYKOCLAW_DATA=/home/agent/<datadir>` at the top of every wrapper script
   path changes.
 
 [acp-log]: ACP_ISSUES_LOG.md
-[memory index]: .memory/INDEX.md
+[memory index]: pykoclaw/.memory/INDEX.md
 [plugin-config-env-file.md]: .memory/plugin-config-env-file.md
 [reference links]: https://spec.commonmark.org/0.31.2/#reference-link
 [plugin-config-env-file.md]: .memory/plugin-config-env-file.md
