@@ -114,15 +114,15 @@ Each subdirectory is a separate git repo AND a uv workspace member:
   - `ack_only` — the task sends the main summary to a target channel directly;
     the task's final reply is only a short acknowledgement for the default
     destination.
-  Use `schedule_channel_report_task` (MCP tool) instead of `schedule_task`
-  when creating channel-reporting tasks — it automatically appends the correct
-  output contract so the agent does not leak progress narration or send
-  duplicate messages.
+    Use `schedule_channel_report_task` (MCP tool) instead of `schedule_task`
+    when creating channel-reporting tasks — it automatically appends the correct
+    output contract so the agent does not leak progress narration or send
+    duplicate messages.
 
 ## Scheduled task prompt rules
 
 Scheduled tasks that deliver results to a channel **must** include an output
-contract.  `schedule_channel_report_task` appends this automatically.  When
+contract. `schedule_channel_report_task` appends this automatically. When
 writing raw `schedule_task` prompts, always end with one of:
 
 ```
@@ -169,18 +169,18 @@ Output contract — mandatory:
 
 ## Key files to know
 
-| File                                                    | Purpose                                  |
-| ------------------------------------------------------- | ---------------------------------------- |
-| `pykoclaw/src/pykoclaw/agent_core.py`                   | `query_agent()` — the central agent loop |
-| `pykoclaw/src/pykoclaw/plugins.py`                      | Plugin protocol + discovery + migrations |
-| `pykoclaw/src/pykoclaw/db.py`                           | DB init, ThreadSafeConnection, all CRUD; `output_mode` column |
-| `pykoclaw/src/pykoclaw/config.py`                       | Settings (Pydantic Settings)             |
+| File                                                    | Purpose                                                                                |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `pykoclaw/src/pykoclaw/agent_core.py`                   | `query_agent()` — the central agent loop                                               |
+| `pykoclaw/src/pykoclaw/plugins.py`                      | Plugin protocol + discovery + migrations                                               |
+| `pykoclaw/src/pykoclaw/db.py`                           | DB init, ThreadSafeConnection, all CRUD; `output_mode` column                          |
+| `pykoclaw/src/pykoclaw/config.py`                       | Settings (Pydantic Settings)                                                           |
 | `pykoclaw/src/pykoclaw/tools.py`                        | MCP tool definitions; `schedule_channel_report_task` helper; output contract constants |
-| `pykoclaw-messaging/src/pykoclaw_messaging/dispatch.py` | `dispatch_to_agent()`                    |
-| `pykoclaw-acp/src/pykoclaw_acp/server.py`               | ACP JSON-RPC server                      |
-| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py` | WhatsApp connection                      |
-| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/routing.py`    | Multi-agent group routing config         |
-| `pykoclaw-matrix/src/pykoclaw_matrix/connection.py`     | Matrix connection                        |
+| `pykoclaw-messaging/src/pykoclaw_messaging/dispatch.py` | `dispatch_to_agent()`                                                                  |
+| `pykoclaw-acp/src/pykoclaw_acp/server.py`               | ACP JSON-RPC server                                                                    |
+| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py` | WhatsApp connection                                                                    |
+| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/routing.py`    | Multi-agent group routing config                                                       |
+| `pykoclaw-matrix/src/pykoclaw_matrix/connection.py`     | Matrix connection                                                                      |
 
 ## Memory system
 
@@ -457,6 +457,12 @@ deployment layer is responsible for setting it.
   hard mentions. Handled by `_extract_hard_mention_fallback()` called after
   `_extract_reply` returns `None` when `hard_mention=True`. Logs a `WARNING`.
   Group-channel ambient silence is NOT affected. See [slack-reply-extraction.md].
+- **Claude Code auto memory is always disabled** — Claude Code silently writes
+  agent observations to `~/.claude/projects/<project>/memory/MEMORY.md` unless
+  told otherwise. `agent_core._build_agent_env()` always includes
+  `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1` so SDK usage never contaminates the
+  user's global memory store. CLAUDE.md instruction files are unaffected.
+  See [claude-auto-memory-disabled.md] memory note.
 - **Claude SDK stderr is silently discarded** — `ClaudeAgentOptions.stderr`
   defaults to `None`, dropping all crash output. Always pass `stderr=_on_stderr`
   callback in `agent_core.py` to pipe it to `logging.getLogger("claude_agent_sdk.stderr")`.
@@ -507,6 +513,7 @@ PYKOCLAW_DATA=/home/agent/<datadir>` at the top of every wrapper script
 [memory index]: pykoclaw/.memory/INDEX.md
 [plugin-config-env-file.md]: .memory/plugin-config-env-file.md
 [reference links]: https://spec.commonmark.org/0.31.2/#reference-link
+[claude-auto-memory-disabled.md]: pykoclaw/.memory/claude-auto-memory-disabled.md
 [plugin-config-env-file.md]: .memory/plugin-config-env-file.md
 [session-resume-retry.md]: .memory/session-resume-retry.md
 [session-resume-system-prompt.md]: .memory/session-resume-system-prompt.md
