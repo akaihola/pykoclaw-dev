@@ -189,7 +189,7 @@ print_status "$GREEN"  "  Rebased:       $TOTAL_REBASED"
 print_status "$YELLOW" "  Up to date:    $TOTAL_SKIPPED"
 [[ $TOTAL_FAILED -gt 0 ]] && print_status "$RED" "  Failed:        $TOTAL_FAILED"
 
-if [[ ${#FAILED_REPOS[@]} -gt 0 ]]; then
+if [[ $TOTAL_FAILED -gt 0 ]]; then
     echo ""
     print_status "$RED" "  Repos with conflicts (need manual rebase):"
     for key in "${!FAILED_REPOS[@]}"; do
