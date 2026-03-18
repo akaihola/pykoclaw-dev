@@ -21,3 +21,12 @@
 - [x] Wire composed transformers into `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-whatsapp` and `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-matrix`
 - [x] Add URL-image segmentation and sending support in `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-whatsapp` and `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/pykoclaw-matrix`
 - [x] Run focused pytest slices for core, messaging, pykofinder, WhatsApp, and Matrix changes
+
+## Config / Data Path Resolution
+
+- [x] Move global `.env` from `~/.local/share/pykoclaw/.env` → `~/.config/pykoclaw/.env` (XDG-compliant)
+- [x] Add `$PYKOCLAW_DATA/.env` as per-workspace override (loaded when env var is set)
+- [x] Use `platformdirs.user_data_path` for `settings.data` default
+- [x] Apply changes to both `pykoclaw/config.py` and `pykoclaw-pykofinder/config.py`
+- [x] Migrate production config: copy `~/.local/share/pykoclaw/.env` → `~/.config/pykoclaw/.env`
+- [x] Add comprehensive tests (809 passing)

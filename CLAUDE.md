@@ -114,15 +114,15 @@ Each subdirectory is a separate git repo AND a uv workspace member:
   - `ack_only` — the task sends the main summary to a target channel directly;
     the task's final reply is only a short acknowledgement for the default
     destination.
-  Use `schedule_channel_report_task` (MCP tool) instead of `schedule_task`
-  when creating channel-reporting tasks — it automatically appends the correct
-  output contract so the agent does not leak progress narration or send
-  duplicate messages.
+    Use `schedule_channel_report_task` (MCP tool) instead of `schedule_task`
+    when creating channel-reporting tasks — it automatically appends the correct
+    output contract so the agent does not leak progress narration or send
+    duplicate messages.
 
 ## Scheduled task prompt rules
 
 Scheduled tasks that deliver results to a channel **must** include an output
-contract.  `schedule_channel_report_task` appends this automatically.  When
+contract. `schedule_channel_report_task` appends this automatically. When
 writing raw `schedule_task` prompts, always end with one of:
 
 ```
@@ -169,18 +169,18 @@ Output contract — mandatory:
 
 ## Key files to know
 
-| File                                                    | Purpose                                  |
-| ------------------------------------------------------- | ---------------------------------------- |
-| `pykoclaw/src/pykoclaw/agent_core.py`                   | `query_agent()` — the central agent loop |
-| `pykoclaw/src/pykoclaw/plugins.py`                      | Plugin protocol + discovery + migrations |
-| `pykoclaw/src/pykoclaw/db.py`                           | DB init, ThreadSafeConnection, all CRUD; `output_mode` column |
-| `pykoclaw/src/pykoclaw/config.py`                       | Settings (Pydantic Settings)             |
+| File                                                    | Purpose                                                                                |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `pykoclaw/src/pykoclaw/agent_core.py`                   | `query_agent()` — the central agent loop                                               |
+| `pykoclaw/src/pykoclaw/plugins.py`                      | Plugin protocol + discovery + migrations                                               |
+| `pykoclaw/src/pykoclaw/db.py`                           | DB init, ThreadSafeConnection, all CRUD; `output_mode` column                          |
+| `pykoclaw/src/pykoclaw/config.py`                       | Settings (Pydantic Settings)                                                           |
 | `pykoclaw/src/pykoclaw/tools.py`                        | MCP tool definitions; `schedule_channel_report_task` helper; output contract constants |
-| `pykoclaw-messaging/src/pykoclaw_messaging/dispatch.py` | `dispatch_to_agent()`                    |
-| `pykoclaw-acp/src/pykoclaw_acp/server.py`               | ACP JSON-RPC server                      |
-| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py` | WhatsApp connection                      |
-| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/routing.py`    | Multi-agent group routing config         |
-| `pykoclaw-matrix/src/pykoclaw_matrix/connection.py`     | Matrix connection                        |
+| `pykoclaw-messaging/src/pykoclaw_messaging/dispatch.py` | `dispatch_to_agent()`                                                                  |
+| `pykoclaw-acp/src/pykoclaw_acp/server.py`               | ACP JSON-RPC server                                                                    |
+| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py` | WhatsApp connection                                                                    |
+| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/routing.py`    | Multi-agent group routing config                                                       |
+| `pykoclaw-matrix/src/pykoclaw_matrix/connection.py`     | Matrix connection                                                                      |
 
 ## Memory system
 
@@ -423,9 +423,14 @@ deployment layer is responsible for setting it.
 - **matrix-nio has NO cross-signing support.** Use the raw Matrix CS API
   (`/keys/device_signing/upload` + `/keys/signatures/upload`) via
   `pykoclaw matrix verify`.
+- **Global config lives at `~/.config/pykoclaw/.env`** — not `~/.local/share/pykoclaw/.env`.
+  Both `pykoclaw` and `pykoclaw-pykofinder` use `platformdirs.user_config_path("pykoclaw")`
+  (respects `XDG_CONFIG_HOME`). `.env` load order: global config dir → `$PYKOCLAW_DATA/.env`
+  (if the env var is set) → CWD `.env` → env vars (highest priority).
+  See [config-env-file-resolution.md] memory.
 - **Plugin config `.env` files** — when `PYKOCLAW_DATA` is set to a custom
-  directory, plugins won't find the `.env` there unless they resolve the path
-  from `os.environ["PYKOCLAW_DATA"]`. See [plugin-config-env-file.md] memory.
+  directory, the per-workspace `.env` at `$PYKOCLAW_DATA/.env` is now loaded
+  automatically (no manual path resolution needed). See [plugin-config-env-file.md] memory.
 - **Neonize configures logging on import** — `neonize.utils.log` calls
   `logging.basicConfig(level=INFO)` the moment it is imported. This is the
   actual source of logging configuration for all WhatsApp plugin services.
@@ -506,8 +511,8 @@ PYKOCLAW_DATA=/home/agent/<datadir>` at the top of every wrapper script
 [acp-log]: ACP_ISSUES_LOG.md
 [memory index]: pykoclaw/.memory/INDEX.md
 [plugin-config-env-file.md]: .memory/plugin-config-env-file.md
+[config-env-file-resolution.md]: pykoclaw/.memory/config-env-file-resolution.md
 [reference links]: https://spec.commonmark.org/0.31.2/#reference-link
-[plugin-config-env-file.md]: .memory/plugin-config-env-file.md
 [session-resume-retry.md]: .memory/session-resume-retry.md
 [session-resume-system-prompt.md]: .memory/session-resume-system-prompt.md
 [claude-sdk-setting-sources.md]: .memory/claude-sdk-setting-sources.md
