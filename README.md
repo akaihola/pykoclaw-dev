@@ -255,18 +255,34 @@ Matrix-specific settings: see [pykoclaw-matrix README].
 Slack and vision settings are documented inline in this workspace README and in
 package source until dedicated package READMEs are added.
 
-## Data directory layout
+## Configuration and data directory layout
+
+Global configuration (XDG config dir, respects `XDG_CONFIG_HOME`):
+
+```
+~/.config/pykoclaw/
+  .env                       # Global settings (PYKOCLAW_* vars)
+```
+
+Data directory (default `~/.local/share/pykoclaw/`, override with `PYKOCLAW_DATA`):
 
 ```
 ~/.local/share/pykoclaw/
   pykoclaw.db                # SQLite database
-  .env                       # Environment overrides (optional)
+  .env                       # Per-workspace overrides (loaded when PYKOCLAW_DATA points here)
   history                    # Readline history (shared)
   CLAUDE.md                  # Global system prompt (user-editable)
   conversations/
     <name>/                  # Per-conversation working directory
       CLAUDE.md              # Per-conversation instructions
 ```
+
+`.env` load order (lowest → highest priority):
+
+1. `~/.config/pykoclaw/.env` — global config
+2. `$PYKOCLAW_DATA/.env` — per-workspace override (only when `PYKOCLAW_DATA` env var is set)
+3. CWD `.env`
+4. Environment variables (always win)
 
 ## Writing a plugin
 

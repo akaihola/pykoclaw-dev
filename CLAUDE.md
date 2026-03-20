@@ -423,9 +423,14 @@ deployment layer is responsible for setting it.
 - **matrix-nio has NO cross-signing support.** Use the raw Matrix CS API
   (`/keys/device_signing/upload` + `/keys/signatures/upload`) via
   `pykoclaw matrix verify`.
+- **Global config lives at `~/.config/pykoclaw/.env`** — not `~/.local/share/pykoclaw/.env`.
+  Both `pykoclaw` and `pykoclaw-pykofinder` use `platformdirs.user_config_path("pykoclaw")`
+  (respects `XDG_CONFIG_HOME`). `.env` load order: global config dir → `$PYKOCLAW_DATA/.env`
+  (if the env var is set) → CWD `.env` → env vars (highest priority).
+  See [config-env-file-resolution.md] memory.
 - **Plugin config `.env` files** — when `PYKOCLAW_DATA` is set to a custom
-  directory, plugins won't find the `.env` there unless they resolve the path
-  from `os.environ["PYKOCLAW_DATA"]`. See [plugin-config-env-file.md] memory.
+  directory, the per-workspace `.env` at `$PYKOCLAW_DATA/.env` is now loaded
+  automatically (no manual path resolution needed). See [plugin-config-env-file.md] memory.
 - **Neonize configures logging on import** — `neonize.utils.log` calls
   `logging.basicConfig(level=INFO)` the moment it is imported. This is the
   actual source of logging configuration for all WhatsApp plugin services.
@@ -512,9 +517,9 @@ PYKOCLAW_DATA=/home/agent/<datadir>` at the top of every wrapper script
 [acp-log]: ACP_ISSUES_LOG.md
 [memory index]: pykoclaw/.memory/INDEX.md
 [plugin-config-env-file.md]: .memory/plugin-config-env-file.md
+[config-env-file-resolution.md]: pykoclaw/.memory/config-env-file-resolution.md
 [reference links]: https://spec.commonmark.org/0.31.2/#reference-link
 [claude-auto-memory-disabled.md]: pykoclaw/.memory/claude-auto-memory-disabled.md
-[plugin-config-env-file.md]: .memory/plugin-config-env-file.md
 [session-resume-retry.md]: .memory/session-resume-retry.md
 [session-resume-system-prompt.md]: .memory/session-resume-system-prompt.md
 [claude-sdk-setting-sources.md]: .memory/claude-sdk-setting-sources.md
