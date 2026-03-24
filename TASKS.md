@@ -10,8 +10,8 @@
 
 ## Pykoclaw-Slack: Thread Routing
 
-- [ ] Fix `connection.py`: tallenna `thread_ts` `_thread_ts_map`-sanakirjaan aina kun ketjuun tulee viesti – ei vain @-maininnan yhteydessä. Nyt pehmeät triggerit (aikakatkaisu, passiiviset tarkkailijat) vastaavat päävirtaan koska `_thread_ts_map.get(effective_channel_id)` palauttaa `None`.
-- [ ] Paranna `pykoclaw-slack`-agentin system prompt -injektiota ja/tai `send_slack_message`-työkalun ohjetekstiä: työkalu on tarkoitettu *aloittamaan* viestejä muilla kanavilla, ei koskaan vastaamaan ketjussa – tämä pitää olla yksiselitteisesti kirjattu ohjeistukseen niin ettei agentti käytä sitä ketjuvastauksiin.
+- [ ] Bot replies to thread messages from soft triggers (timeout, passive observers) land in the main channel instead of staying in the thread. See plan `slack-thread-ts-soft-trigger.md`.
+- [ ] Paranna `pykoclaw-slack`-agentin system prompt -injektiota ja/tai `send_slack_message`-työkalun ohjetekstiä: työkalu on tarkoitettu _aloittamaan_ viestejä muilla kanavilla, ei koskaan vastaamaan ketjussa – tämä pitää olla yksiselitteisesti kirjattu ohjeistukseen niin ettei agentti käytä sitä ketjuvastauksiin. Katso myös [`pykoclaw-slack/backlog/001-duplicate-slack-responses.md`](pykoclaw-slack/backlog/001-duplicate-slack-responses.md) (H1) — epäselvä ohjeistus on yksi mahdollinen syy kaksinkertaisiin vastauksiin.
 
 ## Pykofinder Plugin
 

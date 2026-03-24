@@ -18,6 +18,10 @@ prevents re-treading failed approaches.
 
 - Always write useful insights, practices and rules applicable to all pykoclaw
   repos/components/plugins immediately into `./CLAUDE.md` (this file).
+- **Issue descriptions must lead with the user's experience** — describe what
+  the user sees or can't do before explaining the technical cause. Move
+  implementation details (function names, variable names, root-cause analysis)
+  to a separate backlog plan file and link to it from the issue.
   Details specific to a single repo can go to that repo's `./pykoclaw*/.claude/CLAUDE.md`.
 - **Always use feature worktrees** for non-trivial work. Only skip for the
   simplest obvious quick fixes. Use `bin/create-worktree.sh <feature-name>` to
@@ -462,6 +466,13 @@ deployment layer is responsible for setting it.
   hard mentions. Handled by `_extract_hard_mention_fallback()` called after
   `_extract_reply` returns `None` when `hard_mention=True`. Logs a `WARNING`.
   Group-channel ambient silence is NOT affected. See [slack-reply-extraction.md].
+- **`ResultMessage.result` is a fallback, not an additional text channel** —
+  `agent_core._on_result` must only append `msg.result` as text when `_on_text`
+  was never called for this turn. In non-streaming mode (`include_partial_messages
+=False`, used by all channel plugins), the SDK already forwards reply text via
+  `AssistantMessage` TextBlocks; appending `msg.result` unconditionally doubles
+  every outgoing message. Guard: `if msg.result and not had_text`. See
+  [agent-output-duplication.md].
 - **Claude Code auto memory is always disabled** — Claude Code silently writes
   agent observations to `~/.claude/projects/<project>/memory/MEMORY.md` unless
   told otherwise. `agent_core._build_agent_env()` always includes
@@ -524,6 +535,7 @@ PYKOCLAW_DATA=/home/agent/<datadir>` at the top of every wrapper script
 [session-resume-system-prompt.md]: .memory/session-resume-system-prompt.md
 [claude-sdk-setting-sources.md]: .memory/claude-sdk-setting-sources.md
 [slack-reply-extraction.md]: .memory/slack-reply-extraction.md
+[agent-output-duplication.md]: .memory/agent-output-duplication.md
 [worktree workflow docs]: docs/worktree-workflow.md
 
 ## Code Exploration with dora

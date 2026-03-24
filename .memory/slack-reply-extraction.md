@@ -40,10 +40,21 @@ fires on `hard_mention=True`).
 
 **Fix (Plan B):** `_build_hard_mention_directive()` returns a strengthened
 prompt that explicitly covers error/inability responses:
+
 > "…This applies to ALL responses including 'I cannot find X', 'I don't
 > know', or any other message to the user."
 
 ---
+
+## Failure mode 3 — Plan A fallback fires after MCP tool already sent (suspected)
+
+When the agent uses `mcp__slack__send_slack_message` directly in a turn AND
+produces text without `<reply>` tags, Plan A (`_extract_hard_mention_fallback`)
+fires on hard-mention dispatches and sends the same content a second time.
+Result: two Slack messages for one agent turn — the tool send and the fallback
+send. See
+[pykoclaw-slack/backlog/001-duplicate-slack-responses.md](../pykoclaw-slack/backlog/001-duplicate-slack-responses.md)
+for the full investigation (H1).
 
 ## Diagnosis
 

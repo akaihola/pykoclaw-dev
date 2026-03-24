@@ -99,6 +99,14 @@ Slack fires BOTH `message` and `app_mention` when someone @-mentions the bot
 in a channel. Handle `app_mention` with `force_hard_mention=True` to avoid
 duplicates while ensuring @-mentions always trigger immediate flush.
 
+The BatchAccumulator lock serialises the two resulting `flush_now` calls so
+only the first dispatch reaches the agent. However, `store_message` is called
+from both handlers before the lock is acquired, and there is no `UNIQUE`
+constraint on `slack_ts` — so the message can end up stored twice, causing the
+agent to see it duplicated in the XML prompt. See
+[pykoclaw-slack/backlog/001-duplicate-slack-responses.md](../pykoclaw-slack/backlog/001-duplicate-slack-responses.md)
+for the full duplicate-response investigation (H2).
+
 ## AsyncSocketModeHandler requires aiohttp
 
 `slack_bolt.adapter.socket_mode.aiohttp.AsyncSocketModeHandler` depends on
