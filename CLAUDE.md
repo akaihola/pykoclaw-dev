@@ -108,6 +108,13 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 - **DB:** SQLite with `ThreadSafeConnection` wrapper. Tables: `conversations`,
   `scheduled_tasks`, `task_run_logs`, `delivery_queue`. Plugins add tables via
   `get_db_migrations()`.
+- **`response_transformer` covers the delivery queue too** — the transformer
+  composed from all plugin `transform_response()` hooks is applied to every
+  outgoing message, including messages delivered from `delivery_queue`
+  (scheduled task results, `send_*_message` MCP calls). If you add a new
+  channel plugin with a delivery queue poller, always apply
+  `self._response_transformer(message)` before sending — omitting it means
+  Pykofinder link rewriting is silently skipped for background task output.
 - **MCP tools:** defined in `pykoclaw/tools.py`, created via
   `create_sdk_mcp_server()` from `claude-agent-sdk`.
 - **Scheduled task delivery modes:** `ScheduledTask.output_mode` controls how
