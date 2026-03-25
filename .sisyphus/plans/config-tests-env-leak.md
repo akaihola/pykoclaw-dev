@@ -1,8 +1,8 @@
 # Config tests fail when PYKOCLAW_DATA is set in the environment
 
-## Status: Backlog
+## Status: Done
 
-## Priority: 3
+## Completed: 2026-03-25
 
 **Goal:** Make `pykoclaw/tests/test_config.py` pass regardless of whether
 `PYKOCLAW_DATA` (or other `PYKOCLAW_*` variables) are set in the outer
