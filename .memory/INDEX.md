@@ -39,17 +39,18 @@ Cross-reference of all memory files in the Pykoclaw project.
 | [slack-plugin-gotchas.md]             | slack, socket-mode, ack, bot-token, threading, slackify-markdown, thread-scoped-sessions | Slack plugin: tokens, ack() timeout, thread-scoped sessions, replyToMode, ACK reaction, channel-type inference, allowBots, slackify-markdown gotchas |
 | [slack-reply-extraction.md]           | slack, reply-extraction, gotcha, bugfix, tool-use, hard-mention                          | Two `_extract_reply` failure modes: unclosed tag (fixed 2026-03-04) + no tag at all on hard mention (Plan A+B fallback, 2026-03-04)                  |
 | [agent-output-duplication.md]         | agent-core, slack, bugfix, gotcha, regression                                            | `_on_result` unconditionally appended `msg.result` as text even when already collected, doubling every outgoing message (fixed 2026-03-24)           |
+| [cwd-is-data-dir.md]                 | agent-core, acp, chat, cwd, architecture                                                | Claude Code cwd is data_dir (workspace root), not per-conversation subdir                                                                           |
 
 ## By tag
 
 | Tag                    | Files                                                                                                                                                                                                                                                                       |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| acp                    | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md], [anyio-cancel-scope-leak.md], [process-isolated-workers.md]                                                                                                                      |
-| agent-core             | [result-message-fallback.md], [agent-output-duplication.md]                                                                                                                                                                                                                 |
+| acp                    | [mitto-setup.md], [acp-protocol-fix.md], [acp-debugging.md], [asyncio-shutdown-gotcha.md], [anyio-cancel-scope-leak.md], [process-isolated-workers.md], [cwd-is-data-dir.md]                                                                                                |
+| agent-core             | [result-message-fallback.md], [agent-output-duplication.md], [cwd-is-data-dir.md]                                                                                                                                                                                           |
 | bugfix                 | [acp-protocol-fix.md], [result-message-fallback.md], [tool-use-text-concatenation.md], [agent-output-duplication.md]                                                                                                                                                        |
 | claude-sdk             | [acp-protocol-fix.md], [acp-debugging.md], [sdk-schema-gotcha.md], [result-message-fallback.md], [claude-sdk-setting-sources.md], [claude-sdk-stream-event.md]                                                                                                              |
 | debugging              | [acp-debugging.md], [debugging-workflow.md]                                                                                                                                                                                                                                 |
-| architecture           | [plugin-system.md], [channel-dispatch.md], [process-isolated-workers.md], [multi-agent-routing.md], [memory-canonical-vs-harness-logs.md]                                                                                                                                   |
+| architecture           | [plugin-system.md], [channel-dispatch.md], [process-isolated-workers.md], [multi-agent-routing.md], [memory-canonical-vs-harness-logs.md], [cwd-is-data-dir.md]                                                                                                             |
 | dev-workflow           | [worktree-workflow.md], [unmerged-feature-branch-gotcha.md]                                                                                                                                                                                                                 |
 | git                    | [workspace-layout.md], [worktree-workflow.md]                                                                                                                                                                                                                               |
 | anyio                  | [anyio-cancel-scope-leak.md]                                                                                                                                                                                                                                                |
@@ -99,6 +100,8 @@ Cross-reference of all memory files in the Pykoclaw project.
 | matrix-nio | [matrix-nio-gotchas.md] |
 | pydantic-settings | [plugin-config-env-file.md] |
 | tools | [sdk-schema-gotcha.md] |
+| cwd | [cwd-is-data-dir.md] |
+| chat | [cwd-is-data-dir.md] |
 
 [acp-debugging.md]: acp-debugging.md
 [acp-protocol-fix.md]: acp-protocol-fix.md
@@ -135,3 +138,4 @@ Cross-reference of all memory files in the Pykoclaw project.
 [slack-plugin-gotchas.md]: slack-plugin-gotchas.md
 [slack-reply-extraction.md]: slack-reply-extraction.md
 [agent-output-duplication.md]: agent-output-duplication.md
+[cwd-is-data-dir.md]: cwd-is-data-dir.md
