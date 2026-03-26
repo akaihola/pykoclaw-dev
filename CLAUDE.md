@@ -486,6 +486,16 @@ deployment layer is responsible for setting it.
   `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1` so SDK usage never contaminates the
   user's global memory store. CLAUDE.md instruction files are unaffected.
   See [claude-auto-memory-disabled.md] memory note.
+- **ACP worker falls back to fresh session on stale resume** — if
+  `ClaudeSDKClient.connect()` fails when `resume` is set, the worker
+  rebuilds options with `resume=None` and retries. This handles expired
+  or corrupted Claude session state after CCM token expiry, long idle
+  gaps, or service restarts. The user loses conversation context but gets
+  an answer instead of silence. See ACP_ISSUES_LOG.md Issue #7.
+- **`install-dev.sh` auto-upgrades `claude-agent-sdk`** — the deploy
+  scripts pass `--upgrade-package claude-agent-sdk` so the SDK stays
+  current with each deploy. SDK/CLI version mismatches can cause silent
+  worker startup failures.
 - **Claude SDK stderr is silently discarded** — `ClaudeAgentOptions.stderr`
   defaults to `None`, dropping all crash output. Always pass `stderr=_on_stderr`
   callback in `agent_core.py` to pipe it to `logging.getLogger("claude_agent_sdk.stderr")`.

@@ -36,6 +36,7 @@ fi
 
 echo "Installing pykoclaw packages into $TESTI_VENV ..."
 uv pip install --python "$TESTI_VENV/bin/python" \
+    --upgrade-package claude-agent-sdk \
     -e "$SOURCE_DIR/pykoclaw" \
     -e "$SOURCE_DIR/pykoclaw-messaging" \
     -e "$SOURCE_DIR/pykoclaw-chat" \
