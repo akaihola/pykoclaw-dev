@@ -1,6 +1,8 @@
 # Repo-Local `.mcp.json` Stdio Servers Missing from pykoclaw Sessions
 
-## Status: Backlog
+## Status: Done
+
+## Completed: 2026-04-01
 
 ## Priority: 5
 
