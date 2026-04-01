@@ -75,6 +75,7 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 | `pykoclaw-messaging/` | `pykoclaw_messaging` | Shared dispatch library                                    |
 | `pykoclaw-acp/`       | `pykoclaw_acp`       | Agent Client Protocol plugin                               |
 | `pykoclaw-matrix/`    | `pykoclaw_matrix`    | Matrix/Element channel plugin                              |
+| `pykoclaw-mcp/`       | `pykoclaw_mcp`       | `.mcp.json` stdio server discovery plugin                  |
 | `pykoclaw-vision/`    | `pykoclaw_vision`    | Vision plugin (image analysis, generation, editing)        |
 
 ## Code conventions
