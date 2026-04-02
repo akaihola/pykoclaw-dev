@@ -8,6 +8,7 @@ members = [
     "pykoclaw-acp",
     "pykoclaw-chat",
     "pykoclaw-matrix",
+    "pykoclaw-mcp",
     "pykoclaw-messaging",
     "pykoclaw-pykofinder",
     "pykoclaw-slack",
@@ -1481,6 +1482,29 @@ requires-dist = [
 dev = [
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-asyncio", specifier = ">=0.25.0" },
+]
+
+[[package]]
+name = "pykoclaw-mcp"
+version = "0.1.0"
+source = { editable = "pykoclaw-mcp" }
+dependencies = [
+    { name = "pykoclaw" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pykoclaw", editable = "pykoclaw" }]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
 ]
 
 [[package]]
