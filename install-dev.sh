@@ -8,6 +8,7 @@ cd "$(dirname "$0")"
 
 echo "Installing pykoclaw into ~/.venv/ for services and Claude Code skill access..."
 uv pip install --python ~/.venv/bin/python \
+    --upgrade-package claude-agent-sdk \
     -e ./pykoclaw \
     -e ./pykoclaw-messaging \
     -e ./pykoclaw-chat \
@@ -15,7 +16,8 @@ uv pip install --python ~/.venv/bin/python \
     -e ./pykoclaw-acp \
     -e ./pykoclaw-matrix \
     -e ./pykoclaw-slack \
-    -e ./pykoclaw-vision
+    -e ./pykoclaw-vision \
+    -e ./pykoclaw-pykofinder
 
 echo ""
 

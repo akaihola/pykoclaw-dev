@@ -15,7 +15,7 @@ single feature branch without touching `main`.
 - **Merge:** `bin/merge-feature.sh <feature>` → merge feature branches → main
 - **Cleanup:** `bin/cleanup-worktree.sh <feature>` → removes worktrees + AoE + temp dirs
 - **Branches not auto-deleted** — clean up manually after cleanup
-- Layout: `~/pykoclaw-dev/<feature>/{pykoclaw,pykoclaw-acp,...}`
+- Layout: `~/prg/pykoclaw-worktrees/<feature>/{pykoclaw,pykoclaw-acp,...}`
 - AoE integration is optional (graceful degradation)
 - Full docs: `docs/worktree-workflow.md`
 
@@ -38,7 +38,7 @@ starting the next — this keeps `origin/main` current for the next rebase.
 To quickly see what a feature branch brings across all repos:
 
 ```bash
-cd ~/pykoclaw-dev/<feature>
+cd ~/prg/pykoclaw-worktrees/<feature>
 for d in . pykoclaw pykoclaw-chat pykoclaw-whatsapp pykoclaw-messaging pykoclaw-acp; do
   commits=$(git -C "$d" log --oneline origin/main..HEAD 2>/dev/null)
   [ -n "$commits" ] && echo "=== $d ===" && echo "$commits" && echo

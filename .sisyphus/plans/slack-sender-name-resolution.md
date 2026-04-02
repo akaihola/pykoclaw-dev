@@ -388,7 +388,7 @@ via the plugin migration logic on first startup.
 
 ```bash
 # Unit tests
-cd ~/pykoclaw-dev/slack-sender-names
+cd ~/prg/pykoclaw-worktrees/slack-sender-names
 uv run pytest pykoclaw-slack/tests/ -v -k "sender"
 
 # Manual: trigger a message and check the debug log for the XML context

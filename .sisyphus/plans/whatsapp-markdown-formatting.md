@@ -285,7 +285,7 @@ Parametrised pytest cases for every mapping in the conversion table:
 Run from worktree root:
 
 ```bash
-cd /home/agent/pykoclaw-dev/whatsapp-markdown
+cd /home/agent/prg/pykoclaw-worktrees/whatsapp-markdown
 uv run pytest pykoclaw-whatsapp/tests/test_formatting.py -v
 ```
 

@@ -64,10 +64,10 @@ Make pykoclaw use the system Claude CLI instead of the bundled one.
   Tool: Bash
   Preconditions: None
   Steps:
-    1. Check current bundled Claude version: `/home/agent/pykoclaw/.venv/lib/python3.13/site-packages/claude_agent_sdk/_bundled/claude --version`
+    1. Check current bundled Claude version: `/home/agent/prg/pykoclaw-dev/.venv/lib/python3.13/site-packages/claude_agent_sdk/_bundled/claude --version`
     2. Check system Claude version: `which claude && claude --version`
     3. Export PYKOCLAW_CLI_PATH to system claude
-    4. Verify the setting loads: `cd /home/agent/pykoclaw && uv run python3 -c "from pykoclaw.config import settings; print(settings.cli_path)"`
+    4. Verify the setting loads: `cd /home/agent/prg/pykoclaw-dev && uv run python3 -c "from pykoclaw.config import settings; print(settings.cli_path)"`
   Expected Result: Setting is read correctly
   Evidence: Python output shows the path
 
@@ -122,7 +122,7 @@ Make pykoclaw use the system Claude CLI instead of the bundled one.
 ### Verification Commands
 ```bash
 # Test config loads
-cd /home/agent/pykoclaw && PYKOCLAW_CLI_PATH=/home/agent/.local/bin/claude uv run python3 -c "from pykoclaw.config import settings; print(settings.cli_path)"
+cd /home/agent/prg/pykoclaw-dev && PYKOCLAW_CLI_PATH=/home/agent/.local/bin/claude uv run python3 -c "from pykoclaw.config import settings; print(settings.cli_path)"
 # Expected: /home/agent/.local/bin/claude
 ```
 

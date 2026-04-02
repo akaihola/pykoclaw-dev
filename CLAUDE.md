@@ -18,6 +18,10 @@ prevents re-treading failed approaches.
 
 - Always write useful insights, practices and rules applicable to all pykoclaw
   repos/components/plugins immediately into `./CLAUDE.md` (this file).
+- **Issue descriptions must lead with the user's experience** — describe what
+  the user sees or can't do before explaining the technical cause. Move
+  implementation details (function names, variable names, root-cause analysis)
+  to a separate backlog plan file and link to it from the issue.
   Details specific to a single repo can go to that repo's `./pykoclaw*/.claude/CLAUDE.md`.
 - **Always use feature worktrees** for non-trivial work. Only skip for the
   simplest obvious quick fixes. Use `bin/create-worktree.sh <feature-name>` to
@@ -36,6 +40,9 @@ prevents re-treading failed approaches.
   - Every commit message must contain the current Pi session `shortId`.
   - Every project, plan, task, and issue description must contain the current
     session's `Pi-Session-File` path.
+- **Commit frequently during active implementation** — prefer small, logical
+  commits as milestones instead of batching many unrelated edits into one large
+  commit.
 
 ## Build & run
 
@@ -68,6 +75,7 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 | `pykoclaw-messaging/` | `pykoclaw_messaging` | Shared dispatch library                                    |
 | `pykoclaw-acp/`       | `pykoclaw_acp`       | Agent Client Protocol plugin                               |
 | `pykoclaw-matrix/`    | `pykoclaw_matrix`    | Matrix/Element channel plugin                              |
+| `pykoclaw-mcp/`       | `pykoclaw_mcp`       | `.mcp.json` stdio server discovery plugin                  |
 | `pykoclaw-vision/`    | `pykoclaw_vision`    | Vision plugin (image analysis, generation, editing)        |
 
 ## Code conventions
@@ -101,8 +109,51 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 - **DB:** SQLite with `ThreadSafeConnection` wrapper. Tables: `conversations`,
   `scheduled_tasks`, `task_run_logs`, `delivery_queue`. Plugins add tables via
   `get_db_migrations()`.
+- **`response_transformer` covers the delivery queue too** — the transformer
+  composed from all plugin `transform_response()` hooks is applied to every
+  outgoing message, including messages delivered from `delivery_queue`
+  (scheduled task results, `send_*_message` MCP calls). If you add a new
+  channel plugin with a delivery queue poller, always apply
+  `self._response_transformer(message)` before sending — omitting it means
+  Pykofinder link rewriting is silently skipped for background task output.
 - **MCP tools:** defined in `pykoclaw/tools.py`, created via
   `create_sdk_mcp_server()` from `claude-agent-sdk`.
+- **Scheduled task delivery modes:** `ScheduledTask.output_mode` controls how
+  the scheduler delivers results. See
+  `pykoclaw/.memory/scheduled-task-output-modes.md` for the full design.
+  - `deliver_final` (default) — scheduler delivers the task's final reply.
+    The task must not send channel messages itself.
+  - `ack_only` — the task sends the main summary to a target channel directly;
+    the task's final reply is only a short acknowledgement for the default
+    destination.
+    Use `schedule_channel_report_task` (MCP tool) instead of `schedule_task`
+    when creating channel-reporting tasks — it automatically appends the correct
+    output contract so the agent does not leak progress narration or send
+    duplicate messages.
+
+## Scheduled task prompt rules
+
+Scheduled tasks that deliver results to a channel **must** include an output
+contract. `schedule_channel_report_task` appends this automatically. When
+writing raw `schedule_task` prompts, always end with one of:
+
+```
+Output contract — mandatory:
+- Work silently. No narration. No "Now I will...", "Let me...", "Done."
+- Your final reply must be ONLY the ready-to-send summary/report.
+- The scheduler will deliver your final reply to the configured destination.
+- Do NOT send any separate message yourself.
+```
+
+or (for `ack_only`):
+
+```
+Output contract — mandatory:
+- Work silently. No narration. No "Now I will...", "Let me...", "Done."
+- The target-channel message must contain only the report content.
+- Your final reply must be ONLY a brief acknowledgement for the default destination.
+- Do NOT repeat the full summary in the acknowledgement.
+```
 
 ## Testing
 
@@ -130,23 +181,23 @@ Each subdirectory is a separate git repo AND a uv workspace member:
 
 ## Key files to know
 
-| File                                                    | Purpose                                  |
-| ------------------------------------------------------- | ---------------------------------------- |
-| `pykoclaw/src/pykoclaw/agent_core.py`                   | `query_agent()` — the central agent loop |
-| `pykoclaw/src/pykoclaw/plugins.py`                      | Plugin protocol + discovery + migrations |
-| `pykoclaw/src/pykoclaw/db.py`                           | DB init, ThreadSafeConnection, all CRUD  |
-| `pykoclaw/src/pykoclaw/config.py`                       | Settings (Pydantic Settings)             |
-| `pykoclaw/src/pykoclaw/tools.py`                        | MCP tool definitions                     |
-| `pykoclaw-messaging/src/pykoclaw_messaging/dispatch.py` | `dispatch_to_agent()`                    |
-| `pykoclaw-acp/src/pykoclaw_acp/server.py`               | ACP JSON-RPC server                      |
-| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py` | WhatsApp connection                      |
-| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/routing.py`    | Multi-agent group routing config         |
-| `pykoclaw-matrix/src/pykoclaw_matrix/connection.py`     | Matrix connection                        |
+| File                                                    | Purpose                                                                                |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `pykoclaw/src/pykoclaw/agent_core.py`                   | `query_agent()` — the central agent loop                                               |
+| `pykoclaw/src/pykoclaw/plugins.py`                      | Plugin protocol + discovery + migrations                                               |
+| `pykoclaw/src/pykoclaw/db.py`                           | DB init, ThreadSafeConnection, all CRUD; `output_mode` column                          |
+| `pykoclaw/src/pykoclaw/config.py`                       | Settings (Pydantic Settings)                                                           |
+| `pykoclaw/src/pykoclaw/tools.py`                        | MCP tool definitions; `schedule_channel_report_task` helper; output contract constants |
+| `pykoclaw-messaging/src/pykoclaw_messaging/dispatch.py` | `dispatch_to_agent()`                                                                  |
+| `pykoclaw-acp/src/pykoclaw_acp/server.py`               | ACP JSON-RPC server                                                                    |
+| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py` | WhatsApp connection                                                                    |
+| `pykoclaw-whatsapp/src/pykoclaw_whatsapp/routing.py`    | Multi-agent group routing config                                                       |
+| `pykoclaw-matrix/src/pykoclaw_matrix/connection.py`     | Matrix connection                                                                      |
 
 ## Memory system
 
-This project uses a structured memory system in `.memory/`. See
-[`.memory/INDEX.md`][memory index] for the cross-reference index.
+This project uses a structured memory system in `pykoclaw/.memory/`. See
+[`pykoclaw/.memory/INDEX.md`][memory index] for the cross-reference index.
 
 **Rule: continuously record important learnings.**
 
@@ -195,11 +246,12 @@ Full docs: [worktree workflow docs].
 | Command                                                | What it does                                                                                        |
 | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
 | `bin/create-worktree.sh <feature>`                     | Create worktrees + branches + AoE                                                                   |
+| `bin/new-plugin.sh <feature> <plugin-name>`            | Create a new plugin subrepo inside an existing feature worktree                                     |
 | `bin/qa-check.sh [feature]`                            | Run full test suite against worktree                                                                |
 | `bin/staging.sh <feature>`                             | Launch Mitto web + ACP for user review                                                              |
-| `bin/merge-feature.sh <feature>`                       | Merge feature branches → main                                                                       |
+| `bin/merge-feature.sh <feature>`                       | Adopt new plugins + merge feature branches → main                                                   |
 | `./install-dev.sh`                                     | Deploy (editable reinstall)                                                                         |
-| `bin/cleanup-worktree.sh <feature>`                    | Tear down worktrees + AoE + temp dirs                                                               |
+| `bin/cleanup-worktree.sh <feature>`                    | Tear down worktrees + AoE + temp dirs (aborts if unadopted new plugins found)                       |
 | `bin/list-worktrees.sh`                                | List active feature worktrees                                                                       |
 | `bin/diff-feature.sh <feature>`                        | Browse all cross-repo diffs (fzf+delta)                                                             |
 | `bin/diff-repos.sh [--root=DIR] [--before=TIME] [REF]` | General multi-repo diff browser: uncommitted changes, any ref, or vs last commit before a timestamp |
@@ -208,34 +260,67 @@ Key concepts:
 
 - A **feature** is a short name like `my-feature`
 - Creates `feature/<name>` branch in every repo (root + subrepos)
-- Worktree root: `~/pykoclaw-dev/<feature>/` — this IS the pykoclaw-dev worktree
-- Subrepos sit directly inside: `~/pykoclaw-dev/<feature>/pykoclaw/` etc.
-- **Always `cd ~/pykoclaw-dev/<feature>/` and run `uv run` from there** — never
+- Worktree root: `~/prg/pykoclaw-worktrees/<feature>/` — this IS the pykoclaw-dev worktree
+- Subrepos sit directly inside: `~/prg/pykoclaw-worktrees/<feature>/pykoclaw/` etc.
+- **Always `cd ~/prg/pykoclaw-worktrees/<feature>/` and run `uv run` from there** — never
   run tests from the main workspace against worktree files. The main workspace
   `.venv` imports its own installed packages, not the worktree source.
+- **Subrepo list is auto-detected** — scripts scan `~/prg/pykoclaw-dev/*/` for dirs with
+  both `.git` and `pyproject.toml`. Never hardcode a plugin list anywhere.
 - AoE sessions are optional (scripts degrade gracefully)
 - **Cleanup does NOT delete feature branches** — do that manually
 
-### Common worktree operations
+### Creating a new plugin during feature development
 
-**Always use the scripts** — never run manual `git` commands for worktree
-operations. The scripts handle multi-worktree complexity (e.g., "main is
-already checked out" errors).
+**Always use `bin/new-plugin.sh`** — never `git init` directly inside the
+feature worktree. The canonical repo must be created in `~/prg/pykoclaw-dev/` first;
+the worktree is then added from it.
+
+```bash
+bin/new-plugin.sh my-feature pykoclaw-myplugin
+# Creates ~/prg/pykoclaw-dev/pykoclaw-myplugin/      (canonical, branch: main)
+# Creates ~/prg/pykoclaw-worktrees/my-feature/pykoclaw-myplugin/  (worktree, branch: feature/my-feature)
+# Updates workspace pyproject.toml on the feature branch
+# Runs uv sync --all-packages
+
+cd ~/prg/pykoclaw-worktrees/my-feature/pykoclaw-myplugin/
+# ... develop, commit ...
+
+bin/merge-feature.sh my-feature   # merges all repos including the new plugin
+./install-dev.sh
+bin/cleanup-worktree.sh my-feature
+```
+
+### Recovery: plugin was git-init'd directly in the worktree
+
+If a plugin was accidentally created with `git init` at
+`~/prg/pykoclaw-worktrees/<feature>/<name>/` (`.git` is a directory, not a file),
+`merge-feature.sh` auto-detects and adopts it before merging — no manual steps:
+
+```bash
+bin/merge-feature.sh <feature>
+# Adoption output:  Adopting '<name>': .../worktree/<name> → ~/prg/pykoclaw-dev/<name>
+# Then normal merge proceeds
+```
+
+### Common worktree git operations
+
+**Always use the scripts** — they handle all multi-worktree complexity.
 
 **Checking commits ahead:**
 
 ```bash
-# Compare feature branch against main in ~/pykoclaw
-cd ~/pykoclaw-dev/<feature>/<repo>
-git log ~/pykoclaw/<repo>/HEAD..HEAD --oneline
+cd ~/prg/pykoclaw-worktrees/<feature>/<repo>
+git log ~/prg/pykoclaw-dev/<repo>/HEAD..HEAD --oneline
 ```
 
-**Rebasing:** The scripts handle rebasing automatically. If you must rebase
-manually, use `git rebase origin/main` from within the worktree.
+**Never use `git checkout -b`** to create feature branches. That occupies the
+branch in the current checkout and makes `git worktree add` fail with "already
+used by worktree". The correct sequence is `git branch <name>` (no checkout)
+followed by `git worktree add <path> <name>`. The scripts do this correctly.
 
-**Merging into main:** Use `bin/merge-feature.sh <feature>`. This merges the
-feature branch into local main only — it does NOT push to origin. Push
-separately if needed.
+**Merging into main:** Use `bin/merge-feature.sh <feature>`. Merges into local
+main only — does NOT push to origin. Push separately if needed.
 
 ## Backlog management
 
@@ -350,9 +435,14 @@ deployment layer is responsible for setting it.
 - **matrix-nio has NO cross-signing support.** Use the raw Matrix CS API
   (`/keys/device_signing/upload` + `/keys/signatures/upload`) via
   `pykoclaw matrix verify`.
+- **Global config lives at `~/.config/pykoclaw/.env`** — not `~/.local/share/pykoclaw/.env`.
+  Both `pykoclaw` and `pykoclaw-pykofinder` use `platformdirs.user_config_path("pykoclaw")`
+  (respects `XDG_CONFIG_HOME`). `.env` load order: global config dir → `$PYKOCLAW_DATA/.env`
+  (if the env var is set) → CWD `.env` → env vars (highest priority).
+  See [config-env-file-resolution.md] memory.
 - **Plugin config `.env` files** — when `PYKOCLAW_DATA` is set to a custom
-  directory, plugins won't find the `.env` there unless they resolve the path
-  from `os.environ["PYKOCLAW_DATA"]`. See [plugin-config-env-file.md] memory.
+  directory, the per-workspace `.env` at `$PYKOCLAW_DATA/.env` is now loaded
+  automatically (no manual path resolution needed). See [plugin-config-env-file.md] memory.
 - **Neonize configures logging on import** — `neonize.utils.log` calls
   `logging.basicConfig(level=INFO)` the moment it is imported. This is the
   actual source of logging configuration for all WhatsApp plugin services.
@@ -384,6 +474,29 @@ deployment layer is responsible for setting it.
   hard mentions. Handled by `_extract_hard_mention_fallback()` called after
   `_extract_reply` returns `None` when `hard_mention=True`. Logs a `WARNING`.
   Group-channel ambient silence is NOT affected. See [slack-reply-extraction.md].
+- **`ResultMessage.result` is a fallback, not an additional text channel** —
+  `agent_core._on_result` must only append `msg.result` as text when `_on_text`
+  was never called for this turn. In non-streaming mode (`include_partial_messages
+=False`, used by all channel plugins), the SDK already forwards reply text via
+  `AssistantMessage` TextBlocks; appending `msg.result` unconditionally doubles
+  every outgoing message. Guard: `if msg.result and not had_text`. See
+  [agent-output-duplication.md].
+- **Claude Code auto memory is always disabled** — Claude Code silently writes
+  agent observations to `~/.claude/projects/<project>/memory/MEMORY.md` unless
+  told otherwise. `agent_core._build_agent_env()` always includes
+  `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1` so SDK usage never contaminates the
+  user's global memory store. CLAUDE.md instruction files are unaffected.
+  See [claude-auto-memory-disabled.md] memory note.
+- **ACP worker falls back to fresh session on stale resume** — if
+  `ClaudeSDKClient.connect()` fails when `resume` is set, the worker
+  rebuilds options with `resume=None` and retries. This handles expired
+  or corrupted Claude session state after CCM token expiry, long idle
+  gaps, or service restarts. The user loses conversation context but gets
+  an answer instead of silence. See ACP_ISSUES_LOG.md Issue #7.
+- **`install-dev.sh` auto-upgrades `claude-agent-sdk`** — the deploy
+  scripts pass `--upgrade-package claude-agent-sdk` so the SDK stays
+  current with each deploy. SDK/CLI version mismatches can cause silent
+  worker startup failures.
 - **Claude SDK stderr is silently discarded** — `ClaudeAgentOptions.stderr`
   defaults to `None`, dropping all crash output. Always pass `stderr=_on_stderr`
   callback in `agent_core.py` to pipe it to `logging.getLogger("claude_agent_sdk.stderr")`.
@@ -424,21 +537,23 @@ PYKOCLAW_DATA=/home/agent/<datadir>` at the top of every wrapper script
   New worktrees created from main no longer have this issue.
 - **Mitto must reference the `~/.venv` or project `.venv` binary** — After
   `install-dev.sh`, the pykoclaw binary is at `~/.venv/bin/pykoclaw` (or
-  `~/pykoclaw/.venv/bin/pykoclaw`). The old `uv tool` path
+  `~/prg/pykoclaw-dev/.venv/bin/pykoclaw`). The old `uv tool` path
   (`~/.local/bin/pykoclaw`) no longer exists. Mitto's `settings.json` and
   `workspaces.json` must both point to the `.venv` binary. Mitto only reads
   config at startup — restart the service AND create a new session to pick up
   path changes.
 
 [acp-log]: ACP_ISSUES_LOG.md
-[memory index]: .memory/INDEX.md
+[memory index]: pykoclaw/.memory/INDEX.md
 [plugin-config-env-file.md]: .memory/plugin-config-env-file.md
+[config-env-file-resolution.md]: pykoclaw/.memory/config-env-file-resolution.md
 [reference links]: https://spec.commonmark.org/0.31.2/#reference-link
-[plugin-config-env-file.md]: .memory/plugin-config-env-file.md
+[claude-auto-memory-disabled.md]: pykoclaw/.memory/claude-auto-memory-disabled.md
 [session-resume-retry.md]: .memory/session-resume-retry.md
 [session-resume-system-prompt.md]: .memory/session-resume-system-prompt.md
 [claude-sdk-setting-sources.md]: .memory/claude-sdk-setting-sources.md
 [slack-reply-extraction.md]: .memory/slack-reply-extraction.md
+[agent-output-duplication.md]: .memory/agent-output-duplication.md
 [worktree workflow docs]: docs/worktree-workflow.md
 
 ## Code Exploration with dora

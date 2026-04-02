@@ -134,7 +134,7 @@ Add `.env` file loading to both `Settings` and `WhatsAppSettings` using pydantic
       1. Create temp dir: TMPDIR=$(mktemp -d)
       2. Write .env: echo 'PYKOCLAW_MODEL=test-model-from-dotenv' > "$TMPDIR/.env"
       3. Run from that dir:
-         cd "$TMPDIR" && uv run --project /home/agent/pykoclaw/pykoclaw python -c "
+         cd "$TMPDIR" && uv run --project /home/agent/prg/pykoclaw-dev/pykoclaw python -c "
          from pykoclaw.config import Settings
          s = Settings()
          assert s.model == 'test-model-from-dotenv', f'Expected test-model-from-dotenv, got {s.model}'
@@ -149,7 +149,7 @@ Add `.env` file loading to both `Settings` and `WhatsAppSettings` using pydantic
     Steps:
       1. Create temp dir with .env containing PYKOCLAW_MODEL=from-dotenv
       2. Run with PYKOCLAW_MODEL=from-env-var set:
-         cd "$TMPDIR" && PYKOCLAW_MODEL=from-env-var uv run --project /home/agent/pykoclaw/pykoclaw python -c "
+         cd "$TMPDIR" && PYKOCLAW_MODEL=from-env-var uv run --project /home/agent/prg/pykoclaw-dev/pykoclaw python -c "
          from pykoclaw.config import Settings
          s = Settings()
          assert s.model == 'from-env-var', f'Expected from-env-var, got {s.model}'
@@ -161,7 +161,7 @@ Add `.env` file loading to both `Settings` and `WhatsAppSettings` using pydantic
     Tool: Bash
     Preconditions: Empty temp dir with no .env
     Steps:
-      1. cd $(mktemp -d) && uv run --project /home/agent/pykoclaw/pykoclaw python -c "
+      1. cd $(mktemp -d) && uv run --project /home/agent/prg/pykoclaw-dev/pykoclaw python -c "
          from pykoclaw.config import Settings
          s = Settings()
          print('PASS:', s.model)
@@ -230,7 +230,7 @@ Add `.env` file loading to both `Settings` and `WhatsAppSettings` using pydantic
     Steps:
       1. Create temp dir, write .env with PYKOCLAW_WA_TRIGGER_NAME=TestBot
       2. Run:
-         cd "$TMPDIR" && uv run --project /home/agent/pykoclaw/pykoclaw-whatsapp python -c "
+         cd "$TMPDIR" && uv run --project /home/agent/prg/pykoclaw-dev/pykoclaw-whatsapp python -c "
          from pykoclaw_whatsapp.config import WhatsAppSettings
          s = WhatsAppSettings()
          assert s.trigger_name == 'TestBot', f'Expected TestBot, got {s.trigger_name}'

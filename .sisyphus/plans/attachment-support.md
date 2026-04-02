@@ -34,6 +34,17 @@ agent never sees the attachments. Text file attachments work because Mitto wraps
 them as `type: "text"` items with `=== File: ===` blocks. Binary attachments
 arrive as different ACP content block types and are silently dropped.
 
+### Confirmed reproduction (2026-03-17)
+
+Investigated via Claude Code session file `a24e771e-2bc3-4e6a-a47e-264e6f6e7496`
+(Mitto session `20260314-165042-db914017`) after a user reported the AI ignoring
+an attachment. The session JSONL confirmed that the first message received by
+Claude Code already had the attachment-bearing Turn 1 as plain-text history —
+no image content block ever reached the worker. Mitto logs confirmed
+`prompt_failed: peer disconnected before response` (service restart), but even
+without that restart, pykoclaw-acp would have dropped the image block here.
+The two failure modes are independent and both need fixing.
+
 ### Root Cause
 
 `pykoclaw-acp/src/pykoclaw_acp/server.py` lines 129–134:

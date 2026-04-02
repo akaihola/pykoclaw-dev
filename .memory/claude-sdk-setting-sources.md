@@ -42,10 +42,16 @@ which disables ALL slash commands — there is no per-skill disable mechanism.
 
 ```python
 ClaudeAgentOptions(
+    cwd=str(data_dir),                    # workspace root — settings found directly
     setting_sources=["project", "user"],  # project skills win on name collision
     ...
 )
 ```
+
+`cwd` is set to `data_dir` (the workspace root), so `.claude/` and
+`CLAUDE.md` are found directly with no upward directory walk needed.
+Previously `cwd` pointed to `data_dir/conversations/{name}/` which
+required two hops up.
 
 [agent_core.py]: ../pykoclaw/src/pykoclaw/agent_core.py
 [claude-sdk-stderr-silence.md]: claude-sdk-stderr-silence.md

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DEV_ROOT="$HOME/pykoclaw-dev"
+DEV_ROOT="$HOME/prg/pykoclaw-worktrees"
 
 if [ ! -d "$DEV_ROOT" ]; then
     echo "No worktree root found at $DEV_ROOT"

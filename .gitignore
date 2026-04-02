@@ -12,6 +12,6 @@ __pycache__/
 # dora code context index
 .dora/
 
-# local Claude Code settings and generated skill links
+# local Claude Code settings and generated skill links (machine-specific)
 .claude/settings.local.json
-.claude/skills/dora/
+.claude/skills/

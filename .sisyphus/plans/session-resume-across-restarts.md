@@ -375,7 +375,7 @@ Task 5: Add tests
 ### Verification Commands
 ```bash
 # All ACP tests pass
-cd ~/pykoclaw && uv run pytest pykoclaw-acp/tests/ -v
+cd ~/prg/pykoclaw-dev && uv run pytest pykoclaw-acp/tests/ -v
 
 # Full workspace regression check
 uv run pytest

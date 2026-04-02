@@ -4,7 +4,7 @@ set -euo pipefail
 # QA Check Script - Runs pytest, make test-go, and make test-js
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PYKOCLAW_DEV="$HOME/pykoclaw-dev"
+PYKOCLAW_DEV="$HOME/prg/pykoclaw-worktrees"
 MITTO_DIR="$HOME/mitto"
 
 # Parse arguments

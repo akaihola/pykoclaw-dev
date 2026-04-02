@@ -12,7 +12,7 @@ if [[ -z "${1:-}" ]]; then
 fi
 
 FEATURE="$1"
-WORKTREE_DIR="$HOME/pykoclaw-dev/$FEATURE"
+WORKTREE_DIR="$HOME/prg/pykoclaw-worktrees/$FEATURE"
 
 if [[ ! -d "$WORKTREE_DIR" ]]; then
     echo "Error: Worktree not found at $WORKTREE_DIR" >&2

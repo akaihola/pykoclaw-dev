@@ -9,14 +9,14 @@ set -euo pipefail
 #
 # Usage:
 #   ./install-testi.sh            # install from this workspace (main)
-#   ./install-testi.sh <worktree> # install from ~/pykoclaw-dev/<worktree>
+#   ./install-testi.sh <worktree> # install from ~/prg/pykoclaw-worktrees/<worktree>
 #
 # After install the testi services are restarted automatically.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 if [[ -n "${1:-}" ]]; then
-    SOURCE_DIR="$HOME/pykoclaw-dev/$1"
+    SOURCE_DIR="$HOME/prg/pykoclaw-worktrees/$1"
     if [[ ! -d "$SOURCE_DIR" ]]; then
         echo "Error: Worktree not found: $SOURCE_DIR" >&2
         exit 1
@@ -36,6 +36,7 @@ fi
 
 echo "Installing pykoclaw packages into $TESTI_VENV ..."
 uv pip install --python "$TESTI_VENV/bin/python" \
+    --upgrade-package claude-agent-sdk \
     -e "$SOURCE_DIR/pykoclaw" \
     -e "$SOURCE_DIR/pykoclaw-messaging" \
     -e "$SOURCE_DIR/pykoclaw-chat" \

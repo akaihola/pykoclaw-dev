@@ -219,7 +219,7 @@ Make untagged LLM text invisible to WhatsApp users. Only `<reply>`-wrapped conte
     Tool: Bash
     Preconditions: Task 1 complete
     Steps:
-      1. cd /home/agent/pykoclaw && uv run python -m pytest pykoclaw-whatsapp/tests/test_connection.py -v
+      1. cd /home/agent/prg/pykoclaw-dev && uv run python -m pytest pykoclaw-whatsapp/tests/test_connection.py -v
       2. Assert: exit code 0
       3. Assert: "14 passed" or more in output
       4. Assert: "0 failed" or no "FAILED" in output
@@ -228,7 +228,7 @@ Make untagged LLM text invisible to WhatsApp users. Only `<reply>`-wrapped conte
   Scenario: Full WhatsApp test suite — no regressions
     Tool: Bash
     Steps:
-      1. cd /home/agent/pykoclaw && uv run python -m pytest pykoclaw-whatsapp/tests/ -v
+      1. cd /home/agent/prg/pykoclaw-dev && uv run python -m pytest pykoclaw-whatsapp/tests/ -v
       2. Assert: exit code 0
       3. Assert: no "FAILED" in output
     Expected Result: All tests pass (52+ expected)
@@ -236,7 +236,7 @@ Make untagged LLM text invisible to WhatsApp users. Only `<reply>`-wrapped conte
   Scenario: Linting passes
     Tool: Bash
     Steps:
-      1. cd /home/agent/pykoclaw && uv run ruff check pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py pykoclaw-whatsapp/tests/test_connection.py
+      1. cd /home/agent/prg/pykoclaw-dev && uv run ruff check pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py pykoclaw-whatsapp/tests/test_connection.py
       2. Assert: exit code 0
     Expected Result: No lint errors
   ```
@@ -261,13 +261,13 @@ Make untagged LLM text invisible to WhatsApp users. Only `<reply>`-wrapped conte
 ### Verification Commands
 ```bash
 # All connection tests pass (14+)
-cd /home/agent/pykoclaw && uv run python -m pytest pykoclaw-whatsapp/tests/test_connection.py -v
+cd /home/agent/prg/pykoclaw-dev && uv run python -m pytest pykoclaw-whatsapp/tests/test_connection.py -v
 
 # Full WhatsApp test suite — no regressions
-cd /home/agent/pykoclaw && uv run python -m pytest pykoclaw-whatsapp/tests/ -v
+cd /home/agent/prg/pykoclaw-dev && uv run python -m pytest pykoclaw-whatsapp/tests/ -v
 
 # Lint clean
-cd /home/agent/pykoclaw && uv run ruff check pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py pykoclaw-whatsapp/tests/test_connection.py
+cd /home/agent/prg/pykoclaw-dev && uv run ruff check pykoclaw-whatsapp/src/pykoclaw_whatsapp/connection.py pykoclaw-whatsapp/tests/test_connection.py
 ```
 
 ### Final Checklist

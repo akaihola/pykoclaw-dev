@@ -18,14 +18,15 @@ in surprising ways.
 
 ### Quick reference: failure modes
 
-| # | Symptom | Root cause | Fix date | Status |
-|---|---------|-----------|----------|--------|
-| 1 | Empty/truncated replies | Prompt response sent before streaming done | 2026-02-14 | ✅ Fixed |
-| 2 | Second message never answered | Session resume across processes impossible | 2026-02-14 | ✅ Fixed |
-| 3 | Process hangs on shutdown → zombie chain | `asyncio.run()` unbounded `_cancel_all_tasks` | 2026-02-18 | ✅ Fixed |
-| 4 | Empty replies (text only in ResultMessage) | `ResultMessage.result` not forwarded | 2026-02-20 | ✅ Fixed |
-| 5 | "Connection lost" after idle period | anyio cancel scope leak → spin loop | 2026-02-20 | ✅ Fixed (v3) |
-| 6 | Context lost mid-conversation after idle | Re-spawned worker gets no `resume_session_id` | 2026-02-24 | ✅ Fixed |
+| #   | Symptom                                    | Root cause                                      | Fix date   | Status        |
+| --- | ------------------------------------------ | ----------------------------------------------- | ---------- | ------------- |
+| 1   | Empty/truncated replies                    | Prompt response sent before streaming done      | 2026-02-14 | ✅ Fixed      |
+| 2   | Second message never answered              | Session resume across processes impossible      | 2026-02-14 | ✅ Fixed      |
+| 3   | Process hangs on shutdown → zombie chain   | `asyncio.run()` unbounded `_cancel_all_tasks`   | 2026-02-18 | ✅ Fixed      |
+| 4   | Empty replies (text only in ResultMessage) | `ResultMessage.result` not forwarded            | 2026-02-20 | ✅ Fixed      |
+| 5   | "Connection lost" after idle period        | anyio cancel scope leak → spin loop             | 2026-02-20 | ✅ Fixed (v3) |
+| 6   | Context lost mid-conversation after idle   | Re-spawned worker gets no `resume_session_id`   | 2026-02-24 | ✅ Fixed      |
+| 7   | No reply — worker never becomes ready      | Stale resume session crashes `client.connect()` | 2026-03-26 | ✅ Fixed      |
 
 ---
 
@@ -33,41 +34,41 @@ in surprising ways.
 
 Chronological list of every commit, with issue references where applicable.
 
-| Hash | Date | Summary | Issue |
-|------|------|---------|-------|
-| `2a40d02` | Feb 14 | Initial ACP protocol handler (JSON-RPC 2.0) | — |
-| `f9ba1e8` | Feb 14 | ACP stdio server + plugin entry point | — |
-| `5f303dc` | Feb 14 | Survive errors in main loop and dispatch | #1 |
-| `03b740b` | Feb 14 | Tests for dispatch error handling | #1 |
-| `70c3eee` | Feb 14 | Send prompt response **after** streaming, add stopReason | #1 |
-| `04f5308` | Feb 14 | Keep Claude subprocess alive across messages (ClientPool) | #2 |
-| `5701abf` | Feb 14 | README with Mitto integration guide | — |
-| `586e2f2` | Feb 15 | Delivery queue polling for scheduled task results | — |
-| `7d64e3d` | Feb 16 | Event-loop watchdog, faulthandler, defensive fixes | #3 |
-| `b7f4fc5` | Feb 16 | Docs: delivery queue polling | — |
-| `7fc91f2` | Feb 16 | Playwright integration test setup | — |
-| `b43f2e5` | Feb 18 | Replace `asyncio.run()` with manual loop + bounded cleanup | #3 |
-| `a189cc0` | Feb 18 | Force-exit on shutdown via `os._exit()` | #3 |
-| `9cc2597` | Feb 18 | Update tests to mock `pool.send` (not stale dispatch) | — |
-| `3f973df` | Feb 18 | `--healthcheck` smoke test for deploy verification | — |
-| `be3e7f4` | Feb 18 | Structured diagnostic logging throughout lifecycle | — |
-| `4e668d8` | Feb 18 | File-based logging (survives Mitto stderr capture) | — |
-| `0914dd2` | Feb 18 | Merge `feature/acp-diagnostics` | — |
-| `f8354dc` | Feb 19 | Integration tests with mock LLM + test client | — |
-| `fa6ead8` | Feb 19 | E2E tests over subprocess stdio | — |
-| `daa148a` | Feb 20 | Forward `ResultMessage.result` as fallback text | #4 |
-| `79bd952` | Feb 20 | Shield disconnect from anyio CancelledError leak | #5 (v1, insufficient) |
-| `55124d6` | Feb 20 | Isolate disconnect in separate task | #5 (v2, insufficient) |
-| `adf208e` | Feb 21 | Replace disconnect() with subprocess kill | #5 (v3, **actual fix**) |
-| `aeb04f4` | Feb 21 | Architecture fragility backlog item | — |
-| `122babd` | Feb 24 | Look up stored session ID from DB on worker re-spawn | #6 |
+| Hash      | Date   | Summary                                                    | Issue                   |
+| --------- | ------ | ---------------------------------------------------------- | ----------------------- |
+| `2a40d02` | Feb 14 | Initial ACP protocol handler (JSON-RPC 2.0)                | —                       |
+| `f9ba1e8` | Feb 14 | ACP stdio server + plugin entry point                      | —                       |
+| `5f303dc` | Feb 14 | Survive errors in main loop and dispatch                   | #1                      |
+| `03b740b` | Feb 14 | Tests for dispatch error handling                          | #1                      |
+| `70c3eee` | Feb 14 | Send prompt response **after** streaming, add stopReason   | #1                      |
+| `04f5308` | Feb 14 | Keep Claude subprocess alive across messages (ClientPool)  | #2                      |
+| `5701abf` | Feb 14 | README with Mitto integration guide                        | —                       |
+| `586e2f2` | Feb 15 | Delivery queue polling for scheduled task results          | —                       |
+| `7d64e3d` | Feb 16 | Event-loop watchdog, faulthandler, defensive fixes         | #3                      |
+| `b7f4fc5` | Feb 16 | Docs: delivery queue polling                               | —                       |
+| `7fc91f2` | Feb 16 | Playwright integration test setup                          | —                       |
+| `b43f2e5` | Feb 18 | Replace `asyncio.run()` with manual loop + bounded cleanup | #3                      |
+| `a189cc0` | Feb 18 | Force-exit on shutdown via `os._exit()`                    | #3                      |
+| `9cc2597` | Feb 18 | Update tests to mock `pool.send` (not stale dispatch)      | —                       |
+| `3f973df` | Feb 18 | `--healthcheck` smoke test for deploy verification         | —                       |
+| `be3e7f4` | Feb 18 | Structured diagnostic logging throughout lifecycle         | —                       |
+| `4e668d8` | Feb 18 | File-based logging (survives Mitto stderr capture)         | —                       |
+| `0914dd2` | Feb 18 | Merge `feature/acp-diagnostics`                            | —                       |
+| `f8354dc` | Feb 19 | Integration tests with mock LLM + test client              | —                       |
+| `fa6ead8` | Feb 19 | E2E tests over subprocess stdio                            | —                       |
+| `daa148a` | Feb 20 | Forward `ResultMessage.result` as fallback text            | #4                      |
+| `79bd952` | Feb 20 | Shield disconnect from anyio CancelledError leak           | #5 (v1, insufficient)   |
+| `55124d6` | Feb 20 | Isolate disconnect in separate task                        | #5 (v2, insufficient)   |
+| `adf208e` | Feb 21 | Replace disconnect() with subprocess kill                  | #5 (v3, **actual fix**) |
+| `aeb04f4` | Feb 21 | Architecture fragility backlog item                        | —                       |
+| `122babd` | Feb 24 | Look up stored session ID from DB on worker re-spawn       | #6                      |
 
 ### Related commits in other repos
 
-| Repo | Hash | Summary | Issue |
-|------|------|---------|-------|
-| pykoclaw (core) | `fbe257c` | Forward `ResultMessage.result` in `query_agent()` | #4 |
-| pykoclaw-messaging | `6f5c414` | Use `ResultMessage.result` as fallback in `dispatch.py` | #4 |
+| Repo               | Hash      | Summary                                                 | Issue |
+| ------------------ | --------- | ------------------------------------------------------- | ----- |
+| pykoclaw (core)    | `fbe257c` | Forward `ResultMessage.result` in `query_agent()`       | #4    |
+| pykoclaw-messaging | `6f5c414` | Use `ResultMessage.result` as fallback in `dispatch.py` | #4    |
 
 ---
 
@@ -76,16 +77,20 @@ Chronological list of every commit, with issue references where applicable.
 **Commits:** `5f303dc` (error survival), `70c3eee` (response ordering fix)
 
 ### Symptom
+
 First messages to Mitto sessions returned empty or truncated replies.
 
 ### Investigation
+
 Mitto's `acp.Connection.Prompt()` blocks until the JSON-RPC response with
 matching `id` arrives. Pykoclaw was sending the response **immediately**
 (with empty `{}` body), then streaming `session/update` notifications
 afterward. Mitto returned from `Prompt()` before any content arrived.
 
 ### Root cause
+
 Wrong ordering of ACP protocol messages. The protocol requires:
+
 1. Client sends `session/prompt` request
 2. Agent sends `session/update` notifications (streaming chunks)
 3. Agent sends the `session/prompt` **response** with `{"stopReason": "end_turn"}`
@@ -93,11 +98,13 @@ Wrong ordering of ACP protocol messages. The protocol requires:
 Pykoclaw had step 3 before step 2.
 
 ### Fix
+
 - `5f303dc` — added error handling so main loop and dispatch survive crashes
 - `70c3eee` — moved JSON-RPC response to **after** streaming completes,
   added `{"stopReason": "end_turn"}` to body
 
 ### Lesson
+
 **The prompt response is the end-of-turn signal.** Never send it before
 streaming is done.
 
@@ -108,10 +115,12 @@ streaming is done.
 **Commits:** `04f5308` (ClientPool implementation)
 
 ### Symptom
+
 First message in any Mitto conversation works. Second message gets no response.
 Claude CLI exits with code 1: `"No conversation found with session ID"`.
 
 ### Investigation
+
 `dispatch_to_agent()` → `query_agent()` creates a **new** `ClaudeSDKClient`
 (= new `claude` subprocess) for every call. First call creates a session and
 persists the session ID. Second call passes `resume=<session_id>`, but the
@@ -119,17 +128,20 @@ CLI can't find it — the JSONL file only has a `dequeue` operation, not the
 full conversation.
 
 ### Root cause
+
 The Claude Agent SDK doesn't persist sessions in a way compatible with
 `--resume` across separate subprocess invocations. Session state lives in
 the process, not on disk.
 
 ### Fix
+
 - `04f5308` — implemented `ClientPool`: one **long-lived** `ClaudeSDKClient`
   per ACP conversation. ACP server bypasses `dispatch_to_agent()` entirely
   and uses `ClientPool.send()` directly. Pool handles: create-on-first-use,
   per-session lock, crash retry, idle eviction (10 min), graceful shutdown.
 
 ### Lesson
+
 **`ClaudeSDKClient` resume only works within the same process lifetime.**
 Never destroy and recreate the client between messages in a conversation.
 
@@ -141,11 +153,13 @@ Never destroy and recreate the client between messages in a conversation.
 `a189cc0` (force-exit), `be3e7f4` (diagnostic logging), `4e668d8` (file logging)
 
 ### Symptom
+
 After a period of operation, pykoclaw processes become zombies. Mitto then
 gets "broken pipe" errors on all sessions and shows "Connection lost".
 Sometimes processes hang indefinitely at 100% CPU.
 
 ### Investigation (multi-day)
+
 1. `7d64e3d` — added event-loop watchdog + faulthandler to capture tracebacks
 2. Found: `asyncio.run()` calls `_cancel_all_tasks()` during cleanup with
    **no timeout**. If a Claude SDK subprocess won't exit, the whole process
@@ -156,20 +170,24 @@ Sometimes processes hang indefinitely at 100% CPU.
    diagnostics that were lost when Mitto captured stderr
 
 ### Root cause
+
 `asyncio.run()` has an unbounded cleanup phase that waits forever for task
 cancellation. Claude SDK subprocesses don't always exit cleanly.
 
 ### Fix (iterative)
+
 1. `b43f2e5` — replaced `asyncio.run()` with manual event loop + bounded
    `_cancel_remaining_tasks()` that calls `os._exit(0)` after timeout
 2. `a189cc0` — added force-exit via `os._exit()` to prevent zombie creation
 
 ### What didn't work
+
 - Wrapping `asyncio.run()` with a graceful shutdown wrapper — `asyncio.run()`
-  runs its **own** unbounded `_cancel_all_tasks()` *after* the wrapper returns.
+  runs its **own** unbounded `_cancel_all_tasks()` _after_ the wrapper returns.
 - SIGTERM handlers — they don't help when the event loop itself is stuck.
 
 ### Lesson
+
 **Never use `asyncio.run()` for long-lived servers that use the Claude SDK.**
 Manage the event loop manually with bounded cleanup and `os._exit()` fallback.
 
@@ -180,27 +198,33 @@ Manage the event loop manually with bounded cleanup and `os._exit()` fallback.
 **Commits:** `daa148a` (ACP path), `fbe257c` (core path), `6f5c414` (messaging path)
 
 ### Symptom
+
 Agent responds (visible in Claude debug logs) but Mitto shows empty reply.
 
 ### Investigation
+
 During multi-turn tool-use sessions, sometimes the final text only appears
 in `ResultMessage.result` and is NOT re-emitted as a `TextBlock`. Both
 `ClientPool._query()` (ACP path) and `query_agent()` (WhatsApp path) only
 consumed `TextBlock` content, silently dropping `ResultMessage.result`.
 
 ### Root cause
+
 Incomplete SDK message consumption. The `ResultMessage` carries the full
 response text but was treated as metadata-only.
 
 ### Fix (three repos)
+
 - `daa148a` (pykoclaw-acp) — forward `ResultMessage.result` in `ClientPool._query()`
 - `fbe257c` (pykoclaw core) — forward `ResultMessage.result` in `query_agent()`
 - `6f5c414` (pykoclaw-messaging) — use result text as fallback in `dispatch.py`
 
 ### Lesson
+
 **Always consume ALL text fields from SDK message types.** There are two
 independent SDK message loops that must be kept in sync — bugs must be
 fixed in both:
+
 1. `pykoclaw/src/pykoclaw/agent_core.py` → `query_agent()` (WhatsApp, scheduler)
 2. `pykoclaw-acp/src/pykoclaw_acp/client_pool.py` → `ClientPool._query()` (Mitto)
 
@@ -211,16 +235,19 @@ fixed in both:
 **Commits:** `79bd952`
 
 ### Symptom
+
 User gets "Connection lost and could not reconnect" in Mitto. Happens after
 a period of idle time (~10 minutes). The ACP process becomes unresponsive
 then gets killed and restarted, but the in-flight conversation is lost.
 
 ### Investigation
+
 `journalctl` showed **45,778** `CancelledError` warnings logged in ~8 minutes
 (22:28:23 → 22:36:29), all from the same PID. The error spam started
 immediately after `_sweep_loop` evicted an idle client.
 
 Timeline (PID 2982970):
+
 1. 22:02:23 — ACP server starts, creates pooled client
 2. 22:28:23 — `_sweep_loop` evicts idle client (10 min timeout)
 3. `_disconnect()` → `client.disconnect()` → `Query.close()` →
@@ -233,6 +260,7 @@ Timeline (PID 2982970):
 9. 22:36:29 — Mitto kills the process; 22:36:58 — new process spawned
 
 ### Root cause
+
 `ClaudeSDKClient.disconnect()` calls `Query.close()` which does
 `self._tg.cancel_scope.cancel()`. This is an **anyio** operation that leaks
 a `CancelledError` into the asyncio event loop, affecting unrelated awaits
@@ -247,13 +275,13 @@ loop instead of a crash.
 **v1 — `79bd952` (2026-02-20, insufficient):**
 Wrapped `client.disconnect()` in `asyncio.shield()` + added backoff sleep
 in the `CancelledError` handler. **Result:** still crashed. `asyncio.shield()`
-only protects against *outer* cancellation — doesn't isolate *inner* anyio
+only protects against _outer_ cancellation — doesn't isolate _inner_ anyio
 cancel scope effects.
 
 **v2 — `55124d6` (2026-02-20, insufficient):**
 Ran `disconnect()` in a completely separate `asyncio.create_task()` with
 `asyncio.shield()`. Added `except BaseException` in `_sweep_loop`.
-**Result:** still crashed. Anyio cancel scopes target the *host task* by
+**Result:** still crashed. Anyio cancel scopes target the _host task_ by
 identity (whichever task called `connect()`), not the task currently
 running `disconnect()`.
 
@@ -263,6 +291,7 @@ terminates the subprocess directly (SIGTERM → wait → SIGKILL) and nulls
 out references. Completely avoids anyio cancel scope machinery.
 
 ### What didn't work
+
 - `asyncio.shield()` — only protects against outer cancellation, not inner
   anyio cancel scope effects
 - `asyncio.create_task()` — anyio targets the host task by identity, not
@@ -272,6 +301,7 @@ out references. Completely avoids anyio cancel scope machinery.
 - Catching `CancelledError` and continuing without backoff — creates spin loop
 
 ### Root cause (proven with real SDK in tests)
+
 `test_kill_client.py::test_sdk_disconnect_DOES_leak_cancelled_error` proves
 that `asyncio.shield(client.disconnect())` raises `CancelledError` in the
 calling task. The anyio cancel scope inside `Query.close()` targets the
@@ -279,6 +309,7 @@ asyncio Task that called `connect()` **by identity**, bypassing all asyncio
 isolation mechanisms.
 
 ### Lesson
+
 **Never call `ClaudeSDKClient.disconnect()`.** The anyio/asyncio impedance
 mismatch makes it impossible to call safely from asyncio code. Kill the
 subprocess directly instead. See
@@ -302,14 +333,14 @@ had been active, idle for ~6 hours, then resumed.
 
 Timeline for ACP session `5d2d33ed`:
 
-| Time | Event |
-|------|-------|
-| Feb 22, 13:22 | Worker spawned, first prompt, claude session `1bfcedb8` stored in DB |
-| Feb 22, 13:34 | Worker evicted (10 min idle) |
-| Feb 24, 10:33 | ACP process restarts; `session/load` registers `resume_session_id=81e3dfa5` in `self._sessions` |
+| Time          | Event                                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------------------ |
+| Feb 22, 13:22 | Worker spawned, first prompt, claude session `1bfcedb8` stored in DB                                   |
+| Feb 22, 13:34 | Worker evicted (10 min idle)                                                                           |
+| Feb 24, 10:33 | ACP process restarts; `session/load` registers `resume_session_id=81e3dfa5` in `self._sessions`        |
 | Feb 24, 10:34 | First prompt → `resume_session_id` popped from `self._sessions`, passed to worker → session resumes ✅ |
-| Feb 24, 10:56 | Worker evicted again (10 min idle) |
-| Feb 24, 16:40 | New prompt → `_get_or_create` spawns fresh worker → **`resume_session_id=None`** → fresh context ❌ |
+| Feb 24, 10:56 | Worker evicted again (10 min idle)                                                                     |
+| Feb 24, 16:40 | New prompt → `_get_or_create` spawns fresh worker → **`resume_session_id=None`** → fresh context ❌    |
 
 ### Root cause
 
@@ -355,9 +386,82 @@ the in-memory session dict for resume state across worker lifetimes.
 
 ---
 
+## Issue 7: Stale Resume Session Crashes Worker Connect (2026-03-26)
+
+**Commit:** (pykoclaw-acp, worker resume fallback)
+
+### Symptom
+
+No reply to any Mitto/Tyko message. The ACP server starts, loads the session,
+but the worker subprocess never sends `ReadyMessage`. After 30 seconds the
+server times out and reports "Agent dispatch failed".
+
+### Investigation
+
+1. Mitto journal showed `command=/home/agent/.local/bin/pykoclaw-tyko` launching
+   correctly after wrapper/config fixes.
+2. ACP file logs showed `TimeoutError` in `_spawn_worker` — worker never became
+   ready within `WORKER_READY_TIMEOUT_S`.
+3. Direct reproduction: launching the worker subprocess manually with a stale
+   `resume_session_id` caused `client.connect()` to fail with
+   `ProcessError: Command failed with exit code 1`.
+4. Same worker with `resume_session_id=None` became ready in ~2 seconds.
+5. Claude CLI debug logs confirmed the underlying Claude subprocess exited
+   immediately when asked to resume a non-existent session.
+
+### Root cause
+
+`ClaudeSDKClient.connect()` with a stale or expired `resume` session ID causes
+the Claude CLI subprocess to exit with code 1 before initialization completes.
+The ACP worker had no fallback — the exception propagated, the worker process
+died, and the ACP server saw a timeout waiting for `ReadyMessage`.
+
+Sessions become stale when: the Claude CLI session data is cleaned up, the CCM
+OAuth token expires (causing failed API calls that corrupt session state), or
+the server/service is restarted with a long gap.
+
+### Contributing factors discovered during investigation
+
+- **CCM OAuth token expired** — `claude-max` token was missing from CCM's
+  store, causing API calls to fail or fall back to incompatible providers.
+- **`platformdirs` missing from `~/.testi-venv`** — commit `b94fdd9` added
+  `platformdirs` as a new dependency but `~/.testi-venv` was never reinstalled,
+  causing earlier worker crashes with `ModuleNotFoundError`.
+- **`claude-agent-sdk` outdated** — version 0.1.44 was installed while 0.1.50
+  was available; upgraded as part of fix.
+
+### Fix
+
+In `worker.py`, wrap `client.connect()` in a try/except. When connect fails
+and `resume_session_id` is set, log a warning and retry with `resume=None`
+(fresh session). When connect fails without a resume ID, re-raise.
+
+```python
+try:
+    await client.connect()
+except Exception:
+    if config.resume_session_id:
+        log.warning("Resume connect failed for session %s, falling back to fresh", ...)
+        # Rebuild options with resume=None
+        client = ClaudeSDKClient(fresh_options)
+        await client.connect()
+    else:
+        raise
+```
+
+### Lesson
+
+**Never let a stale resume session ID block worker startup.** Resume is a
+best-effort optimisation for context continuity — if it fails, falling back to
+a fresh session is always better than returning no reply at all. The user loses
+conversation context but at least gets an answer.
+
+---
+
 ## Architecture Notes
 
 ### Data flow (after process isolation — 2026-02-21)
+
 ```
 User → Mitto web UI → Mitto Go process
   → pykoclaw-acp subprocess (pure asyncio, JSON-RPC over stdio)
@@ -367,11 +471,13 @@ User → Mitto web UI → Mitto Go process
 ```
 
 ### Unified SDK message consumption
+
 `consume_sdk_response()` in `pykoclaw/src/pykoclaw/sdk_consume.py` is the
 single source of truth. Both `query_agent()` and the worker subprocess call
 it. Bugs in message handling only need to be fixed in ONE place.
 
 ### The anyio/asyncio boundary — RESOLVED
+
 The claude-agent-sdk uses **anyio** internally. Pykoclaw uses **asyncio**.
 Previously these shared one process, causing cancel scope leaks.
 
@@ -381,20 +487,22 @@ process boundary (pipes), not a shared event loop. Workers can safely call
 `client.disconnect()` because they own the entire async runtime.
 
 ### Key diagnostic locations
-| What | Where |
-|------|-------|
-| Mitto systemd logs | `journalctl --user -u mitto-web` |
-| ACP file logs | `~/.local/state/pykoclaw/acp-<pid>.log` |
-| Faulthandler traces | `~/.local/state/pykoclaw/faulthandler-<pid>.txt` |
+
+| What                 | Where                                             |
+| -------------------- | ------------------------------------------------- |
+| Mitto systemd logs   | `journalctl --user -u mitto-web`                  |
+| ACP file logs        | `~/.local/state/pykoclaw/acp-<pid>.log`           |
+| Faulthandler traces  | `~/.local/state/pykoclaw/faulthandler-<pid>.txt`  |
 | Mitto session events | `~/.local/share/mitto/sessions/<id>/events.jsonl` |
-| Claude CLI debug | `~/.claude/debug/<session-id>.txt` |
-| Pykoclaw DB | `~/.local/share/pykoclaw/pykoclaw.db` |
+| Claude CLI debug     | `~/.claude/debug/<session-id>.txt`                |
+| Pykoclaw DB          | `~/.local/share/pykoclaw/pykoclaw.db`             |
 
 ---
 
 ## Patterns & Anti-patterns
 
 ### DO
+
 - Use process-isolated workers for SDK sessions
 - Use `consume_sdk_response()` from `sdk_consume.py` — single source of truth
 - Add backoff sleeps to all error-handling `continue` loops
@@ -403,6 +511,7 @@ process boundary (pipes), not a shared event loop. Workers can safely call
 - Consume ALL text from ALL SDK message types
 
 ### DON'T
+
 - Run the Claude SDK in the same process as the ACP server
 - Catch exceptions in a loop without backoff (creates spin loops)
 - Assume `--resume` works across process restarts

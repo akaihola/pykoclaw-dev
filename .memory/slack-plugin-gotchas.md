@@ -1,7 +1,7 @@
 # Slack Plugin Gotchas
 
-**Tags:** slack, socket-mode, ack, bot-token, threading, slackify-markdown, thread-scoped-sessions, inbound-images, vision
-**Related:** [plugin-config-env-file.md], [session-resume-system-prompt.md], [session-resume-retry.md], [slack-reply-extraction.md]
+**Tags:** slack, socket-mode, ack, bot-token, threading, slackify-markdown, thread-scoped-sessions, inbound-images, vision, response-transformer, pykofinder
+**Related:** [plugin-config-env-file.md], [session-resume-system-prompt.md], [session-resume-retry.md], [slack-reply-extraction.md], [agent-output-pipeline.md]
 
 ## Token types
 
@@ -99,6 +99,14 @@ Slack fires BOTH `message` and `app_mention` when someone @-mentions the bot
 in a channel. Handle `app_mention` with `force_hard_mention=True` to avoid
 duplicates while ensuring @-mentions always trigger immediate flush.
 
+The BatchAccumulator lock serialises the two resulting `flush_now` calls so
+only the first dispatch reaches the agent. However, `store_message` is called
+from both handlers before the lock is acquired, and there is no `UNIQUE`
+constraint on `slack_ts` — so the message can end up stored twice, causing the
+agent to see it duplicated in the XML prompt. See
+[pykoclaw-slack/backlog/001-duplicate-slack-responses.md](../pykoclaw-slack/backlog/001-duplicate-slack-responses.md)
+for the full duplicate-response investigation (H2).
+
 ## AsyncSocketModeHandler requires aiohttp
 
 `slack_bolt.adapter.socket_mode.aiohttp.AsyncSocketModeHandler` depends on
@@ -153,6 +161,71 @@ Three-layer defence in `download_slack_image()`:
    re-downloaded rather than returned as-is.
 
 Committed in pykoclaw-slack `2b74d23`.
+
+## Required Slack OAuth bot token scopes
+
+Current scopes needed for full functionality:
+
+| Scope                                                                 | Used for                                          |
+| --------------------------------------------------------------------- | ------------------------------------------------- |
+| `chat:write`                                                          | `chat_postMessage`                                |
+| `reactions:write`                                                     | ACK emoji reactions                               |
+| `channels:history` / `groups:history` / `im:history` / `mpim:history` | reading message history                           |
+| `channels:read`                                                       | channel info                                      |
+| `app_mentions:read`                                                   | `app_mention` events                              |
+| `files:write`                                                         | **`files_upload_v2` — image uploads**             |
+| `files:read`                                                          | downloading Slack-uploaded files (inbound images) |
+
+**`files:write` is required for outbound image upload.** Without it,
+`files.getUploadURLExternal` returns `missing_scope` and the upload silently
+fails (exception is caught and logged). The prose text still posts; only the
+image is missing. Add scopes at api.slack.com/apps → OAuth & Permissions →
+Bot Token Scopes, then reinstall to workspace to get a new `xoxb-` token.
+
+## Outbound image embeds: download + upload via files_upload_v2
+
+When the agent produces `![alt](https://gogo.crane-boa.ts.net:8445/w/...)`,
+`slackify_markdown` converts it to a plain `<url|alt>` hyperlink — not a
+visible image. `outbound_images.py` intercepts these **before** mrkdwn
+conversion in `_send_message`:
+
+1. `extract_image_embeds(text)` — strips all `![alt](https://...)` tokens,
+   returns `ExtractResult(cleaned_text, images)`.
+2. Prose (if any) posted first via `chat_postMessage` so context appears above images.
+3. Each image downloaded with `httpx` (no auth, Tailscale-internal) and
+   uploaded via `files_upload_v2` (3-step getUploadURL → PUT → complete).
+4. Image-only reply: alt used as `initial_comment`. Reply with prose: comment
+   omitted to avoid repeating text already posted.
+5. HTML content-type response → skip + warning. Any error → log + swallow.
+
+Plain `[label](url)` links are NOT extracted — `slackify_markdown` already
+handles them as `<url|label>` Slack hyperlinks. Committed `38af722`.
+
+## response_transformer must be wired through SlackConnection
+
+Like Matrix and WhatsApp, the Slack `run` command must:
+
+1. Call `load_plugins()` to get all plugins (not just `[SlackPlugin()]`).
+2. Build a `compose_transformers(all_plugins, TransformContext(...))` with
+   `channel_prefix="slack"` and `native_file_extensions=frozenset()` (Slack
+   cannot serve local file bytes — it needs HTTP URLs).
+3. Pass `response_transformer=` to `SlackConnection.__init__`.
+4. `SlackConnection` stores it as `self._response_transformer` and passes it
+   to all three `dispatch_to_agent()` call sites.
+
+Without this, pykofinder (and any other plugin transformers) never run on
+Slack responses. Image paths like `![alt](~/coleaders/docs/.../kuva.png)`
+appear as raw Markdown text in Slack instead of being converted to pykofinder
+HTTP URLs. Fixed in pykoclaw-slack commit `b371281` (Pi-Session d0a4058c).
+
+## pykofinder does not expand ~/... paths (fixed)
+
+`transform.py` previously treated `~/path` as a relative path joined onto
+`workspace_root`, producing `/w/pykoclaw/~/...` in the URL instead of
+expanding the home directory. Fixed by checking `target.startswith("~")` and
+calling `Path(target).expanduser()` in both `_replace_markdown_link` and
+`_replace_html_img`. Fixed in pykoclaw-pykofinder commit `6ea4cef`
+(Pi-Session d0a4058c).
 
 [plugin-config-env-file.md]: plugin-config-env-file.md
 [session-resume-system-prompt.md]: session-resume-system-prompt.md

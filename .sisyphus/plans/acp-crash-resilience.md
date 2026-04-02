@@ -194,7 +194,7 @@ Task 3: Add tests for error handling behavior
   ```
   Scenario: Existing tests still pass after break→continue change
     Tool: Bash
-    Preconditions: Working directory is /home/agent/pykoclaw
+    Preconditions: Working directory is /home/agent/prg/pykoclaw-dev
     Steps:
       1. uv run pytest pykoclaw-acp/tests/ -v
       2. Assert: exit code 0
@@ -296,7 +296,7 @@ Task 3: Add tests for error handling behavior
   ```
   Scenario: Existing tests still pass after adding error handling
     Tool: Bash
-    Preconditions: Working directory is /home/agent/pykoclaw
+    Preconditions: Working directory is /home/agent/prg/pykoclaw-dev
     Steps:
       1. uv run pytest pykoclaw-acp/tests/ -v
       2. Assert: exit code 0
@@ -385,7 +385,7 @@ Task 3: Add tests for error handling behavior
   ```
   Scenario: New error-handling tests pass
     Tool: Bash
-    Preconditions: Working directory is /home/agent/pykoclaw, Tasks 1 and 2 complete
+    Preconditions: Working directory is /home/agent/prg/pykoclaw-dev, Tasks 1 and 2 complete
     Steps:
       1. uv run pytest pykoclaw-acp/tests/test_server.py -v -k "error"
       2. Assert: exit code 0
@@ -395,7 +395,7 @@ Task 3: Add tests for error handling behavior
 
   Scenario: Full ACP test suite passes
     Tool: Bash
-    Preconditions: Working directory is /home/agent/pykoclaw
+    Preconditions: Working directory is /home/agent/prg/pykoclaw-dev
     Steps:
       1. uv run pytest pykoclaw-acp/tests/ -v
       2. Assert: exit code 0
@@ -405,7 +405,7 @@ Task 3: Add tests for error handling behavior
 
   Scenario: Full workspace tests pass (regression check)
     Tool: Bash
-    Preconditions: Working directory is /home/agent/pykoclaw
+    Preconditions: Working directory is /home/agent/prg/pykoclaw-dev
     Steps:
       1. uv run pytest
       2. Assert: exit code 0

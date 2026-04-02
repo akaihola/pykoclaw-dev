@@ -27,6 +27,7 @@ pykoclaw-dev (this repo)
 ├── pykoclaw-acp/          Plugin — Agent Client Protocol (JSON-RPC over stdio)
 ├── pykoclaw-slack/        Plugin — Slack gateway via Socket Mode
 ├── pykoclaw-vision/       Library — shared Gemini image-analysis tooling
+├── pykoclaw-pykofinder/   Plugin — rewrite local file links to Pykofinder URLs
 └── docs/                  Research notes and integration plans
 ```
 
@@ -141,7 +142,8 @@ Inspired by and validated against the OpenClaw and nanobot reference implementat
 - **replyToMode** — `all` (default) / `first` / `off` controls threading behaviour
 - **mrkdwn formatting** — [`slackify-markdown`][slackify-markdown] library with a
   table pre-pass (Markdown tables → `• *Header*: value` bullets)
-- **Emoji ACK reaction** — reacts with `:eyes:` on receipt, removes after reply
+- **Emoji ACK reaction** — reacts with `:eyes:` on receipt, optionally cycling
+  through a sequence of emojis on each streaming chunk; removes after reply
 - **Channel type inference** — `D`/`C`/`G` prefix → `im`/`channel`/`group` (no API call)
 - **Bot filtering** — own messages always dropped; other bots gated by `allow_bots`
 - **Inbound images** — images uploaded to Slack are downloaded (via
@@ -162,9 +164,11 @@ PYKOCLAW_SLACK_TRIGGER_NAME=YourBotName
 Optional env vars:
 
 ```
-PYKOCLAW_SLACK_ACK_EMOJI=eyes        # empty string to disable
-PYKOCLAW_SLACK_REPLY_TO_MODE=all     # all | first | off
-PYKOCLAW_SLACK_ALLOW_BOTS=false      # true to allow other Slack bots
+PYKOCLAW_SLACK_ACK_EMOJI=eyes                    # empty string to disable
+PYKOCLAW_SLACK_ACK_EMOJI_CYCLE=[]               # e.g. ["thought_balloon","brain"]
+PYKOCLAW_SLACK_ACK_EMOJI_CYCLE_INTERVAL_S=15    # min seconds between rotations
+PYKOCLAW_SLACK_REPLY_TO_MODE=all                 # all | first | off
+PYKOCLAW_SLACK_ALLOW_BOTS=false                  # true to allow other Slack bots
 PYKOCLAW_SLACK_BATCH_WINDOW_SECONDS=90
 ```
 
@@ -180,6 +184,16 @@ Shared Gemini-powered image tooling used by channel plugins.
 - Exposes the `analyze_image` MCP tool factory
 - Used by WhatsApp and Slack for inbound image understanding
 - Configured with `GEMINI_API_KEY` and optional `PYKOCLAW_VISION_MODEL`
+
+### [`pykoclaw-pykofinder`](pykoclaw-pykofinder/README.md) — Plugin repository
+
+Rewrites local workspace file references in agent replies into Pykofinder URLs
+for channels that cannot open host-local paths directly.
+
+- Plain file links become viewer URLs using `/f/?path=<absolute-path>`
+- Image/static embeds become raw-file URLs using `/w/<workspace>/<relative-path>`
+- Supports Markdown links, image embeds, Obsidian wikilinks, and HTML `<img>` tags
+- Preserves absolute local image paths for channels with native attachment support
 
 [slackify-markdown]: https://pypi.org/project/slackify-markdown/
 
@@ -241,18 +255,34 @@ Matrix-specific settings: see [pykoclaw-matrix README].
 Slack and vision settings are documented inline in this workspace README and in
 package source until dedicated package READMEs are added.
 
-## Data directory layout
+## Configuration and data directory layout
+
+Global configuration (XDG config dir, respects `XDG_CONFIG_HOME`):
+
+```
+~/.config/pykoclaw/
+  .env                       # Global settings (PYKOCLAW_* vars)
+```
+
+Data directory (default `~/.local/share/pykoclaw/`, override with `PYKOCLAW_DATA`):
 
 ```
 ~/.local/share/pykoclaw/
   pykoclaw.db                # SQLite database
-  .env                       # Environment overrides (optional)
+  .env                       # Per-workspace overrides (loaded when PYKOCLAW_DATA points here)
   history                    # Readline history (shared)
   CLAUDE.md                  # Global system prompt (user-editable)
   conversations/
     <name>/                  # Per-conversation working directory
       CLAUDE.md              # Per-conversation instructions
 ```
+
+`.env` load order (lowest → highest priority):
+
+1. `~/.config/pykoclaw/.env` — global config
+2. `$PYKOCLAW_DATA/.env` — per-workspace override (only when `PYKOCLAW_DATA` env var is set)
+3. CWD `.env`
+4. Environment variables (always win)
 
 ## Writing a plugin
 

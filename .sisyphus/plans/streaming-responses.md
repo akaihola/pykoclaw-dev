@@ -1,6 +1,7 @@
 # Streaming Responses in Mitto
 
-## Status: Backlog
+## Status: Done
+## Completed: 2026-03-01
 ## Priority: 3
 
 ## TL;DR

@@ -26,7 +26,7 @@ if [ ! -d "$MAIN_CHECKOUT" ]; then
     exit 1
 fi
 
-DEV_ROOT="$HOME/pykoclaw-dev"
+DEV_ROOT="$HOME/prg/pykoclaw-worktrees"
 
 AOE_BIN=""
 if command -v aoe >/dev/null 2>&1; then
@@ -35,16 +35,18 @@ elif [ -x "$HOME/.cargo/bin/aoe" ]; then
     AOE_BIN="$HOME/.cargo/bin/aoe"
 fi
 
-SUBREPOS=(
-    "pykoclaw"
-    "pykoclaw-acp"
-    "pykoclaw-chat"
-    "pykoclaw-whatsapp"
-    "pykoclaw-messaging"
-    "pykoclaw-matrix"
-    "pykoclaw-slack"
-    "pykoclaw-vision"
+# Auto-detect subrepos: every subdirectory of MAIN_CHECKOUT that has both a
+# pyproject.toml and a .git entry (file or directory).  No manual list needed —
+# new packages are picked up automatically.
+mapfile -t SUBREPOS < <(
+    for d in "$MAIN_CHECKOUT"/*/; do
+        [[ -f "${d}pyproject.toml" ]] && [[ -e "${d}.git" ]] && basename "$d"
+    done
 )
+[[ ${#SUBREPOS[@]} -gt 0 ]] || {
+    echo "Error: no subrepos detected under $MAIN_CHECKOUT" >&2
+    exit 1
+}
 
 if [ -z "${1:-}" ]; then
     echo "Error: Feature name required" >&2
