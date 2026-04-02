@@ -13,6 +13,10 @@
 - [ ] Bot replies to thread messages from soft triggers (timeout, passive observers) land in the main channel instead of staying in the thread. See plan `slack-thread-ts-soft-trigger.md`.
 - [ ] Paranna `pykoclaw-slack`-agentin system prompt -injektiota ja/tai `send_slack_message`-työkalun ohjetekstiä: työkalu on tarkoitettu _aloittamaan_ viestejä muilla kanavilla, ei koskaan vastaamaan ketjussa – tämä pitää olla yksiselitteisesti kirjattu ohjeistukseen niin ettei agentti käytä sitä ketjuvastauksiin. Katso myös [`pykoclaw-slack/backlog/001-duplicate-slack-responses.md`](pykoclaw-slack/backlog/001-duplicate-slack-responses.md) (H1) — epäselvä ohjeistus on yksi mahdollinen syy kaksinkertaisiin vastauksiin.
 
+## Pykoclaw Core
+
+- [ ] Lisää `pykoclaw/src/pykoclaw/agent_core.py`:lle tuki repo-lokaalin `.mcp.json`-tiedoston `mcpServers`-osion stdio-palvelimille: lue `cwd`-hakemistosta, suodata stdio-entryt, mergeä ne turvallisesti runtime-`mcp_servers`-dictiin ennen `ClaudeAgentOptions`-olion luontia. Katso plan `/home/agent/prg/pykoclaw-dev/.sisyphus/plans/project-local-mcp-json-stdio-servers.md`.
+
 ## Pykofinder Plugin
 
 - [x] Turn `/home/agent/prg/pykoclaw-worktrees/pykoclaw-pykofinder/.sisyphus/plans/pykoclaw-pykofinder.md` into a repo/file implementation checklist
